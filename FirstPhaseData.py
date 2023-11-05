@@ -4,6 +4,11 @@ import scipy
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.impute import SimpleImputer
+import pandas as pd
+from sklearn.impute import KNNImputer
+
+#df = pd.DataFrame()
 
 # left IFG (BA44/45; 523 voxels) and the left STG/MTG (7238 voxels) as both are relevant
 # for the task but the left IFG should differentiate between groups (N,D,S)
@@ -37,6 +42,13 @@ STG_data = scipy.io.loadmat("./left_STG_MTG_AALlable_ROI.rex.mat")
 STG_data["R"].shape  # (488, 7238)
 
 STG_raw = STG_data["R"]
+
+miss_mean_imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
+miss_mean_imputer.fit(STG_raw)
+imputed_data = miss_mean_imputer.transform(STG_raw)
+
+imputer = KNNImputer(n_neighbors=2)
+knn_imputed = imputer.fit_transform(STG_raw)
 
 STG_without_nan = STG_raw[:, ~np.isnan(STG_raw).any(axis=0)]
 
