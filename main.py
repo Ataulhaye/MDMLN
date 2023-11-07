@@ -16,7 +16,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.tree import DecisionTreeClassifier
 
 from FirstPhaseData import PrepareData, normalize_data
-from init import evaluate_models, k_fold
+from init import evaluate_models, k_fold_training_and_validation, train_and_test_model_accuracy
 
 
 def run_evaluation():
@@ -53,15 +53,15 @@ def run_evaluation():
 
     print("----------------------------")
     svm_clf = svm.SVC(kernel="linear", C=1)
-    svm_scores = k_fold(svm_clf, X, y)
+    svm_scores = k_fold_training_and_validation(svm_clf, X, y)
 
     print("----------------------------")
     dtree_clf = DecisionTreeClassifier(random_state=0)
-    dtree_scores = k_fold(dtree_clf, X, y)
+    dtree_scores = k_fold_training_and_validation(dtree_clf, X, y)
 
     print("----------------------------")
     knc = KNeighborsClassifier(n_neighbors=3)
-    knc_scores = k_fold(knc, X, y)
+    knc_scores = k_fold_training_and_validation(knc, X, y)
 
     print("----------------------------------------------------")
     evaluate_models(svm_scores, svm_clf, dtree_scores, dtree_clf)
@@ -69,8 +69,7 @@ def run_evaluation():
     evaluate_models(svm_scores, svm_clf, knc_scores, knc)
     print("----------------------------------------------------")
 
-
-def classify_STG():
+def classify_STG_on_image_labels():
     data = PrepareData()
     STG = normalize_data(data.STG_raw)
     # STG_nan = normalize_data(data.STG_raw, "nn")
@@ -78,15 +77,15 @@ def classify_STG():
 
     print("----------------------------")
     svm_clf = svm.SVC(kernel="linear", C=1)
-    svm_scores = k_fold(svm_clf, STG, data.subject_labels)
+    svm_scores = k_fold_training_and_validation(svm_clf, STG, data.image_labels)
 
     print("----------------------------")
     dtree_clf = DecisionTreeClassifier(random_state=0)
-    dtree_scores = k_fold(dtree_clf, STG, data.subject_labels)
+    dtree_scores = k_fold_training_and_validation(dtree_clf, STG, data.image_labels)
 
     print("----------------------------")
     knc = KNeighborsClassifier(n_neighbors=3)
-    knc_scores = k_fold(knc, STG, data.subject_labels)
+    knc_scores = k_fold_training_and_validation(knc, STG, data.image_labels)
 
     print("----------------------------------------------------")
     evaluate_models(svm_scores, svm_clf, dtree_scores, dtree_clf)
@@ -94,7 +93,16 @@ def classify_STG():
     evaluate_models(svm_scores, svm_clf, knc_scores, knc)
     print("----------------------------------------------------")
 
+def classify_STG_on_subject_labels():
+    pass
+
+def test():
+    data = PrepareData()
+    STG = normalize_data(data.STG_raw)
+    # STG_nan = normalize_data(data.STG_raw, "nn")
+    train_and_test_model_accuracy(STG, data.subject_labels, "hzhz", 1, 0.2)
 
 if __name__ == "__main__":
     # pass
-    classify_STG()
+    test()
+    #classify_STG_on_image_labels()
