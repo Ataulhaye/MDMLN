@@ -15,6 +15,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import make_pipeline
 from sklearn.tree import DecisionTreeClassifier
 
+from FirstPhaseData import PrepareData, normalize_data
 from init import evaluate_models, k_fold
 
 
@@ -69,6 +70,31 @@ def run_evaluation():
     print("----------------------------------------------------")
 
 
+def classify_STG():
+    data = PrepareData()
+    STG = normalize_data(data.STG_raw)
+    # STG_nan = normalize_data(data.STG_raw, "nn")
+    IFG = normalize_data(data.IFG_raw)
+
+    print("----------------------------")
+    svm_clf = svm.SVC(kernel="linear", C=1)
+    svm_scores = k_fold(svm_clf, STG, data.subject_labels)
+
+    print("----------------------------")
+    dtree_clf = DecisionTreeClassifier(random_state=0)
+    dtree_scores = k_fold(dtree_clf, STG, data.subject_labels)
+
+    print("----------------------------")
+    knc = KNeighborsClassifier(n_neighbors=3)
+    knc_scores = k_fold(knc, STG, data.subject_labels)
+
+    print("----------------------------------------------------")
+    evaluate_models(svm_scores, svm_clf, dtree_scores, dtree_clf)
+    print("----------------------------------------------------")
+    evaluate_models(svm_scores, svm_clf, knc_scores, knc)
+    print("----------------------------------------------------")
+
+
 if __name__ == "__main__":
     # pass
-    run_evaluation()
+    classify_STG()

@@ -8,6 +8,8 @@ from sklearn.model_selection import train_test_split
 def k_fold(classifier, X, y, folds=10):
     score_array = []
     for i in range(folds):
+        # split the data set randomly into test and train sets
+        # random_state=some number will always output the same sets by every execution
         f_train, f_test, t_train, t_test = train_test_split(X, y, test_size=0.2)
         classifier.fit(f_train, t_train)
         score_array.append(classifier.score(f_test, t_test))
