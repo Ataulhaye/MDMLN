@@ -2,7 +2,6 @@ import random
 
 import numpy as np
 import scipy.stats as stats
-from sklearn.model_selection import train_test_split
 from sklearn import datasets, metrics, preprocessing, svm
 from sklearn.model_selection import (
     ShuffleSplit,
@@ -28,20 +27,43 @@ def k_fold_training_and_validation(classifier, X, y, folds=10, test_size=0.2):
         "%0.2f accuracy with a standard deviation of %0.2f"
         % (score_array.mean(), score_array.std())
     )
+    print("-------------------------------------")
     return score_array
 
 
-def train_and_test_model_accuracy(X, y, classifier="svm", folds=1, test_size=0.3, popmean=0.3, significance_level=0.05):
-    if classifier=="svm":
-        classifier = svm.SVC(kernel="linear", C=1)
-    elif classifier=="n_neighbors":
-        classifier = DecisionTreeClassifier(random_state=0)
-    elif classifier=="decisiontree":
-        classifier = KNeighborsClassifier(n_neighbors=3)
-    else:
-        raise TypeError("Classifier Not Supported ")
+def train_and_test_model_accuracy(
+    X, y, classifier="svm", folds=5, test_size=0.3, popmean=0.3, significance_level=0.05
+):
+    """Performe k-Fold classification, training and testing
+    Args:
+        X (_type_): numpy.ndarray data
+        y (_type_): numpy.ndarray labels
+        classifier (str, optional): _description_. Defaults to "svm" SVC kernal is linear.
+        if 'n_neighbors' then KNeighborsClassifier
+        if 'decisiontree' then DecisionTreeClassifier
+        folds (int, optional): _description_. Defaults to 5.
+        test_size (float, optional): size of test data. Defaults to 0.3.
+        popmean (float, optional): popmean of data. Defaults to 0.3.
+        significance_level (float, optional): significance level of 0.05 indicates a 5% risk of concluding that a difference exists when there is no actual difference. Defaults to 0.05.
 
-    scores =  k_fold_training_and_validation(classifier, X, y, folds=folds, test_size=test_size)
+    Raises:
+        TypeError: _description_
+
+    Returns:
+        _type_: _description_
+    """
+    if classifier == "svm":
+        classifier = svm.SVC(kernel="linear", C=1)
+    elif classifier == "n_neighbors":
+        classifier = KNeighborsClassifier(n_neighbors=3)
+    elif classifier == "decisiontree":
+        classifier = DecisionTreeClassifier(random_state=0)
+    else:
+        raise TypeError("Classifier Not Supported")
+
+    scores = k_fold_training_and_validation(
+        classifier, X, y, folds=folds, test_size=test_size
+    )
     t_statistic, p_value = stats.ttest_1samp(a=scores, popmean=popmean)
     # p value less then 0.05 consider to be significant, greater then 0.05 is consider not to be significant
     print("t_statistic , p_value", t_statistic, p_value)
@@ -49,15 +71,12 @@ def train_and_test_model_accuracy(X, y, classifier="svm", folds=1, test_size=0.3
     classifier_name = {type(classifier).__name__}
 
     if p_value > significance_level:
-        print(
-            f"Performance of the {classifier_name} is not significantly different. P-value is:",
-            p_value,
-        )  # in this case unable to reject the H0
+        return f"Performance of the {classifier_name} is not significantly different. P-value is: {p_value}"
+        # in this case unable to reject the H0
     else:
         percent = "{:0.2f}%".format((scores.mean() * 100))
-        print(
-                f"{classifier_name} performance is better than by chance", percent
-            )
+        return f"{classifier_name} performance is better than by chance {percent}"
+
 
 def evaluate_models(
     est1_scores, estimator1, est2_scores, estimator2, significance_level=0.05

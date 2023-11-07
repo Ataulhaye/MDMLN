@@ -16,7 +16,11 @@ from sklearn.pipeline import make_pipeline
 from sklearn.tree import DecisionTreeClassifier
 
 from FirstPhaseData import PrepareData, normalize_data
-from init import evaluate_models, k_fold_training_and_validation, train_and_test_model_accuracy
+from init import (
+    evaluate_models,
+    k_fold_training_and_validation,
+    train_and_test_model_accuracy,
+)
 
 
 def run_evaluation():
@@ -69,6 +73,7 @@ def run_evaluation():
     evaluate_models(svm_scores, svm_clf, knc_scores, knc)
     print("----------------------------------------------------")
 
+
 def classify_STG_on_image_labels():
     data = PrepareData()
     STG = normalize_data(data.STG_raw)
@@ -93,16 +98,58 @@ def classify_STG_on_image_labels():
     evaluate_models(svm_scores, svm_clf, knc_scores, knc)
     print("----------------------------------------------------")
 
-def classify_STG_on_subject_labels():
-    pass
 
-def test():
+def classify_STG(folds=5):
     data = PrepareData()
     STG = normalize_data(data.STG_raw)
-    # STG_nan = normalize_data(data.STG_raw, "nn")
-    train_and_test_model_accuracy(STG, data.subject_labels, "hzhz", 1, 0.2)
+
+    result1 = train_and_test_model_accuracy(STG, data.subject_labels, "svm", folds, 0.3)
+    print(result1)
+    print("######################")
+
+    result2 = train_and_test_model_accuracy(
+        STG, data.subject_labels, "n_neighbors", folds, 0.3
+    )
+    print(result2)
+    print("######################")
+
+    result3 = train_and_test_model_accuracy(STG, data.image_labels, "svm", folds, 0.3)
+    print(result3)
+    print("######################")
+
+    result4 = train_and_test_model_accuracy(
+        STG, data.image_labels, "n_neighbors", folds, 0.3
+    )
+    print(result4)
+    print("######################")
+
+
+def classify_IFG(folds=5):
+    data = PrepareData()
+    IFG = normalize_data(data.IFG_raw)
+
+    result1 = train_and_test_model_accuracy(IFG, data.subject_labels, "svm", folds, 0.3)
+    print(result1)
+    print("######################")
+
+    result2 = train_and_test_model_accuracy(
+        IFG, data.subject_labels, "n_neighbors", folds, 0.3
+    )
+    print(result2)
+    print("######################")
+
+    result3 = train_and_test_model_accuracy(IFG, data.image_labels, "svm", folds, 0.3)
+    print(result3)
+    print("######################")
+
+    result4 = train_and_test_model_accuracy(
+        IFG, data.image_labels, "n_neighbors", folds, 0.3
+    )
+    print(result4)
+    print("######################")
+
 
 if __name__ == "__main__":
     # pass
-    test()
-    #classify_STG_on_image_labels()
+    classify_STG(folds=2)
+    classify_IFG(folds=2)
