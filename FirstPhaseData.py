@@ -7,6 +7,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.impute import SimpleImputer
 import pandas as pd
 from sklearn.impute import KNNImputer
+import plotly.graph_objs as go
 
 #df = pd.DataFrame()
 
@@ -43,6 +44,15 @@ STG_data["R"].shape  # (488, 7238)
 
 STG_raw = STG_data["R"]
 
+fig = go.Figure()
+i = 0
+for row in STG_raw:
+    py_list = list(row)
+    fig.add_trace(go.Scatter(y=py_list, name=f"{subject_labels[i]}{image_labels[i]}"))
+    i += 1
+fig.show()
+
+
 miss_mean_imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
 miss_mean_imputer.fit(STG_raw)
 imputed_data = miss_mean_imputer.transform(STG_raw)
@@ -52,6 +62,12 @@ knn_imputed = imputer.fit_transform(STG_raw)
 
 STG_without_nan = STG_raw[:, ~np.isnan(STG_raw).any(axis=0)]
 
+
+
+
+#for i in c1:
+    #plt.plot(*zip(*i), 'o-')
+#plt.show()
 
 rows = []
 for row in STG_raw:
