@@ -21,13 +21,16 @@ def k_fold_training_and_validation(classifier, X, y, folds=10, test_size=0.2):
         f_train, f_test, t_train, t_test = train_test_split(X, y, test_size=test_size)
         classifier.fit(f_train, t_train)
         score_array.append(classifier.score(f_test, t_test))
-    print(f"score_array using {type(classifier).__name__}:", score_array)
+    print(
+        f"scores using {type(classifier).__name__} with {folds}-fold cross-validation:",
+        score_array,
+    )
     score_array = np.array(score_array)
     print(
-        "%0.2f accuracy with a standard deviation of %0.2f"
+        f"{type(classifier).__name__}: %0.2f accuracy with a standard deviation of %0.2f"
         % (score_array.mean(), score_array.std())
     )
-    print("-------------------------------------")
+    # print("-------------------------------------")
     return score_array
 
 
@@ -61,21 +64,25 @@ def train_and_test_model_accuracy(
     else:
         raise TypeError("Classifier Not Supported")
 
+    classifier_name = type(classifier).__name__
+
     scores = k_fold_training_and_validation(
         classifier, X, y, folds=folds, test_size=test_size
     )
     t_statistic, p_value = stats.ttest_1samp(a=scores, popmean=popmean)
     # p value less then 0.05 consider to be significant, greater then 0.05 is consider not to be significant
-    print("t_statistic , p_value", t_statistic, p_value)
+    print(
+        f"{type(classifier).__name__} test results are: t_statistic , p_value",
+        t_statistic,
+        p_value,
+    )
 
-    classifier_name = {type(classifier).__name__}
-
-    if p_value > significance_level:
+    if p_value < significance_level:
         return f"Performance of the {classifier_name} is not significantly different. P-value is: {p_value}"
-        # in this case unable to reject the H0
+        # in this case rejecting null hypothesis
     else:
         percent = "{:0.2f}%".format((scores.mean() * 100))
-        return f"{classifier_name} performance is better than by chance {percent}"
+        return f"{classifier_name} classifier performance is better than by chance {percent}"
 
 
 def evaluate_models(

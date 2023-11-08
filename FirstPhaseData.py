@@ -19,7 +19,8 @@ def normalize_data(data, strategy="mean"):
         If "median", then replace missing values using the median along each column. Can only be used with numeric data.
         If "most_frequent", then replace missing using the most frequent value along each column. Can be used with strings or numeric data. If there is more than one such value, only the smallest is returned.
         If "constant", then replace missing values with fill_value. Can be used with strings or numeric data.
-        if "remove", then all voxels(columns) contains nans will be removed
+        if "remove-columns", then all columns contains nans will be removed
+        if "remove-voxels", then all voxels(rows) contains nans will be removed
         if "nn", nearest neighbour approach, default is 2 neighbours
 
     Returns:
@@ -28,8 +29,10 @@ def normalize_data(data, strategy="mean"):
     if strategy == "nn":
         imputer = KNNImputer(n_neighbors=2)
         return imputer.fit_transform(data)
-    elif strategy == "remove":
+    elif strategy == "remove-columns":
         return data[:, ~np.isnan(data).any(axis=0)]
+    elif strategy == "remove-voxels":
+        return NotImplementedError
     else:
         imputer = SimpleImputer(missing_values=np.nan, strategy=strategy)
         imputer.fit(data)
@@ -52,18 +55,6 @@ class PrepareData:
         self.image_labels = np.array(["AR", "AU", "CR", "CU"] * (43 + 33 + 46))
 
 
-# df = pd.DataFrame()
-
-# left IFG (BA44/45; 523 voxels) and the left STG/MTG (7238 voxels) as both are relevant
-# for the task but the left IFG should differentiate between groups (N,D,S)
-# 43 N 33 D 46 S x 4 images [AR, AU, CR, CU]
-print((43 + 33 + 46) * 4)
-
-# Labels
-subject_labels = ["N"] * 4 * 43 + ["D"] * 4 * 33 + ["S"] * 4 * 46
-# subject_labels 172=N, 132=D, 184=S sumup to 488
-image_labels = ["AR", "AU", "CR", "CU"] * (43 + 33 + 46)
-
 # Ata:
 # Test different classifiers with the MTG and IFG
 # Try to classify the subjects labes and image labels
@@ -76,10 +67,22 @@ image_labels = ["AR", "AU", "CR", "CU"] * (43 + 33 + 46)
 # Tuhera: Unraveling The Computational Basis Of Mental Disorders Using Task Specific Artificial Nueral NEtworks
 # Ata: Using Machine Learning to Diagnose Mental Disorders from Neuroimaging Data
 
+# df = pd.DataFrame()
+
+# left IFG (BA44/45; 523 voxels) and the left STG/MTG (7238 voxels) as both are relevant
+# for the task but the left IFG should differentiate between groups (N,D,S)
+# 43 N 33 D 46 S x 4 images [AR, AU, CR, CU]
+# print((43 + 33 + 46) * 4)
+
+# Labels
+subject_labels = ["N"] * 4 * 43 + ["D"] * 4 * 33 + ["S"] * 4 * 46
+# subject_labels 172=N, 132=D, 184=S sumup to 488
+image_labels = ["AR", "AU", "CR", "CU"] * (43 + 33 + 46)
+
 
 allL = [sb + im for sb, im in zip(subject_labels, image_labels)]
 
-print(set(allL))
+# print(set(allL))
 
 STG = scipy.io.loadmat("./left_STG_MTG_AALlable_ROI.rex.mat")
 
@@ -97,19 +100,6 @@ IFG_raw = IFG["R"]
 # 172, 132 and 184
 # nans are errors or?
 # hardcoded means it known for that data
-
-
-# stg_normalized = normalize_data(STG_raw)
-
-
-miss_mean_imputer = SimpleImputer(missing_values=np.nan, strategy="mean")
-miss_mean_imputer.fit(STG_raw)
-imputed_data = miss_mean_imputer.transform(STG_raw)
-
-imputer = KNNImputer(n_neighbors=2)
-knn_imputed = imputer.fit_transform(STG_raw)
-
-STG_without_nan = STG_raw[:, ~np.isnan(STG_raw).any(axis=0)]
 
 x = [i for i in range(7238)]
 
