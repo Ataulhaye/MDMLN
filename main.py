@@ -105,46 +105,50 @@ def classify_STG(folds=5, test_size=0.3):
 
     print("---------------------------------------------------")
 
+    print("Subject labels STG:")
     result1 = train_and_test_model_accuracy(
         X=STG,
         y=data.subject_labels,
         classifier="svm",
         folds=folds,
         test_size=test_size,
-        popmean=0,
+        popmean=0.33,
     )
     print(result1)
     print("---------------------------------------------------")
 
+    print("Subject labels STG:")
     result2 = train_and_test_model_accuracy(
         X=STG,
         y=data.subject_labels,
         classifier="n_neighbors",
         folds=folds,
         test_size=test_size,
-        popmean=0,
+        popmean=0.33,
     )
     print(result2)
     print("---------------------------------------------------")
 
+    print("Image labels STG:")
     result3 = train_and_test_model_accuracy(
         X=STG,
         y=data.image_labels,
         classifier="svm",
         folds=folds,
         test_size=test_size,
-        popmean=0,
+        popmean=0.25,
     )
     print(result3)
     print("---------------------------------------------------")
 
+    print("Image labels STG:")   
     result4 = train_and_test_model_accuracy(
         X=STG,
         y=data.image_labels,
         classifier="n_neighbors",
         folds=folds,
         test_size=test_size,
-        popmean=0,
+        popmean=0.25,
     )
     print(result4)
     print("---------------------------------------------------")
@@ -156,46 +160,50 @@ def classify_IFG(folds=5, test_size=0.3):
 
     print("---------------------------------------------------")
 
+    print("Subject labels IFG:")
     result1 = train_and_test_model_accuracy(
         X=IFG,
         y=data.subject_labels,
         classifier="svm",
         folds=folds,
         test_size=test_size,
-        popmean=0,
+        popmean=0.33,
     )
     print(result1)
     print("---------------------------------------------------")
 
+    print("Subject labels IFG:")
     result2 = train_and_test_model_accuracy(
         X=IFG,
         y=data.subject_labels,
         classifier="n_neighbors",
         folds=folds,
         test_size=test_size,
-        popmean=0,
+        popmean=0.33,
     )
     print(result2)
     print("---------------------------------------------------")
 
+    print("Image labels IFG:")
     result3 = train_and_test_model_accuracy(
         X=IFG,
         y=data.image_labels,
         classifier="svm",
         folds=folds,
         test_size=test_size,
-        popmean=0,
+        popmean=0.25,
     )
     print(result3)
     print("---------------------------------------------------")
 
+    print("Image labels IFG:")
     result4 = train_and_test_model_accuracy(
         X=IFG,
         y=data.image_labels,
         classifier="n_neighbors",
         folds=folds,
         test_size=test_size,
-        popmean=0,
+        popmean=0.25,
     )
     print(result4)
     print("---------------------------------------------------")
@@ -203,5 +211,5 @@ def classify_IFG(folds=5, test_size=0.3):
 
 if __name__ == "__main__":
     # pass
-    classify_STG(folds=2)
-    classify_IFG(folds=2)
+    classify_STG(folds=20)
+    classify_IFG(folds=20)

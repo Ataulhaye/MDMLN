@@ -79,7 +79,7 @@ def train_and_test_model_accuracy(
 
     if p_value < significance_level:
         return f"Performance of the {classifier_name} is not significantly different. P-value is: {p_value}"
-        # in this case rejecting null hypothesis
+        # in this case rejecting null hypothesis, calssifier is not performing bettter than chance
     else:
         percent = "{:0.2f}%".format((scores.mean() * 100))
         return f"{classifier_name} classifier performance is better than by chance {percent}"
