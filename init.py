@@ -3,12 +3,14 @@ import random
 import numpy as np
 import scipy.stats as stats
 from sklearn import datasets, metrics, preprocessing, svm
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.model_selection import (
     ShuffleSplit,
     cross_val_score,
     cross_validate,
     train_test_split,
 )
+from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 
@@ -61,6 +63,12 @@ def train_and_test_model_accuracy(
         classifier = KNeighborsClassifier(n_neighbors=3)
     elif classifier == "decisiontree":
         classifier = DecisionTreeClassifier(random_state=0)
+    elif classifier == "gaussian":
+        raise NotImplementedError()
+        # classifier = GaussianNB()
+    elif classifier == "lineardiscriminant":
+        raise NotImplementedError()
+        # classifier = LinearDiscriminantAnalysis()
     else:
         raise TypeError("Classifier Not Supported")
 
