@@ -91,7 +91,7 @@ def train_and_test_model_accuracy(
     if p_value <= significance_level:
         percent = "{:0.2f}%".format((scores.mean() * 100))
         return f"Performance of the {classifier_name} is significant. {percent}"
-        # in this case rejecting null hypothesis, calssifier is not performing bettter than chance
+        # in this case rejecting null hypothesis: calssifier is performing as good as by chance
     else:
         return f"{classifier_name} classifier performance is not significant. P-value is: {p_value}"
 
