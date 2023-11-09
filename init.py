@@ -3,6 +3,7 @@ import random
 import numpy as np
 import scipy.stats as stats
 from sklearn import datasets, metrics, preprocessing, svm
+from sklearn.base import BaseEstimator
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.model_selection import (
     ShuffleSplit,
@@ -15,14 +16,16 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 
 
-def k_fold_training_and_validation(classifier, X, y, folds=10, test_size=0.2):
+def k_fold_training_and_validation(
+    classifier: BaseEstimator, X, y, folds=10, test_size=0.2
+):
     score_array = []
     for i in range(folds):
         # split the data set randomly into test and train sets
         # random_state=some number will always output the same sets by every execution
-        f_train, f_test, t_train, t_test = train_test_split(X, y, test_size=test_size)
-        classifier.fit(f_train, t_train)
-        score_array.append(classifier.score(f_test, t_test))
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
+        classifier.fit(X_train, y_train)
+        score_array.append(classifier.score(X_test, y_test))
     print(
         f"scores using {type(classifier).__name__} with {folds}-fold cross-validation:",
         score_array,
@@ -75,7 +78,7 @@ def train_and_test_model_accuracy(
     classifier_name = type(classifier).__name__
 
     scores = k_fold_training_and_validation(
-        classifier, X, y, folds=folds, test_size=test_size
+        classifier=classifier, X=X, y=y, folds=folds, test_size=test_size
     )
     t_statistic, p_value = stats.ttest_1samp(a=scores, popmean=popmean)
     # p value less then 0.05 consider to be significant, greater then 0.05 is consider not to be significant
@@ -85,12 +88,12 @@ def train_and_test_model_accuracy(
         p_value,
     )
 
-    if p_value < significance_level:
-        return f"Performance of the {classifier_name} is not significantly different. P-value is: {p_value}"
+    if p_value <= significance_level:
+        percent = "{:0.2f}%".format((scores.mean() * 100))
+        return f"Performance of the {classifier_name} is significant. {percent}"
         # in this case rejecting null hypothesis, calssifier is not performing bettter than chance
     else:
-        percent = "{:0.2f}%".format((scores.mean() * 100))
-        return f"{classifier_name} classifier performance is better than by chance {percent}"
+        return f"{classifier_name} classifier performance is not significant. P-value is: {p_value}"
 
 
 def evaluate_models(

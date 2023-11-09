@@ -141,7 +141,7 @@ def classify_STG(folds=5, test_size=0.3):
     print(result3)
     print("---------------------------------------------------")
 
-    print("Image labels STG:")   
+    print("Image labels STG:")
     result4 = train_and_test_model_accuracy(
         X=STG,
         y=data.image_labels,
@@ -209,7 +209,20 @@ def classify_IFG(folds=5, test_size=0.3):
     print("---------------------------------------------------")
 
 
+def classify_IRIS():
+    X, y = datasets.load_iris(return_X_y=True)
+    result = train_and_test_model_accuracy(
+        X=X,
+        y=y,
+        classifier="svm",
+        test_size=0.3,
+        popmean=0.33,
+    )
+    print(result)
+
+
 if __name__ == "__main__":
     # pass
-    classify_STG(folds=20)
-    classify_IFG(folds=20)
+    classify_STG(folds=50)
+    classify_IFG(folds=50)
+# classify_IRIS()
