@@ -93,7 +93,7 @@ def train_and_test_model_accuracy(
         return f"Performance of the {classifier_name} is significant. {percent}"
         # in this case rejecting null hypothesis: calssifier is performing as good as by chance
     else:
-        return f"{classifier_name} classifier performance is not significant. P-value is: {p_value}"
+        return f"{classifier_name} classifier performance is not significant. P-value is: {p_value}"  # not significantly different by chance
 
 
 def evaluate_models(
