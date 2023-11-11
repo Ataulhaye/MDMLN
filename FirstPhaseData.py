@@ -1,7 +1,5 @@
 import numpy as np
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objs as go
 import scipy
 from sklearn import datasets
 from sklearn.impute import KNNImputer, SimpleImputer
@@ -48,11 +46,15 @@ class PrepareData:
 
         self.IFG_raw = IFG["R"]
 
-        self.all_labels = [sb + im for sb, im in zip(subject_labels, image_labels)]
         # Labels
         self.subject_labels = np.array(["N"] * 4 * 43 + ["D"] * 4 * 33 + ["S"] * 4 * 46)
         # subject_labels 172=N, 132=D, 184=S sumup to 488
+
         self.image_labels = np.array(["AR", "AU", "CR", "CU"] * (43 + 33 + 46))
+
+        self.all_labels = [
+            sb + im for sb, im in zip(self.subject_labels, self.image_labels)
+        ]
 
 
 # Ata:
@@ -74,6 +76,17 @@ class PrepareData:
 # 43 N 33 D 46 S x 4 images [AR, AU, CR, CU]
 # print((43 + 33 + 46) * 4)
 
+
+# what are exactly AR, AU, CR and CU
+# 172, 132 and 184
+# nans are errors or?
+# hardcoded means it known for that data
+
+# STG = np.array(
+#    rows,
+# )
+
+"""
 # Labels
 subject_labels = ["N"] * 4 * 43 + ["D"] * 4 * 33 + ["S"] * 4 * 46
 # subject_labels 172=N, 132=D, 184=S sumup to 488
@@ -96,13 +109,15 @@ IFG["R"].shape
 
 IFG_raw = IFG["R"]
 
-# what are exactly AR, AU, CR and CU
-# 172, 132 and 184
-# nans are errors or?
-# hardcoded means it known for that data
-
-x = [i for i in range(7238)]
-
+"""
+"""
+rows = []
+for row in STG_raw:
+print(len(row))
+row = [x for x in row if ~np.isnan(x)]
+rows.append(row)
+print(len(row))
+print("----------------")
 
 def plot_with_0():
     rows = []
@@ -135,20 +150,5 @@ def plot_with_nan():
         )
         i += 1
     fig.show()
-
-    """
-    rows = []
-for row in STG_raw:
-    print(len(row))
-    row = [x for x in row if ~np.isnan(x)]
-    rows.append(row)
-    print(len(row))
-    print("----------------")
-
     
-    """
-
-
-# STG = np.array(
-#    rows,
-# )
+"""

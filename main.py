@@ -221,8 +221,32 @@ def classify_IRIS():
     print(result)
 
 
+def classify_data(
+    classifiers, labels, data, strategies, popmean, folds=5, test_size=0.3
+):
+    for strategy in strategies:
+        X = normalize_data(data, strategy=strategy)
+        print("---------------------------------------------------")
+
+        for classifier in classifiers:
+            print("llllllllll")
+            results = train_and_test_model_accuracy(
+                X=X,
+                y=labels,
+                classifier=classifier,
+                folds=folds,
+                test_size=test_size,
+                popmean=popmean,
+            )
+            print(results)
+            # ToDo return a object and save in the dict
+            # return the dict
+            # export the data in another function to a file
+            print("---------------------------------------------------")
+
+
 if __name__ == "__main__":
     # pass
-    classify_STG(folds=50)
-    classify_IFG(folds=50)
+    classify_STG(folds=1)
+    classify_IFG(folds=1)
 # classify_IRIS()
