@@ -15,12 +15,9 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import make_pipeline
 from sklearn.tree import DecisionTreeClassifier
 
-from FirstPhaseData import PrepareData, normalize_data
-from init import (
-    evaluate_models,
-    k_fold_training_and_validation,
-    train_and_test_model_accuracy,
-)
+from BrainData import BrainData
+from DataTraining import DataTraining
+from EvaluateTrainingModel import EvaluateTrainingModel
 
 
 def run_evaluation():
@@ -57,56 +54,56 @@ def run_evaluation():
 
     print("----------------------------")
     svm_clf = svm.SVC(kernel="linear", C=1)
-    svm_scores = k_fold_training_and_validation(svm_clf, X, y)
+    svm_scores = DataTraining().k_fold_training_and_validation(svm_clf, X, y)
 
     print("----------------------------")
     dtree_clf = DecisionTreeClassifier(random_state=0)
-    dtree_scores = k_fold_training_and_validation(dtree_clf, X, y)
+    dtree_scores = DataTraining().k_fold_training_and_validation(dtree_clf, X, y)
 
     print("----------------------------")
     knc = KNeighborsClassifier(n_neighbors=3)
-    knc_scores = k_fold_training_and_validation(knc, X, y)
+    knc_scores = DataTraining().k_fold_training_and_validation(knc, X, y)
 
     print("----------------------------------------------------")
-    evaluate_models(svm_scores, svm_clf, dtree_scores, dtree_clf)
+    EvaluateTrainingModel().evaluate_models(svm_scores, svm_clf, dtree_scores, dtree_clf)
     print("----------------------------------------------------")
-    evaluate_models(svm_scores, svm_clf, knc_scores, knc)
+    EvaluateTrainingModel().evaluate_models(svm_scores, svm_clf, knc_scores, knc)
     print("----------------------------------------------------")
 
 
 def classify_STG_on_image_labels():
-    data = PrepareData()
-    STG = normalize_data(data.STG_raw)
+    data = BrainData()
+    STG = BrainData().normalize_data(data.STG_raw)
     # STG_nan = normalize_data(data.STG_raw, "nn")
-    IFG = normalize_data(data.IFG_raw)
+    IFG = BrainData().normalize_data(data.IFG_raw)
 
     print("----------------------------")
     svm_clf = svm.SVC(kernel="linear", C=1)
-    svm_scores = k_fold_training_and_validation(svm_clf, STG, data.image_labels)
+    svm_scores = DataTraining().k_fold_training_and_validation(svm_clf, STG, data.image_labels)
 
     print("----------------------------")
     dtree_clf = DecisionTreeClassifier(random_state=0)
-    dtree_scores = k_fold_training_and_validation(dtree_clf, STG, data.image_labels)
+    dtree_scores = DataTraining().k_fold_training_and_validation(dtree_clf, STG, data.image_labels)
 
     print("----------------------------")
     knc = KNeighborsClassifier(n_neighbors=3)
-    knc_scores = k_fold_training_and_validation(knc, STG, data.image_labels)
+    knc_scores = DataTraining().k_fold_training_and_validation(knc, STG, data.image_labels)
 
     print("----------------------------------------------------")
-    evaluate_models(svm_scores, svm_clf, dtree_scores, dtree_clf)
+    EvaluateTrainingModel().evaluate_models(svm_scores, svm_clf, dtree_scores, dtree_clf)
     print("----------------------------------------------------")
-    evaluate_models(svm_scores, svm_clf, knc_scores, knc)
+    EvaluateTrainingModel().evaluate_models(svm_scores, svm_clf, knc_scores, knc)
     print("----------------------------------------------------")
 
 
 def classify_STG(folds=5, test_size=0.3):
-    data = PrepareData()
-    STG = normalize_data(data.STG_raw)
+    data = BrainData()
+    STG = BrainData().normalize_data(data.STG_raw)
 
     print("---------------------------------------------------")
 
     print("Subject labels STG:")
-    result1 = train_and_test_model_accuracy(
+    result1 = DataTraining().train_and_test_model_accuracy(
         X=STG,
         y=data.subject_labels,
         classifier="svm",
@@ -118,7 +115,7 @@ def classify_STG(folds=5, test_size=0.3):
     print("---------------------------------------------------")
 
     print("Subject labels STG:")
-    result2 = train_and_test_model_accuracy(
+    result2 = DataTraining().train_and_test_model_accuracy(
         X=STG,
         y=data.subject_labels,
         classifier="n_neighbors",
@@ -130,7 +127,7 @@ def classify_STG(folds=5, test_size=0.3):
     print("---------------------------------------------------")
 
     print("Image labels STG:")
-    result3 = train_and_test_model_accuracy(
+    result3 = DataTraining().train_and_test_model_accuracy(
         X=STG,
         y=data.image_labels,
         classifier="svm",
@@ -142,7 +139,7 @@ def classify_STG(folds=5, test_size=0.3):
     print("---------------------------------------------------")
 
     print("Image labels STG:")
-    result4 = train_and_test_model_accuracy(
+    result4 = DataTraining().train_and_test_model_accuracy(
         X=STG,
         y=data.image_labels,
         classifier="n_neighbors",
@@ -155,13 +152,13 @@ def classify_STG(folds=5, test_size=0.3):
 
 
 def classify_IFG(folds=5, test_size=0.3):
-    data = PrepareData()
-    IFG = normalize_data(data.IFG_raw)
+    data = BrainData()
+    IFG = BrainData().normalize_data(data.IFG_raw)
 
     print("---------------------------------------------------")
 
     print("Subject labels IFG:")
-    result1 = train_and_test_model_accuracy(
+    result1 = DataTraining().train_and_test_model_accuracy(
         X=IFG,
         y=data.subject_labels,
         classifier="svm",
@@ -173,7 +170,7 @@ def classify_IFG(folds=5, test_size=0.3):
     print("---------------------------------------------------")
 
     print("Subject labels IFG:")
-    result2 = train_and_test_model_accuracy(
+    result2 = DataTraining().train_and_test_model_accuracy(
         X=IFG,
         y=data.subject_labels,
         classifier="n_neighbors",
@@ -185,7 +182,7 @@ def classify_IFG(folds=5, test_size=0.3):
     print("---------------------------------------------------")
 
     print("Image labels IFG:")
-    result3 = train_and_test_model_accuracy(
+    result3 = DataTraining().train_and_test_model_accuracy(
         X=IFG,
         y=data.image_labels,
         classifier="svm",
@@ -197,7 +194,7 @@ def classify_IFG(folds=5, test_size=0.3):
     print("---------------------------------------------------")
 
     print("Image labels IFG:")
-    result4 = train_and_test_model_accuracy(
+    result4 = DataTraining().train_and_test_model_accuracy(
         X=IFG,
         y=data.image_labels,
         classifier="n_neighbors",
@@ -211,7 +208,7 @@ def classify_IFG(folds=5, test_size=0.3):
 
 def classify_IRIS():
     X, y = datasets.load_iris(return_X_y=True)
-    result = train_and_test_model_accuracy(
+    result = DataTraining().train_and_test_model_accuracy(
         X=X,
         y=y,
         classifier="svm",
@@ -225,12 +222,12 @@ def classify_data(
     classifiers, labels, data, strategies, popmean, folds=5, test_size=0.3
 ):
     for strategy in strategies:
-        X = normalize_data(data, strategy=strategy)
+        X = BrainData.normalize_data(data, strategy=strategy)
         print("---------------------------------------------------")
 
         for classifier in classifiers:
             print("llllllllll")
-            results = train_and_test_model_accuracy(
+            results = DataTraining().train_and_test_model_accuracy(
                 X=X,
                 y=labels,
                 classifier=classifier,
@@ -245,8 +242,27 @@ def classify_data(
             print("---------------------------------------------------")
 
 
+def run_test():
+    data = BrainData()
+    strategies = [
+        "mean",
+        "median",
+        "most_frequent",
+        "constant",
+        "remove-columns",
+        "remove-voxels",
+        "nn",
+    ]
+    classifiers = ["svm", "nn"]
+    labels = [data.image_labels, data.subject_labels]
+    data = data.IFG_raw
+    classify_data(classifiers, labels=labels, data=data, strategies=strategies)
+
+
 if __name__ == "__main__":
     # pass
-    classify_STG(folds=1)
-    classify_IFG(folds=1)
+    run_test()
+
+    # classify_STG(folds=1)
+    # classify_IFG(folds=1)
 # classify_IRIS()
