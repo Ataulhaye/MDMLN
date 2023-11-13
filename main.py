@@ -65,7 +65,9 @@ def run_evaluation():
     knc_scores = DataTraining().k_fold_training_and_validation(knc, X, y)
 
     print("----------------------------------------------------")
-    EvaluateTrainingModel().evaluate_models(svm_scores, svm_clf, dtree_scores, dtree_clf)
+    EvaluateTrainingModel().evaluate_models(
+        svm_scores, svm_clf, dtree_scores, dtree_clf
+    )
     print("----------------------------------------------------")
     EvaluateTrainingModel().evaluate_models(svm_scores, svm_clf, knc_scores, knc)
     print("----------------------------------------------------")
@@ -79,18 +81,26 @@ def classify_STG_on_image_labels():
 
     print("----------------------------")
     svm_clf = svm.SVC(kernel="linear", C=1)
-    svm_scores = DataTraining().k_fold_training_and_validation(svm_clf, STG, data.image_labels)
+    svm_scores = DataTraining().k_fold_training_and_validation(
+        svm_clf, STG, data.image_labels
+    )
 
     print("----------------------------")
     dtree_clf = DecisionTreeClassifier(random_state=0)
-    dtree_scores = DataTraining().k_fold_training_and_validation(dtree_clf, STG, data.image_labels)
+    dtree_scores = DataTraining().k_fold_training_and_validation(
+        dtree_clf, STG, data.image_labels
+    )
 
     print("----------------------------")
     knc = KNeighborsClassifier(n_neighbors=3)
-    knc_scores = DataTraining().k_fold_training_and_validation(knc, STG, data.image_labels)
+    knc_scores = DataTraining().k_fold_training_and_validation(
+        knc, STG, data.image_labels
+    )
 
     print("----------------------------------------------------")
-    EvaluateTrainingModel().evaluate_models(svm_scores, svm_clf, dtree_scores, dtree_clf)
+    EvaluateTrainingModel().evaluate_models(
+        svm_scores, svm_clf, dtree_scores, dtree_clf
+    )
     print("----------------------------------------------------")
     EvaluateTrainingModel().evaluate_models(svm_scores, svm_clf, knc_scores, knc)
     print("----------------------------------------------------")
@@ -259,10 +269,20 @@ def run_test():
     classify_data(classifiers, labels=labels, data=data, strategies=strategies)
 
 
+def analyse_nans():
+    data = BrainData()
+    nans_column_wise = BrainData.calculate_nans_column_wise(data.STG_raw)
+    print("nans_column_wise", nans_column_wise.shape)
+    nans_voxel_wise = BrainData.calculate_nans_voxel_wise(data.STG_raw)
+    print("nans_voxel_wise", nans_voxel_wise.shape)
+    print("------------")
+
+
 if __name__ == "__main__":
     # pass
-    run_test()
+    analyse_nans()
+# run_test()
 
-    # classify_STG(folds=1)
-    # classify_IFG(folds=1)
+# classify_STG(folds=1)
+# classify_IFG(folds=1)
 # classify_IRIS()

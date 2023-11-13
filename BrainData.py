@@ -56,10 +56,26 @@ class BrainData:
             return imputer.transform(data)
 
     def calculate_nans_voxel_wise(data):
-        pass
+        nan_row = []
+        for row in data:
+            nans_length = 0
+            for i in row:
+                if np.isnan(i):
+                    nans_length += 1
+            nan_row.append(nans_length)
+        return np.array(nan_row)
 
     def calculate_nans_column_wise(data):
-        pass
+        rows = []
+        for row in data:
+            nan_row = []
+            for i in row:
+                nan = 0
+                if np.isnan(i):
+                    nan = 1
+                nan_row.append(nan)
+            rows.append(nan_row)
+        return np.array(rows)
 
 
 # Ata:
