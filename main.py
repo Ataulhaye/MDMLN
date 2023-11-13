@@ -55,66 +55,62 @@ def run_evaluation():
 
     print("----------------------------")
     svm_clf = svm.SVC(kernel="linear", C=1)
-    svm_scores = DataTraining().k_fold_training_and_validation(svm_clf, X, y)
+    svm_scores = DataTraining.k_fold_training_and_validation(svm_clf, X, y)
 
     print("----------------------------")
     dtree_clf = DecisionTreeClassifier(random_state=0)
-    dtree_scores = DataTraining().k_fold_training_and_validation(dtree_clf, X, y)
+    dtree_scores = DataTraining.k_fold_training_and_validation(dtree_clf, X, y)
 
     print("----------------------------")
     knc = KNeighborsClassifier(n_neighbors=3)
-    knc_scores = DataTraining().k_fold_training_and_validation(knc, X, y)
+    knc_scores = DataTraining.k_fold_training_and_validation(knc, X, y)
 
     print("----------------------------------------------------")
-    EvaluateTrainingModel().evaluate_models(
-        svm_scores, svm_clf, dtree_scores, dtree_clf
-    )
+    EvaluateTrainingModel.evaluate_models(svm_scores, svm_clf, dtree_scores, dtree_clf)
     print("----------------------------------------------------")
-    EvaluateTrainingModel().evaluate_models(svm_scores, svm_clf, knc_scores, knc)
+    EvaluateTrainingModel.evaluate_models(svm_scores, svm_clf, knc_scores, knc)
     print("----------------------------------------------------")
 
 
 def classify_STG_on_image_labels():
     data = BrainData()
-    STG = BrainData().normalize_data(data.STG_raw)
+    STG = BrainData.normalize_data(data.STG_raw)
     # STG_nan = normalize_data(data.STG_raw, "nn")
-    IFG = BrainData().normalize_data(data.IFG_raw)
+    IFG = BrainData.normalize_data(data.IFG_raw)
 
     print("----------------------------")
     svm_clf = svm.SVC(kernel="linear", C=1)
-    svm_scores = DataTraining().k_fold_training_and_validation(
+    svm_scores = DataTraining.k_fold_training_and_validation(
         svm_clf, STG, data.image_labels
     )
 
     print("----------------------------")
     dtree_clf = DecisionTreeClassifier(random_state=0)
-    dtree_scores = DataTraining().k_fold_training_and_validation(
+    dtree_scores = DataTraining.k_fold_training_and_validation(
         dtree_clf, STG, data.image_labels
     )
 
     print("----------------------------")
     knc = KNeighborsClassifier(n_neighbors=3)
-    knc_scores = DataTraining().k_fold_training_and_validation(
+    knc_scores = DataTraining.k_fold_training_and_validation(
         knc, STG, data.image_labels
     )
 
     print("----------------------------------------------------")
-    EvaluateTrainingModel().evaluate_models(
-        svm_scores, svm_clf, dtree_scores, dtree_clf
-    )
+    EvaluateTrainingModel.evaluate_models(svm_scores, svm_clf, dtree_scores, dtree_clf)
     print("----------------------------------------------------")
-    EvaluateTrainingModel().evaluate_models(svm_scores, svm_clf, knc_scores, knc)
+    EvaluateTrainingModel.evaluate_models(svm_scores, svm_clf, knc_scores, knc)
     print("----------------------------------------------------")
 
 
 def classify_STG(folds=5, test_size=0.3):
     data = BrainData()
-    STG = BrainData().normalize_data(data.STG_raw)
+    STG = BrainData.normalize_data(data.STG_raw)
 
     print("---------------------------------------------------")
 
     print("Subject labels STG:")
-    result1 = DataTraining().train_and_test_model_accuracy(
+    result1 = DataTraining.train_and_test_model_accuracy(
         X=STG,
         y=data.subject_labels,
         classifier="svm",
@@ -126,7 +122,7 @@ def classify_STG(folds=5, test_size=0.3):
     print("---------------------------------------------------")
 
     print("Subject labels STG:")
-    result2 = DataTraining().train_and_test_model_accuracy(
+    result2 = DataTraining.train_and_test_model_accuracy(
         X=STG,
         y=data.subject_labels,
         classifier="n_neighbors",
@@ -138,7 +134,7 @@ def classify_STG(folds=5, test_size=0.3):
     print("---------------------------------------------------")
 
     print("Image labels STG:")
-    result3 = DataTraining().train_and_test_model_accuracy(
+    result3 = DataTraining.train_and_test_model_accuracy(
         X=STG,
         y=data.image_labels,
         classifier="svm",
@@ -150,7 +146,7 @@ def classify_STG(folds=5, test_size=0.3):
     print("---------------------------------------------------")
 
     print("Image labels STG:")
-    result4 = DataTraining().train_and_test_model_accuracy(
+    result4 = DataTraining.train_and_test_model_accuracy(
         X=STG,
         y=data.image_labels,
         classifier="n_neighbors",
@@ -164,12 +160,12 @@ def classify_STG(folds=5, test_size=0.3):
 
 def classify_IFG(folds=5, test_size=0.3):
     data = BrainData()
-    IFG = BrainData().normalize_data(data.IFG_raw)
+    IFG = BrainData.normalize_data(data.IFG_raw)
 
     print("---------------------------------------------------")
 
     print("Subject labels IFG:")
-    result1 = DataTraining().train_and_test_model_accuracy(
+    result1 = DataTraining.train_and_test_model_accuracy(
         X=IFG,
         y=data.subject_labels,
         classifier="svm",
@@ -181,7 +177,7 @@ def classify_IFG(folds=5, test_size=0.3):
     print("---------------------------------------------------")
 
     print("Subject labels IFG:")
-    result2 = DataTraining().train_and_test_model_accuracy(
+    result2 = DataTraining.train_and_test_model_accuracy(
         X=IFG,
         y=data.subject_labels,
         classifier="n_neighbors",
@@ -193,7 +189,7 @@ def classify_IFG(folds=5, test_size=0.3):
     print("---------------------------------------------------")
 
     print("Image labels IFG:")
-    result3 = DataTraining().train_and_test_model_accuracy(
+    result3 = DataTraining.train_and_test_model_accuracy(
         X=IFG,
         y=data.image_labels,
         classifier="svm",
@@ -205,7 +201,7 @@ def classify_IFG(folds=5, test_size=0.3):
     print("---------------------------------------------------")
 
     print("Image labels IFG:")
-    result4 = DataTraining().train_and_test_model_accuracy(
+    result4 = DataTraining.train_and_test_model_accuracy(
         X=IFG,
         y=data.image_labels,
         classifier="n_neighbors",
@@ -219,7 +215,7 @@ def classify_IFG(folds=5, test_size=0.3):
 
 def classify_IRIS():
     X, y = datasets.load_iris(return_X_y=True)
-    result = DataTraining().train_and_test_model_accuracy(
+    result = DataTraining.train_and_test_model_accuracy(
         X=X,
         y=y,
         classifier="svm",
@@ -238,7 +234,7 @@ def classify_data(
 
         for classifier in classifiers:
             print("llllllllll")
-            results = DataTraining().train_and_test_model_accuracy(
+            results = DataTraining.train_and_test_model_accuracy(
                 X=X,
                 y=labels,
                 classifier=classifier,
@@ -280,21 +276,27 @@ def analyse_nans():
 
 
 def visualize_nans():
-    data = BrainData()
+    bd = BrainData()
+    data_list = [("STG", bd.STG_raw), ("IFG", bd.IFG_raw)]
+    for dt in data_list:
+        title, data = dt
+        nans_column_wise = BrainData.calculate_nans_column_wise(data)
+        columns = [i for i in range(data.shape[1])]
+        VisualizeData.plot_bar_graph(
+            ("Columns", columns),
+            ("nans-length-column-wise", nans_column_wise),
+            title=title,
+        )
 
-    nans_column_wise = BrainData.calculate_nans_column_wise(data.STG_raw)
-    columns = [i for i in range(7238)]
-    VisualizeData.plot_bar_graph(
-        ("Columns", columns), ("nans-length-column-wise", nans_column_wise)
-    )
+        nans_voxel_wise = BrainData.calculate_nans_voxel_wise(data)
+        rows = [i for i in range(data.shape[0])]
+        VisualizeData.plot_bar_graph(
+            ("nans-length-voxel-wise", nans_voxel_wise),
+            ("rows", rows),
+            bar_color="red",
+            title=title,
+        )
 
-    nans_voxel_wise = BrainData.calculate_nans_voxel_wise(data.STG_raw)
-    indexes = [i for i in range(488)]
-    VisualizeData.plot_bar_graph(
-        ("nans-length-voxel-wise", nans_voxel_wise),
-        ("rows", indexes),
-        bar_color="red",
-    )
     # VisualizeData.plot_data_bar(np.array(x), np.array(nans_column_wise))
 
 
