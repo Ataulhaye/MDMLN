@@ -18,6 +18,7 @@ from sklearn.tree import DecisionTreeClassifier
 from BrainData import BrainData
 from DataTraining import DataTraining
 from EvaluateTrainingModel import EvaluateTrainingModel
+from PlotData import VisualizeData
 
 
 def run_evaluation():
@@ -278,9 +279,29 @@ def analyse_nans():
     print("------------")
 
 
+def visualize_nans():
+    data = BrainData()
+
+    nans_column_wise = BrainData.calculate_nans_column_wise(data.STG_raw)
+    columns = [i for i in range(7238)]
+    VisualizeData.plot_bar_graph(
+        ("Columns", columns), ("nans-length-column-wise", nans_column_wise)
+    )
+
+    nans_voxel_wise = BrainData.calculate_nans_voxel_wise(data.STG_raw)
+    indexes = [i for i in range(488)]
+    VisualizeData.plot_bar_graph(
+        ("nans-length-voxel-wise", nans_voxel_wise),
+        ("rows", indexes),
+        bar_color="red",
+    )
+    # VisualizeData.plot_data_bar(np.array(x), np.array(nans_column_wise))
+
+
 if __name__ == "__main__":
     # pass
-    analyse_nans()
+    # analyse_nans()
+    visualize_nans()
 # run_test()
 
 # classify_STG(folds=1)
