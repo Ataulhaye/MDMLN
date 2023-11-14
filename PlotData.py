@@ -25,7 +25,7 @@ class VisualizeData:
         data_dic = {f"{x_label}": x, f"{y_label}": y}
         df = pd.DataFrame(data_dic)
 
-        # fig = px.bar(df, x="group", y="value", color="value")
+        # fig = px.bar(df, x=f"{x_label}", y=f"{y_label}", color=f"{y_label}")
         fig = px.bar(df, x=f"{x_label}", y=f"{y_label}", title=title)
         fig.update_traces(
             marker_color=hover_color,

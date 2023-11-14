@@ -1,30 +1,24 @@
-import random
-
 import numpy as np
-import scipy.stats as stats
-from sklearn import datasets, metrics, preprocessing, svm
+from sklearn import svm
 from sklearn.base import BaseEstimator
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from sklearn.model_selection import (
-    ShuffleSplit,
-    cross_val_score,
-    cross_validate,
-    train_test_split,
-)
-from sklearn.naive_bayes import GaussianNB
+from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
+
+from EvaluateTrainingModel import EvaluateTrainingModel
 
 
 class DataTraining:
     def k_fold_training_and_validation(
-            classifier: BaseEstimator, X, y, folds=10, test_size=0.2
+        classifier: BaseEstimator, X, y, folds=10, test_size=0.2
     ):
         score_array = []
         for i in range(folds):
             # split the data set randomly into test and train sets
             # random_state=some number will always output the same sets by every execution
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, test_size=test_size
+            )
             classifier.fit(X_train, y_train)
             score_array.append(classifier.score(X_test, y_test))
         print(
@@ -40,7 +34,13 @@ class DataTraining:
         return score_array
 
     def train_and_test_model_accuracy(
-            X, y, classifier="svm", folds=5, test_size=0.3, popmean=0.3, significance_level=0.05
+        X,
+        y,
+        classifier="svm",
+        folds=5,
+        test_size=0.3,
+        popmean=0.3,
+        significance_level=0.05,
     ):
         """Performe k-Fold classification, training and testing
         Args:
@@ -75,27 +75,12 @@ class DataTraining:
         else:
             raise TypeError("Classifier Not Supported")
 
-        classifier_name = type(classifier).__name__
-
-        scores = k_fold_training_and_validation(
+        scores = DataTraining.k_fold_training_and_validation(
             classifier=classifier, X=X, y=y, folds=folds, test_size=test_size
         )
-        t_statistic, p_value = stats.ttest_1samp(a=scores, popmean=popmean)
-        # p value less than 0.05 consider to be significant, greater than 0.05 is considered not to be significant
-        print(
-            f"{type(classifier).__name__} test results are: t_statistic , p_value",
-            t_statistic,
-            p_value,
+        return EvaluateTrainingModel.evaluate_training_model_ttest_1(
+            classifier, popmean, scores, significance_level
         )
-
-        if p_value <= significance_level:
-            percent = "{:0.2f}%".format((scores.mean() * 100))
-            return f"Performance of the {classifier_name} is significant. {percent}"
-            # in this case rejecting null hypothesis: calssifier is performing as good as by chance
-        else:
-            return f"{classifier_name} classifier performance is not significant. P-value is: {p_value}"  # not significantly different by chance
-
-
 
 
 """

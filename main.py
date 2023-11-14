@@ -1,18 +1,7 @@
-import random
-
-import numpy as np
-import pandas as pd
 import scipy.stats as stats
-from sklearn import datasets, metrics, preprocessing, svm
-from sklearn.metrics import make_scorer, recall_score
-from sklearn.model_selection import (
-    ShuffleSplit,
-    cross_val_score,
-    cross_validate,
-    train_test_split,
-)
+from sklearn import datasets, svm
+from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.pipeline import make_pipeline
 from sklearn.tree import DecisionTreeClassifier
 
 from BrainData import BrainData
@@ -225,28 +214,25 @@ def classify_IRIS():
     print(result)
 
 
-def classify_data(
-    classifiers, labels, data, strategies, popmean, folds=5, test_size=0.3
-):
+def classify_data(classifiers, labels, data, strategies, folds=5, test_size=0.3):
     for strategy in strategies:
         X = BrainData.normalize_data(data, strategy=strategy)
-        print("---------------------------------------------------")
-
-        for classifier in classifiers:
-            print("llllllllll")
-            results = DataTraining.train_and_test_model_accuracy(
-                X=X,
-                y=labels,
-                classifier=classifier,
-                folds=folds,
-                test_size=test_size,
-                popmean=popmean,
-            )
-            print(results)
-            # ToDo return a object and save in the dict
-            # return the dict
-            # export the data in another function to a file
-            print("---------------------------------------------------")
+        for tp in labels:
+            mean, label = tp
+            for classifier in classifiers:
+                print("llllllllll")
+                results = DataTraining.train_and_test_model_accuracy(
+                    X=X,
+                    y=label,
+                    classifier=classifier,
+                    folds=folds,
+                    test_size=test_size,
+                    popmean=mean,
+                )
+                print(results)
+                # return the dict
+                # export the data in another function to a file
+                print("---------------------------------------------------")
 
 
 def run_test():
@@ -260,8 +246,8 @@ def run_test():
         "remove-voxels",
         "nn",
     ]
-    classifiers = ["svm", "nn"]
-    labels = [data.image_labels, data.subject_labels]
+    classifiers = ["svm", "n_neighbors"]
+    labels = [(0.33, data.image_labels), (0.25, data.subject_labels)]
     data = data.IFG_raw
     classify_data(classifiers, labels=labels, data=data, strategies=strategies)
 
@@ -303,8 +289,8 @@ def visualize_nans():
 if __name__ == "__main__":
     # pass
     # analyse_nans()
-    visualize_nans()
-# run_test()
+    # visualize_nans()
+    run_test()
 
 # classify_STG(folds=1)
 # classify_IFG(folds=1)
