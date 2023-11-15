@@ -41,6 +41,7 @@ class DataTraining:
         test_size=0.3,
         popmean=0.3,
         significance_level=0.05,
+        strategy=None,
     ):
         """Performe k-Fold classification, training and testing
         Args:
@@ -76,10 +77,10 @@ class DataTraining:
             raise TypeError("Classifier Not Supported")
 
         scores = DataTraining.k_fold_training_and_validation(
-            classifier=classifier, X=X, y=y, folds=folds, test_size=test_size
+            classifier=classifier, X=X, y=y[1], folds=folds, test_size=test_size
         )
-        return EvaluateTrainingModel.evaluate_training_model_ttest_1(
-            classifier, popmean, scores, significance_level
+        return EvaluateTrainingModel.evaluate_training_model_by_ttest(
+            classifier, popmean, scores, significance_level, y[0], strategy
         )
 
 

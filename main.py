@@ -63,9 +63,9 @@ def run_evaluation():
 
 def classify_STG_on_image_labels():
     data = BrainData()
-    STG = BrainData.normalize_data(data.STG_raw)
+    STG = BrainData.normalize_data(data.STG)
     # STG_nan = normalize_data(data.STG_raw, "nn")
-    IFG = BrainData.normalize_data(data.IFG_raw)
+    IFG = BrainData.normalize_data(data.IFG)
 
     print("----------------------------")
     svm_clf = svm.SVC(kernel="linear", C=1)
@@ -94,7 +94,7 @@ def classify_STG_on_image_labels():
 
 def classify_STG(folds=5, test_size=0.3):
     data = BrainData()
-    STG = BrainData.normalize_data(data.STG_raw)
+    STG = BrainData.normalize_data(data.STG)
 
     print("---------------------------------------------------")
 
@@ -149,7 +149,7 @@ def classify_STG(folds=5, test_size=0.3):
 
 def classify_IFG(folds=5, test_size=0.3):
     data = BrainData()
-    IFG = BrainData.normalize_data(data.IFG_raw)
+    IFG = BrainData.normalize_data(data.IFG)
 
     print("---------------------------------------------------")
 
@@ -215,12 +215,12 @@ def classify_IRIS():
 
 
 def classify_data(classifiers, labels, data, strategies, folds=5, test_size=0.3):
+    data_dict = dict({})
     for strategy in strategies:
         X = BrainData.normalize_data(data, strategy=strategy)
         for tp in labels:
             mean, label = tp
             for classifier in classifiers:
-                print("llllllllll")
                 results = DataTraining.train_and_test_model_accuracy(
                     X=X,
                     y=label,
@@ -228,11 +228,17 @@ def classify_data(classifiers, labels, data, strategies, folds=5, test_size=0.3)
                     folds=folds,
                     test_size=test_size,
                     popmean=mean,
+                    strategy=strategy,
                 )
-                print(results)
+                key = list(results.keys())[0]
+                if key in data_dict:
+                    value = next(iter(results.values()))
+                    data_dict.setdefault(key).update(value)
+                else:
+                    data_dict.update(results)
                 # return the dict
                 # export the data in another function to a file
-                print("---------------------------------------------------")
+    print("---------------------------------------------------")
 
 
 def run_test():
@@ -243,27 +249,26 @@ def run_test():
         "most_frequent",
         "constant",
         "remove-columns",
-        "remove-voxels",
         "nn",
     ]
     classifiers = ["svm", "n_neighbors"]
     labels = [(0.33, data.image_labels), (0.25, data.subject_labels)]
-    data = data.IFG_raw
-    classify_data(classifiers, labels=labels, data=data, strategies=strategies)
+    IFG = data.IFG[1]
+    classify_data(classifiers, labels=labels, data=IFG, strategies=strategies)
 
 
 def analyse_nans():
     data = BrainData()
-    nans_column_wise = BrainData.calculate_nans_column_wise(data.STG_raw)
-    print("nans_column_wise", nans_column_wise.shape)
-    nans_voxel_wise = BrainData.calculate_nans_voxel_wise(data.STG_raw)
-    print("nans_voxel_wise", nans_voxel_wise.shape)
+    nans_column_wise = BrainData.calculate_nans_column_wise(data.STG[1])
+    print("nans_column_wise", len(nans_column_wise))
+    nans_voxel_wise = BrainData.calculate_nans_voxel_wise(data.STG[1])
+    print("nans_voxel_wise", len(nans_voxel_wise))
     print("------------")
 
 
 def visualize_nans():
     bd = BrainData()
-    data_list = [("STG", bd.STG_raw), ("IFG", bd.IFG_raw)]
+    data_list = [bd.STG, bd.IFG]
     for dt in data_list:
         title, data = dt
         nans_column_wise = BrainData.calculate_nans_column_wise(data)
@@ -288,9 +293,9 @@ def visualize_nans():
 
 if __name__ == "__main__":
     # pass
-    # analyse_nans()
-    # visualize_nans()
-    run_test()
+    analyse_nans()
+# visualize_nans()
+# run_test()
 
 # classify_STG(folds=1)
 # classify_IFG(folds=1)
