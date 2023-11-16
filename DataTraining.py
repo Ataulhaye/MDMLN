@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 
+from BrainData import BrainData
 from EvaluateTrainingModel import EvaluateTrainingModel
 
 
@@ -83,7 +84,29 @@ class DataTraining:
             classifier, popmean, scores, significance_level, y[0], strategy
         )
 
-
+    def classify_brain_data(classifiers:list[str], labels, data, strategies, folds=5, test_size=0.3):
+        data_dict = dict({})
+        for strategy in strategies:
+            X = BrainData.normalize_data(data, strategy=strategy)
+            for tp in labels:
+                mean, label = tp
+                for classifier in classifiers:
+                    results = DataTraining.train_and_test_model_accuracy(
+                        X=X,
+                        y=label,
+                        classifier=classifier,
+                        folds=folds,
+                        test_size=test_size,
+                        popmean=mean,
+                        strategy=strategy,
+                    )
+                    key = list(results.keys())[0]
+                    if key in data_dict:
+                        value = next(iter(results.values()))
+                        data_dict.setdefault(key).update(value)
+                    else:
+                        data_dict.update(results)
+        return data_dict
 """
 random_y = []
 for i in range(y_train.size):

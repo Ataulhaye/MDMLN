@@ -7,6 +7,7 @@ from sklearn.tree import DecisionTreeClassifier
 from BrainData import BrainData
 from DataTraining import DataTraining
 from EvaluateTrainingModel import EvaluateTrainingModel
+from ExportData import create_and_write_CSV, create_and_write_datasheet
 from PlotData import VisualizeData
 
 
@@ -214,47 +215,24 @@ def classify_IRIS():
     print(result)
 
 
-def classify_data(classifiers, labels, data, strategies, folds=5, test_size=0.3):
-    data_dict = dict({})
-    for strategy in strategies:
-        X = BrainData.normalize_data(data, strategy=strategy)
-        for tp in labels:
-            mean, label = tp
-            for classifier in classifiers:
-                results = DataTraining.train_and_test_model_accuracy(
-                    X=X,
-                    y=label,
-                    classifier=classifier,
-                    folds=folds,
-                    test_size=test_size,
-                    popmean=mean,
-                    strategy=strategy,
-                )
-                key = list(results.keys())[0]
-                if key in data_dict:
-                    value = next(iter(results.values()))
-                    data_dict.setdefault(key).update(value)
-                else:
-                    data_dict.update(results)
-                # return the dict
-                # export the data in another function to a file
-    print("---------------------------------------------------")
-
-
 def run_test():
     data = BrainData()
     strategies = [
         "mean",
-        "median",
-        "most_frequent",
-        "constant",
-        "remove-columns",
-        "nn",
+        # "median",
+        # "most_frequent",
+        # "constant",
+        # "remove-columns",
+        # "nn",
     ]
     classifiers = ["svm", "n_neighbors"]
     labels = [(0.33, data.image_labels), (0.25, data.subject_labels)]
     IFG = data.IFG[1]
-    classify_data(classifiers, labels=labels, data=IFG, strategies=strategies)
+    export_data = DataTraining.classify_brain_data(
+        classifiers, labels=labels, data=IFG, strategies=strategies
+    )
+
+    create_and_write_CSV(export_data, "IFG-Results", "IFG")
 
 
 def analyse_nans():
@@ -293,9 +271,9 @@ def visualize_nans():
 
 if __name__ == "__main__":
     # pass
-    analyse_nans()
-# visualize_nans()
-# run_test()
+    # analyse_nans()
+    # visualize_nans()
+    run_test()
 
 # classify_STG(folds=1)
 # classify_IFG(folds=1)
