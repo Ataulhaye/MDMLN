@@ -80,12 +80,15 @@ class DataTraining:
         scores = DataTraining.k_fold_training_and_validation(
             classifier=classifier, X=X, y=y[1], folds=folds, test_size=test_size
         )
-        return EvaluateTrainingModel.evaluate_training_model_by_ttest(
+        return EvaluateTrainingModel.evaluate_training_model_by_ttest_list(
             classifier, popmean, scores, significance_level, y[0], strategy
         )
 
-    def classify_brain_data(classifiers:list[str], labels, data, strategies, folds=5, test_size=0.3):
-        data_dict = dict({})
+    def classify_brain_data(
+        classifiers: list[str], labels, data, strategies, folds=5, test_size=0.3
+    ):
+        # data_dict = dict({})
+        data_list = list()
         for strategy in strategies:
             X = BrainData.normalize_data(data, strategy=strategy)
             for tp in labels:
@@ -100,13 +103,17 @@ class DataTraining:
                         popmean=mean,
                         strategy=strategy,
                     )
-                    key = list(results.keys())[0]
-                    if key in data_dict:
-                        value = next(iter(results.values()))
-                        data_dict.setdefault(key).update(value)
-                    else:
-                        data_dict.update(results)
-        return data_dict
+                    data_list.append(results)
+                    # key = list(results.keys())[0]
+                    # if key in data_dict:
+                    # value = next(iter(results.values()))
+                    # data_dict.setdefault(key).update(value)
+                    # else:
+                    # data_dict.update(results)
+        # return data_dict
+        return data_list
+
+
 """
 random_y = []
 for i in range(y_train.size):

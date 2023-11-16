@@ -1,5 +1,7 @@
 import scipy.stats as stats
 
+from ExportEntity import ExportEntity
+
 
 class EvaluateTrainingModel:
     def evaluate_models(
@@ -74,3 +76,34 @@ class EvaluateTrainingModel:
             {classifier_name: dict({f"{strategy}-{data_label}": nested_dict})}
         )
         return final_dict
+
+    def evaluate_training_model_by_ttest_list(
+        classifier, popmean, scores, significance_level, data_label, strategy
+    ):
+        classifier_name = type(classifier).__name__
+        t_statistic, p_value = stats.ttest_1samp(a=scores, popmean=popmean)
+        # p value less than 0.05 consider to be significant, greater than 0.05 is considered not to be significant
+
+        percent = "{:0.2f}%".format((scores.mean() * 100))
+        if p_value <= significance_level:
+            # percent = "{:0.2f}%".format((scores.mean() * 100))
+            # return f"Performance of the {classifier_name} is significant. {percent}"
+            # in this case rejecting null hypothesis: calssifier is performing as good as by chance
+            return ExportEntity(
+                p_value=p_value,
+                row_name=classifier_name,
+                sub_column_name=strategy,
+                column_name=data_label,
+                result=tuple(("Significant:", percent)),
+            )
+
+        else:
+            # return f"{classifier_name} classifier performance is not significant. P-value is: {p_value}"  # not significantly different by chance
+            # a = dict({classifier: results})#return also other info like which kernel...
+            return ExportEntity(
+                p_value=p_value,
+                row_name=classifier_name,
+                sub_column_name=strategy,
+                column_name=data_label,
+                result=tuple(("Not significant:", percent)),
+            )

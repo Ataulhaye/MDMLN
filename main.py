@@ -7,7 +7,7 @@ from sklearn.tree import DecisionTreeClassifier
 from BrainData import BrainData
 from DataTraining import DataTraining
 from EvaluateTrainingModel import EvaluateTrainingModel
-from ExportData import create_and_write_CSV, create_and_write_datasheet
+from ExportData import ExportData
 from PlotData import VisualizeData
 
 
@@ -219,7 +219,7 @@ def run_test():
     data = BrainData()
     strategies = [
         "mean",
-        # "median",
+        "median",
         # "most_frequent",
         # "constant",
         # "remove-columns",
@@ -232,7 +232,7 @@ def run_test():
         classifiers, labels=labels, data=IFG, strategies=strategies
     )
 
-    create_and_write_CSV(export_data, "IFG-Results", "IFG")
+    ExportData.create_and_write_CSV(export_data, "IFG-Results", "IFG")
 
 
 def analyse_nans():
