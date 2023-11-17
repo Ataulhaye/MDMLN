@@ -7,23 +7,21 @@ from ExportEntity import ExportEntity
 
 
 class ExportData:
-    def create_and_write_CSV(data, sheet_name, title="results", delimeter=","):
-        csv_data = ExportData.prepare_data_matrix(data)
-        dt = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
-
-        extension = ".csv"
-        file_name = ExportData.get_file_name(extension, sheet_name)
+    def create_and_write_CSV(self, data, sheet_name, title="results", delimeter=","):
+        csv_data = self.prepare_data_matrix(data)
+        file_name = self.get_file_name(extension=".csv", sheet_name=sheet_name)
         with open(file_name, "w", newline="") as file:
             for ed in csv_data:
                 wr = csv.writer(file, delimiter=delimeter, quoting=csv.QUOTE_ALL)
                 wr.writerow(ed)
 
     def create_and_write_datasheet(
+        self,
         data,
         sheet_name,
         title="results",
     ):
-        csv_data = ExportData.prepare_data_matrix(data)
+        csv_data = self.prepare_data_matrix(data)
 
         # to create a new blank Workbook object
         wb = openpyxl.Workbook()
@@ -37,13 +35,12 @@ class ExportData:
         for item in csv_data:
             ws.append(item)
 
-        extension = ".xlsx"
-        sheet_name = ExportData.get_file_name(extension, sheet_name)
+        sheet_name = self.get_file_name(extension=".xlsx", sheet_name=sheet_name)
 
         # Save File
         wb.save(sheet_name)
 
-    def get_file_name(extension, sheet_name):
+    def get_file_name(self, extension, sheet_name):
         dt = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
         sheet_name = f"{sheet_name}_{dt}{extension}"
         return sheet_name
@@ -53,13 +50,13 @@ class ExportData:
     #   print(value)
     #  for i in value:
     #     print(i)
-    def prepare_data_matrix(data: list[ExportEntity]):
+    def prepare_data_matrix(self, data: list[ExportEntity]):
         csv_data = [["Classifier"]]
         for export_entity in data:
             col = f"{export_entity.sub_column_name}-{export_entity.column_name}"
             if col not in csv_data[0]:
                 csv_data[0].append(col)
-            row_col_index = ExportData.get_index(csv_data, export_entity.row_name)
+            row_col_index = self.get_index(csv_data, export_entity.row_name)
 
             col_index = csv_data[0].index(col)
 
@@ -102,7 +99,7 @@ class ExportData:
         return csv_data
 
     # returns row, col index of a given value
-    def get_index(matrix, v):
+    def get_index(self, matrix, v):
         for i, x in enumerate(matrix):
             if v in x:
                 return (i, x.index(v))

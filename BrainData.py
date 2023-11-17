@@ -8,50 +8,51 @@ from sklearn.neighbors import KNeighborsClassifier
 
 
 class BrainData:
-    def __init__(self):
-        STG_data = scipy.io.loadmat("./left_STG_MTG_AALlable_ROI.rex.mat")
-        # self.STG_raw = STG["R"]
-        self.STG = tuple(("STG", STG_data["R"]))
+    def __init__(self, load_data=False):
+        if load_data is True:
+            STG_data = scipy.io.loadmat("./left_STG_MTG_AALlable_ROI.rex.mat")
+            # self.STG_raw = STG["R"]
+            self.STG = tuple(("STG", STG_data["R"]))
 
-        IFG_data = scipy.io.loadmat("./ROI_aal_wfupick_left44_45.rex.mat")
+            IFG_data = scipy.io.loadmat("./ROI_aal_wfupick_left44_45.rex.mat")
 
-        # self.IFG_raw = IFG["R"]
-        self.IFG = tuple(("IFG", IFG_data["R"]))
+            # self.IFG_raw = IFG["R"]
+            self.IFG = tuple(("IFG", IFG_data["R"]))
 
-        # Labels
-        # self.subject_labels = np.array(["N"] * 4 * 43 + ["D"] * 4 * 33 + ["S"] * 4 * 46)
-        self.subject_labels = tuple(
-            (
-                "subject_labels",
-                np.array(["N"] * 4 * 43 + ["D"] * 4 * 33 + ["S"] * 4 * 46),
+            # Labels
+            # self.subject_labels = np.array(["N"] * 4 * 43 + ["D"] * 4 * 33 + ["S"] * 4 * 46)
+            self.subject_labels = tuple(
+                (
+                    "subject_labels",
+                    np.array(["N"] * 4 * 43 + ["D"] * 4 * 33 + ["S"] * 4 * 46),
+                )
             )
-        )
-        # subject_labels 172=N, 132=D, 184=S sumup to 488
+            # subject_labels 172=N, 132=D, 184=S sumup to 488
 
-        # self.image_labels = np.array(["AR", "AU", "CR", "CU"] * (43 + 33 + 46))
+            # self.image_labels = np.array(["AR", "AU", "CR", "CU"] * (43 + 33 + 46))
 
-        self.image_labels = tuple(
-            ("image_labels", np.array(["AR", "AU", "CR", "CU"] * (43 + 33 + 46)))
-        )
-        # self.all_labels = [
-        # sb + im for sb, im in zip(self.subject_labels, self.image_labels)
-        # ]
-        self.all_labels = tuple(
-            (
-                "all_labels",
-                np.array(
-                    [
-                        sb + im
-                        for sb, im in zip(
-                            self.subject_labels[1],
-                            self.image_labels[1],
-                        )
-                    ]
-                ),
+            self.image_labels = tuple(
+                ("image_labels", np.array(["AR", "AU", "CR", "CU"] * (43 + 33 + 46)))
             )
-        )
+            # self.all_labels = [
+            # sb + im for sb, im in zip(self.subject_labels, self.image_labels)
+            # ]
+            self.all_labels = tuple(
+                (
+                    "all_labels",
+                    np.array(
+                        [
+                            sb + im
+                            for sb, im in zip(
+                                self.subject_labels[1],
+                                self.image_labels[1],
+                            )
+                        ]
+                    ),
+                )
+            )
 
-    def normalize_data(data, strategy="mean"):
+    def normalize_data(self, data, strategy="mean"):
         """_summary_
 
         Args:
@@ -80,7 +81,7 @@ class BrainData:
             imputer.fit(data)
             return imputer.transform(data)
 
-    def calculate_nans_trail_wise(data):
+    def calculate_nans_trail_wise(self, data):
         # lis = [sum(np.isnan(x)) for x in zip(*data)]
         nans_len_list = []
         for row in data:
@@ -91,7 +92,7 @@ class BrainData:
             nans_len_list.append(nans_length)
         return nans_len_list
 
-    def calculate_nan_positions(data):
+    def calculate_nan_positions(self, data):
         rows = []
         for row in data:
             nan_row = []
@@ -103,7 +104,7 @@ class BrainData:
             rows.append(nan_row)
         return np.array(rows)
 
-    def calculate_nans_voxel_wise(data):
+    def calculate_nans_voxel_wise(self, data):
         """It is column wise if we consider as a data matrix
 
         Args:

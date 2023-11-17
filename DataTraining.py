@@ -35,6 +35,7 @@ class DataTraining:
         return score_array
 
     def train_and_test_model_accuracy(
+        self,
         X,
         y,
         classifier="svm",
@@ -85,16 +86,17 @@ class DataTraining:
         )
 
     def classify_brain_data(
-        classifiers: list[str], labels, data, strategies, folds=5, test_size=0.3
+        self, classifiers: list[str], labels, data, strategies, folds=5, test_size=0.3
     ):
+        brain_data = BrainData()
         # data_dict = dict({})
         data_list = list()
         for strategy in strategies:
-            X = BrainData.normalize_data(data, strategy=strategy)
+            X = brain_data.normalize_data(data, strategy=strategy)
             for tp in labels:
                 mean, label = tp
                 for classifier in classifiers:
-                    results = DataTraining.train_and_test_model_accuracy(
+                    results = self.train_and_test_model_accuracy(
                         X=X,
                         y=label,
                         classifier=classifier,

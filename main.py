@@ -216,41 +216,44 @@ def classify_IRIS():
 
 
 def run_test():
-    data = BrainData()
+    brain_data = BrainData(load_data=True)
     strategies = [
         "mean",
-        "median",
-        "most_frequent",
-        "constant",
-        "remove-columns",
-        "nn",
+        # "median",
+        # "most_frequent",
+        # "constant",
+        # "remove-columns",
+        # "nn",
     ]
     classifiers = ["svm", "n_neighbors", "decisiontree"]
-    labels = [(0.33, data.image_labels), (0.25, data.subject_labels)]
-    IFG = data.IFG[1]
-    export_data = DataTraining.classify_brain_data(
+    labels = [(0.33, brain_data.image_labels), (0.25, brain_data.subject_labels)]
+    IFG = brain_data.IFG[1]
+
+    training = DataTraining()
+    export_data = training.classify_brain_data(
         classifiers, labels=labels, data=IFG, strategies=strategies
     )
 
-    # ExportData.create_and_write_CSV(export_data, "IFG-Results", "IFG")
-    ExportData.create_and_write_datasheet(export_data, "IFG-Results", "IFG")
+    export = ExportData()
+    # export.create_and_write_CSV(export_data, "IFG-Results", "IFG")
+    export.create_and_write_datasheet(export_data, "IFG-Results", "IFG")
 
 
 def analyse_nans():
-    data = BrainData()
-    nans_column_wise = BrainData.calculate_nans_voxel_wise(data.STG[1])
+    data = BrainData(load_data=True)
+    nans_column_wise = data.calculate_nans_voxel_wise(data.STG[1])
     print("nans_column_wise", len(nans_column_wise))
-    nans_voxel_wise = BrainData.calculate_nans_trail_wise(data.STG[1])
+    nans_voxel_wise = data.calculate_nans_trail_wise(data.STG[1])
     print("nans_voxel_wise", len(nans_voxel_wise))
     print("------------")
 
 
 def visualize_nans():
-    bd = BrainData()
+    bd = BrainData(load_data=True)
     data_list = [bd.STG, bd.IFG]
     for dt in data_list:
         title, data = dt
-        nans_column_wise = BrainData.calculate_nans_voxel_wise(data)
+        nans_column_wise = bd.calculate_nans_voxel_wise(data)
         columns = [i for i in range(data.shape[1])]
         VisualizeData.plot_bar_graph(
             ("Columns", columns),
@@ -258,7 +261,7 @@ def visualize_nans():
             title=title,
         )
 
-        nans_voxel_wise = BrainData.calculate_nans_trail_wise(data)
+        nans_voxel_wise = bd.calculate_nans_trail_wise(data)
         rows = [i for i in range(data.shape[0])]
         VisualizeData.plot_bar_graph(
             ("nans-length-voxel-wise", nans_voxel_wise),
