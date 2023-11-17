@@ -17,11 +17,11 @@ class ExportData:
                 wr.writerow(ed)
 
     def create_and_write_datasheet(
-        self, data, sheet_name, title="results", transposed=False
+        self, data, sheet_name, title="results", transpose=False
     ):
         matrix = self.prepare_data_matrix(data)
 
-        if transposed is True:
+        if transpose is True:
             matrix = np.transpose(matrix)
 
         # to create a new blank Workbook object

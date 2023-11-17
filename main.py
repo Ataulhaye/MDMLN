@@ -134,7 +134,7 @@ def classify_IFG(folds=5, test_size=0.3):
         export_data,
         f"IFG-Results",
         f"IFG-{folds}-Folds-Classification",
-        transposed=True,
+        transpose=True,
     )
 
 
