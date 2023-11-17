@@ -88,11 +88,10 @@ class DataTraining:
     def classify_brain_data(
         self, classifiers: list[str], labels, data, strategies, folds=5, test_size=0.3
     ):
-        brain_data = BrainData()
         # data_dict = dict({})
         data_list = list()
         for strategy in strategies:
-            X = brain_data.normalize_data(data, strategy=strategy)
+            X = BrainData().normalize_data(data, strategy=strategy)
             for tp in labels:
                 mean, label = tp
                 for classifier in classifiers:

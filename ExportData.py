@@ -1,6 +1,7 @@
 import csv
 from datetime import datetime
 
+import numpy as np
 import openpyxl
 
 from ExportEntity import ExportEntity
@@ -16,12 +17,12 @@ class ExportData:
                 wr.writerow(ed)
 
     def create_and_write_datasheet(
-        self,
-        data,
-        sheet_name,
-        title="results",
+        self, data, sheet_name, title="results", transposed=False
     ):
-        csv_data = self.prepare_data_matrix(data)
+        matrix = self.prepare_data_matrix(data)
+
+        if transposed is True:
+            matrix = np.transpose(matrix)
 
         # to create a new blank Workbook object
         wb = openpyxl.Workbook()
@@ -32,8 +33,10 @@ class ExportData:
 
         # ws.insert_rows(1)
 
-        for item in csv_data:
-            ws.append(item)
+        for row in matrix:
+            if type(row) != list():
+                row = list(row)
+            ws.append(row)
 
         sheet_name = self.get_file_name(extension=".xlsx", sheet_name=sheet_name)
 
@@ -71,8 +74,7 @@ class ExportData:
                 if "Not" in export_entity.result[0]:
                     row[
                         col_index
-                    ] = f"""{export_entity.result[0]} {export_entity.result[1]}
-                    "p_value:"{export_entity.p_value}"""
+                    ] = f"{export_entity.result[0]} {export_entity.result[1]}   p_value: {export_entity.p_value}"
                 else:
                     row[
                         col_index
@@ -86,8 +88,7 @@ class ExportData:
                 if "Not" in export_entity.result[0]:
                     insert_row[
                         col_index
-                    ] = f"""{export_entity.result[0]} {export_entity.result[1]}
-                    "p_value:"{export_entity.p_value}"""
+                    ] = f"{export_entity.result[0]} {export_entity.result[1]}   p_value: {export_entity.p_value}"
                 else:
                     insert_row[
                         col_index

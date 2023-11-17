@@ -62,150 +62,9 @@ def run_evaluation():
     print("----------------------------------------------------")
 
 
-def classify_STG_on_image_labels():
-    data = BrainData()
-    STG = BrainData.normalize_data(data.STG)
-    # STG_nan = normalize_data(data.STG_raw, "nn")
-    IFG = BrainData.normalize_data(data.IFG)
-
-    print("----------------------------")
-    svm_clf = svm.SVC(kernel="linear", C=1)
-    svm_scores = DataTraining.k_fold_training_and_validation(
-        svm_clf, STG, data.image_labels
-    )
-
-    print("----------------------------")
-    dtree_clf = DecisionTreeClassifier(random_state=0)
-    dtree_scores = DataTraining.k_fold_training_and_validation(
-        dtree_clf, STG, data.image_labels
-    )
-
-    print("----------------------------")
-    knc = KNeighborsClassifier(n_neighbors=3)
-    knc_scores = DataTraining.k_fold_training_and_validation(
-        knc, STG, data.image_labels
-    )
-
-    print("----------------------------------------------------")
-    EvaluateTrainingModel.evaluate_models(svm_scores, svm_clf, dtree_scores, dtree_clf)
-    print("----------------------------------------------------")
-    EvaluateTrainingModel.evaluate_models(svm_scores, svm_clf, knc_scores, knc)
-    print("----------------------------------------------------")
-
-
-def classify_STG(folds=5, test_size=0.3):
-    data = BrainData()
-    STG = BrainData.normalize_data(data.STG)
-
-    print("---------------------------------------------------")
-
-    print("Subject labels STG:")
-    result1 = DataTraining.train_and_test_model_accuracy(
-        X=STG,
-        y=data.subject_labels,
-        classifier="svm",
-        folds=folds,
-        test_size=test_size,
-        popmean=0.33,
-    )
-    print(result1)
-    print("---------------------------------------------------")
-
-    print("Subject labels STG:")
-    result2 = DataTraining.train_and_test_model_accuracy(
-        X=STG,
-        y=data.subject_labels,
-        classifier="n_neighbors",
-        folds=folds,
-        test_size=test_size,
-        popmean=0.33,
-    )
-    print(result2)
-    print("---------------------------------------------------")
-
-    print("Image labels STG:")
-    result3 = DataTraining.train_and_test_model_accuracy(
-        X=STG,
-        y=data.image_labels,
-        classifier="svm",
-        folds=folds,
-        test_size=test_size,
-        popmean=0.25,
-    )
-    print(result3)
-    print("---------------------------------------------------")
-
-    print("Image labels STG:")
-    result4 = DataTraining.train_and_test_model_accuracy(
-        X=STG,
-        y=data.image_labels,
-        classifier="n_neighbors",
-        folds=folds,
-        test_size=test_size,
-        popmean=0.25,
-    )
-    print(result4)
-    print("---------------------------------------------------")
-
-
-def classify_IFG(folds=5, test_size=0.3):
-    data = BrainData()
-    IFG = BrainData.normalize_data(data.IFG)
-
-    print("---------------------------------------------------")
-
-    print("Subject labels IFG:")
-    result1 = DataTraining.train_and_test_model_accuracy(
-        X=IFG,
-        y=data.subject_labels,
-        classifier="svm",
-        folds=folds,
-        test_size=test_size,
-        popmean=0.33,
-    )
-    print(result1)
-    print("---------------------------------------------------")
-
-    print("Subject labels IFG:")
-    result2 = DataTraining.train_and_test_model_accuracy(
-        X=IFG,
-        y=data.subject_labels,
-        classifier="n_neighbors",
-        folds=folds,
-        test_size=test_size,
-        popmean=0.33,
-    )
-    print(result2)
-    print("---------------------------------------------------")
-
-    print("Image labels IFG:")
-    result3 = DataTraining.train_and_test_model_accuracy(
-        X=IFG,
-        y=data.image_labels,
-        classifier="svm",
-        folds=folds,
-        test_size=test_size,
-        popmean=0.25,
-    )
-    print(result3)
-    print("---------------------------------------------------")
-
-    print("Image labels IFG:")
-    result4 = DataTraining.train_and_test_model_accuracy(
-        X=IFG,
-        y=data.image_labels,
-        classifier="n_neighbors",
-        folds=folds,
-        test_size=test_size,
-        popmean=0.25,
-    )
-    print(result4)
-    print("---------------------------------------------------")
-
-
 def classify_IRIS():
     X, y = datasets.load_iris(return_X_y=True)
-    result = DataTraining.train_and_test_model_accuracy(
+    result = DataTraining().train_and_test_model_accuracy(
         X=X,
         y=y,
         classifier="svm",
@@ -215,7 +74,37 @@ def classify_IRIS():
     print(result)
 
 
-def run_test():
+def classify_STG(folds=5, test_size=0.3):
+    brain_data = BrainData(load_data=True)
+    strategies = [
+        "mean",
+        "median",
+        "most_frequent",
+        "constant",
+        "remove-voxels",
+        "n_neighbors",
+    ]
+    classifiers = ["svm", "n_neighbors", "decisiontree"]
+    labels = [(0.33, brain_data.image_labels), (0.25, brain_data.subject_labels)]
+    STG = brain_data.STG[1]
+
+    training = DataTraining()
+    export_data = training.classify_brain_data(
+        classifiers,
+        labels=labels,
+        data=STG,
+        strategies=strategies,
+        folds=folds,
+        test_size=test_size,
+    )
+    export = ExportData()
+    # export.create_and_write_CSV(export_data, "IFG-Results", "IFG")
+    export.create_and_write_datasheet(
+        export_data, f"STG-Results", f"STG-{folds}-Folds-Classification"
+    )
+
+
+def classify_IFG(folds=5, test_size=0.3):
     brain_data = BrainData(load_data=True)
     strategies = [
         "mean",
@@ -231,13 +120,21 @@ def run_test():
 
     training = DataTraining()
     export_data = training.classify_brain_data(
-        classifiers, labels=labels, data=IFG, strategies=strategies
+        classifiers,
+        labels=labels,
+        data=IFG,
+        strategies=strategies,
+        folds=folds,
+        test_size=test_size,
     )
 
     export = ExportData()
     # export.create_and_write_CSV(export_data, "IFG-Results", "IFG")
     export.create_and_write_datasheet(
-        export_data, "IFG-Results", "IFG-5-Folds-Classification"
+        export_data,
+        f"IFG-Results",
+        f"IFG-{folds}-Folds-Classification",
+        transposed=True,
     )
 
 
@@ -275,12 +172,13 @@ def visualize_nans():
     # VisualizeData.plot_data_bar(np.array(x), np.array(nans_column_wise))
 
 
-if __name__ == "__main__":
-    # pass
+def main():
     # analyse_nans()
     # visualize_nans()
-    run_test()
+    # classify_IRIS()
+    classify_STG(folds=1)
+    # classify_IFG(folds=1)
 
-# classify_STG(folds=1)
-# classify_IFG(folds=1)
-# classify_IRIS()
+
+if __name__ == "__main__":
+    main()
