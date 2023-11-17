@@ -220,19 +220,20 @@ def run_test():
     strategies = [
         "mean",
         "median",
-        # "most_frequent",
-        # "constant",
-        # "remove-columns",
-        # "nn",
+        "most_frequent",
+        "constant",
+        "remove-columns",
+        "nn",
     ]
-    classifiers = ["svm", "n_neighbors"]
+    classifiers = ["svm", "n_neighbors", "decisiontree"]
     labels = [(0.33, data.image_labels), (0.25, data.subject_labels)]
     IFG = data.IFG[1]
     export_data = DataTraining.classify_brain_data(
         classifiers, labels=labels, data=IFG, strategies=strategies
     )
 
-    ExportData.create_and_write_CSV(export_data, "IFG-Results", "IFG")
+    # ExportData.create_and_write_CSV(export_data, "IFG-Results", "IFG")
+    ExportData.create_and_write_datasheet(export_data, "IFG-Results", "IFG")
 
 
 def analyse_nans():

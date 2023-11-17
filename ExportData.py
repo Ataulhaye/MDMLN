@@ -8,20 +8,52 @@ from ExportEntity import ExportEntity
 
 class ExportData:
     def create_and_write_CSV(data, sheet_name, title="results", delimeter=","):
-        csv_data = ExportData.prepare_csv_data(data)
+        csv_data = ExportData.prepare_data_matrix(data)
         dt = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
 
-        with open(f"{sheet_name}_{dt}.csv", "w", newline="") as file:
+        extension = ".csv"
+        file_name = ExportData.get_file_name(extension, sheet_name)
+        with open(file_name, "w", newline="") as file:
             for ed in csv_data:
                 wr = csv.writer(file, delimiter=delimeter, quoting=csv.QUOTE_ALL)
                 wr.writerow(ed)
+
+    def create_and_write_datasheet(
+        data,
+        sheet_name,
+        title="results",
+    ):
+        csv_data = ExportData.prepare_data_matrix(data)
+
+        # to create a new blank Workbook object
+        wb = openpyxl.Workbook()
+
+        ws = wb.active
+
+        ws.title = title
+
+        # ws.insert_rows(1)
+
+        for item in csv_data:
+            ws.append(item)
+
+        extension = ".xlsx"
+        sheet_name = ExportData.get_file_name(extension, sheet_name)
+
+        # Save File
+        wb.save(sheet_name)
+
+    def get_file_name(extension, sheet_name):
+        dt = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+        sheet_name = f"{sheet_name}_{dt}{extension}"
+        return sheet_name
 
     # for key, value in data.items():
     #    print(key)
     #   print(value)
     #  for i in value:
     #     print(i)
-    def prepare_csv_data(data: list[ExportEntity]):
+    def prepare_data_matrix(data: list[ExportEntity]):
         csv_data = [["Classifier"]]
         for export_entity in data:
             col = f"{export_entity.sub_column_name}-{export_entity.column_name}"
@@ -74,29 +106,6 @@ class ExportData:
         for i, x in enumerate(matrix):
             if v in x:
                 return (i, x.index(v))
-
-    def create_and_write_datasheet(
-        data,
-        sheet_name,
-        title="results",
-    ):
-        # to create a new blank Workbook object
-        wb = openpyxl.Workbook()
-
-        ws = wb.active
-
-        ws.title = title
-
-        # ws.insert_rows(1)
-
-        for item in data:
-            ws.append(item)
-
-        dt = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
-        sheet_name = f"{sheet_name}_{dt}.xlsx"
-
-        # Save File
-        wb.save(sheet_name)
 
         """create_and_write_datasheet(
             [
