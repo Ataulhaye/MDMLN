@@ -34,7 +34,7 @@ class ExportData:
         # ws.insert_rows(1)
 
         for row in matrix:
-            if type(row) != list():
+            if type(row) != list:
                 row = list(row)
             ws.append(row)
 
