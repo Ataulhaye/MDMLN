@@ -238,9 +238,9 @@ def run_test():
 
 def analyse_nans():
     data = BrainData()
-    nans_column_wise = BrainData.calculate_nans_column_wise(data.STG[1])
+    nans_column_wise = BrainData.calculate_nans_voxel_wise(data.STG[1])
     print("nans_column_wise", len(nans_column_wise))
-    nans_voxel_wise = BrainData.calculate_nans_voxel_wise(data.STG[1])
+    nans_voxel_wise = BrainData.calculate_nans_trail_wise(data.STG[1])
     print("nans_voxel_wise", len(nans_voxel_wise))
     print("------------")
 
@@ -250,7 +250,7 @@ def visualize_nans():
     data_list = [bd.STG, bd.IFG]
     for dt in data_list:
         title, data = dt
-        nans_column_wise = BrainData.calculate_nans_column_wise(data)
+        nans_column_wise = BrainData.calculate_nans_voxel_wise(data)
         columns = [i for i in range(data.shape[1])]
         VisualizeData.plot_bar_graph(
             ("Columns", columns),
@@ -258,7 +258,7 @@ def visualize_nans():
             title=title,
         )
 
-        nans_voxel_wise = BrainData.calculate_nans_voxel_wise(data)
+        nans_voxel_wise = BrainData.calculate_nans_trail_wise(data)
         rows = [i for i in range(data.shape[0])]
         VisualizeData.plot_bar_graph(
             ("nans-length-voxel-wise", nans_voxel_wise),

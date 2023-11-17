@@ -80,7 +80,7 @@ class BrainData:
             imputer.fit(data)
             return imputer.transform(data)
 
-    def calculate_nans_voxel_wise(data):
+    def calculate_nans_trail_wise(data):
         # lis = [sum(np.isnan(x)) for x in zip(*data)]
         nans_len_list = []
         for row in data:
@@ -103,7 +103,15 @@ class BrainData:
             rows.append(nan_row)
         return np.array(rows)
 
-    def calculate_nans_column_wise(data):
+    def calculate_nans_voxel_wise(data):
+        """It is column wise if we consider as a data matrix
+
+        Args:
+            data (_type_): _description_
+
+        Returns:
+            _type_: _description_
+        """
         nans_len_list = []
         r, c = data.shape
         for column_index in range(c):
