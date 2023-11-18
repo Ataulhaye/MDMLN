@@ -84,7 +84,13 @@ def classify_STG(folds=5, test_size=0.3):
         "remove-voxels",
         "n_neighbors",
     ]
-    classifiers = ["svm", "n_neighbors", "decisiontree"]
+    classifiers = [
+        "SVM",
+        "KNearestNeighbors",
+        "DecisionTree",
+        "GaussianNaiveBayes",
+        "LinearDiscriminant",
+    ]
     labels = [(0.33, brain_data.image_labels), (0.25, brain_data.subject_labels)]
     STG = brain_data.STG[1]
 
@@ -100,7 +106,7 @@ def classify_STG(folds=5, test_size=0.3):
     export = ExportData()
     # export.create_and_write_CSV(export_data, "IFG-Results", "IFG")
     export.create_and_write_datasheet(
-        export_data, f"STG-Results", f"STG-{folds}-Folds-Classification"
+        export_data, f"STG-Results", f"STG-{folds}-Folds-Classification", transpose=True
     )
 
 
@@ -114,7 +120,13 @@ def classify_IFG(folds=5, test_size=0.3):
         "remove-voxels",
         "n_neighbors",
     ]
-    classifiers = ["svm", "n_neighbors", "decisiontree"]
+    classifiers = [
+        "SVM",
+        "KNearestNeighbors",
+        "DecisionTree",
+        "GaussianNaiveBayes",
+        "LinearDiscriminant",
+    ]
     labels = [(0.33, brain_data.image_labels), (0.25, brain_data.subject_labels)]
     IFG = brain_data.IFG[1]
 
@@ -176,7 +188,7 @@ def main():
     # analyse_nans()
     # visualize_nans()
     # classify_IRIS()
-    classify_STG()
+    classify_STG(folds=2)
     # classify_IFG()
 
 
