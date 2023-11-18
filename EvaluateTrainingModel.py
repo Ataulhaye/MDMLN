@@ -78,7 +78,7 @@ class EvaluateTrainingModel:
         return final_dict
 
     def evaluate_training_model_by_ttest_list(
-        classifier, popmean, scores, significance_level, data_label, strategy
+        self, classifier, popmean, scores, significance_level, data_label, strategy
     ):
         classifier_name = type(classifier).__name__
         t_statistic, p_value = stats.ttest_1samp(a=scores, popmean=popmean)

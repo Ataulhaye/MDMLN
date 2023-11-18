@@ -1,7 +1,9 @@
 import numpy as np
 from sklearn import svm
 from sklearn.base import BaseEstimator
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 
@@ -11,7 +13,7 @@ from EvaluateTrainingModel import EvaluateTrainingModel
 
 class DataTraining:
     def k_fold_training_and_validation(
-        classifier: BaseEstimator, X, y, folds=10, test_size=0.2
+        self, model: BaseEstimator, X, y, folds=10, test_size=0.2
     ):
         score_array = []
         for i in range(folds):
@@ -20,15 +22,15 @@ class DataTraining:
             X_train, X_test, y_train, y_test = train_test_split(
                 X, y, test_size=test_size
             )
-            classifier.fit(X_train, y_train)
-            score_array.append(classifier.score(X_test, y_test))
+            model.fit(X_train, y_train)
+            score_array.append(model.score(X_test, y_test))
         print(
-            f"scores using {type(classifier).__name__} with {folds}-fold cross-validation:",
+            f"scores using {type(model).__name__} with {folds}-fold cross-validation:",
             score_array,
         )
         score_array = np.array(score_array)
         print(
-            f"{type(classifier).__name__}: %0.2f accuracy with a standard deviation of %0.2f"
+            f"{type(model).__name__}: %0.2f accuracy with a standard deviation of %0.2f"
             % (score_array.mean(), score_array.std())
         )
         # print("-------------------------------------")
@@ -38,7 +40,7 @@ class DataTraining:
         self,
         X,
         y,
-        classifier="svm",
+        classifier="SVM",
         folds=5,
         test_size=0.3,
         popmean=0.3,
@@ -49,9 +51,11 @@ class DataTraining:
         Args:
             X (_type_): numpy.ndarray data
             y (_type_): numpy.ndarray labels
-            classifier (str, optional): _description_. Defaults to "svm" SVC kernal is linear.
-            if 'n_neighbors' then KNeighborsClassifier
-            if 'decisiontree' then DecisionTreeClassifier
+            classifier (str, optional): _description_. Defaults to "SVM" SVC kernal is linear.
+            if 'KNearestNeighbors' then KNeighborsClassifier
+            if 'DecisionTree' then DecisionTreeClassifier
+            if 'LinearDiscriminant' then LinearDiscriminantAnalysis
+            if 'GaussianNaiveBayes' then GaussianNB
             folds (int, optional): _description_. Defaults to 5.
             test_size (float, optional): size of test data. Defaults to 0.3.
             popmean (float, optional): popmean of data. Defaults to 0.3.
@@ -63,25 +67,24 @@ class DataTraining:
         Returns:
             _type_: _description_
         """
-        if classifier == "svm":
-            classifier = svm.SVC(kernel="linear", C=1)
-        elif classifier == "n_neighbors":
-            classifier = KNeighborsClassifier(n_neighbors=3)
-        elif classifier == "decisiontree":
-            classifier = DecisionTreeClassifier(random_state=0)
-        elif classifier == "gaussian":
-            raise NotImplementedError()
-            # classifier = GaussianNB()
-        elif classifier == "lineardiscriminant":
-            raise NotImplementedError()
-            # classifier = LinearDiscriminantAnalysis()
+        model = None
+        if classifier == "SVM":
+            model = svm.SVC(kernel="linear", C=1)
+        elif classifier == "KNearestNeighbors":
+            model = KNeighborsClassifier(n_neighbors=3)
+        elif classifier == "DecisionTree":
+            model = DecisionTreeClassifier(random_state=0)
+        elif classifier == "GaussianNaiveBayes":
+            model = GaussianNB()
+        elif classifier == "LinearDiscriminant":
+            model = LinearDiscriminantAnalysis()
         else:
             raise TypeError("Classifier Not Supported")
 
-        scores = DataTraining.k_fold_training_and_validation(
-            classifier=classifier, X=X, y=y[1], folds=folds, test_size=test_size
+        scores = DataTraining().k_fold_training_and_validation(
+            model=model, X=X, y=y[1], folds=folds, test_size=test_size
         )
-        return EvaluateTrainingModel.evaluate_training_model_by_ttest_list(
+        return EvaluateTrainingModel().evaluate_training_model_by_ttest_list(
             classifier, popmean, scores, significance_level, y[0], strategy
         )
 
