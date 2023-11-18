@@ -81,7 +81,9 @@ class EvaluateTrainingModel:
         self, classifier, popmean, scores, significance_level, data_label, strategy
     ):
         classifier_name = type(classifier).__name__
-        t_statistic, p_value = stats.ttest_1samp(a=scores, popmean=popmean)
+        t_statistic, p_value = stats.ttest_1samp(
+            a=scores, popmean=popmean, alternative="greater"
+        )
         # p value less than 0.05 consider to be significant, greater than 0.05 is considered not to be significant
 
         percent = "{:0.2f}%".format((scores.mean() * 100))

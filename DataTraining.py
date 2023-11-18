@@ -13,7 +13,7 @@ from EvaluateTrainingModel import EvaluateTrainingModel
 
 class DataTraining:
     def k_fold_training_and_validation(
-        self, model: BaseEstimator, X, y, folds=10, test_size=0.2
+        self, model: BaseEstimator, X, y, folds=5, test_size=0.2
     ):
         score_array = []
         for i in range(folds):
@@ -85,7 +85,7 @@ class DataTraining:
             model=model, X=X, y=y[1], folds=folds, test_size=test_size
         )
         return EvaluateTrainingModel().evaluate_training_model_by_ttest_list(
-            classifier, popmean, scores, significance_level, y[0], strategy
+            model, popmean, scores, significance_level, y[0], strategy
         )
 
     def classify_brain_data(

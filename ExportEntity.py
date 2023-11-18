@@ -5,3 +5,6 @@ class ExportEntity:
         self.sub_column_name = sub_column_name
         self.p_value = p_value
         self.result = result
+
+    def __repr__(self) -> str:
+        return f"Row:{self.row_name}, Column:{self.column_name}"
