@@ -176,8 +176,8 @@ def main():
     # analyse_nans()
     # visualize_nans()
     # classify_IRIS()
-    # classify_STG(folds=1)
-    classify_IFG(folds=1)
+    classify_STG()
+    # classify_IFG()
 
 
 if __name__ == "__main__":

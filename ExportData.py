@@ -3,6 +3,8 @@ from datetime import datetime
 
 import numpy as np
 import openpyxl
+from openpyxl import Workbook
+from openpyxl.utils import get_column_letter
 
 from ExportEntity import ExportEntity
 
@@ -31,7 +33,10 @@ class ExportData:
 
         ws.title = title
 
-        # ws.insert_rows(1)
+        col_widths = self.calculate_column_width(matrix)
+
+        for i, column_width in enumerate(col_widths, 1):  # ,1 to start at 1
+            ws.column_dimensions[get_column_letter(i)].width = column_width
 
         for row in matrix:
             if type(row) != list:
@@ -42,6 +47,15 @@ class ExportData:
 
         # Save File
         wb.save(sheet_name)
+
+    def calculate_column_width(self, matrix):
+        max_column_widths = [0] * len(matrix[0])
+        for row in matrix:
+            for i, cell in enumerate(row):
+                cell_length = len(cell)
+                if max_column_widths[i] < cell_length:
+                    max_column_widths[i] = cell_length
+        return max_column_widths
 
     def get_file_name(self, extension, sheet_name):
         dt = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
