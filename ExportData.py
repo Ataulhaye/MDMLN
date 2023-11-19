@@ -85,28 +85,22 @@ class ExportData:
                     for i in range(col_index - size):
                         row.append(None)
 
-                if "Not" in export_entity.result[0]:
-                    row[
-                        col_index
-                    ] = f"{export_entity.result[0]} {export_entity.result[1]}   p_value: {export_entity.p_value}"
-                else:
-                    row[
-                        col_index
-                    ] = f"{export_entity.result[0]} {export_entity.result[1]}"
+                # if "Not" in export_entity.result[0]:
+                # row[col_index] = f"{export_entity.result[0]} {export_entity.result[1]}   p_value: {export_entity.p_value}"
+                # else:
+                row[col_index] = f"{export_entity.result[0]} {export_entity.result[1]}"
 
                 csv_data[row_index] = row
 
             else:
                 insert_row = [None] * (col_index + 1)
                 insert_row[0] = export_entity.row_name
-                if "Not" in export_entity.result[0]:
-                    insert_row[
-                        col_index
-                    ] = f"{export_entity.result[0]} {export_entity.result[1]}   p_value: {export_entity.p_value}"
-                else:
-                    insert_row[
-                        col_index
-                    ] = f"{export_entity.result[0]} {export_entity.result[1]}"
+                # if "Not" in export_entity.result[0]:
+                # insert_row[col_index] = f"{export_entity.result[0]} {export_entity.result[1]}   p_value: {export_entity.p_value}"
+                # else:
+                insert_row[
+                    col_index
+                ] = f"{export_entity.result[0]} {export_entity.result[1]}"
 
                 csv_data.append(insert_row)
             print(export_entity)
