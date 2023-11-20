@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
+from random import randrange
 
 from BrainData import BrainData
 from EvaluateTrainingModel import EvaluateTrainingModel
@@ -17,24 +18,27 @@ class DataTraining:
     ):
         score_array = []
         for i in range(folds):
-            # split the data set randomly into test and train sets
-            # random_state=some number will always output the same sets by every execution
-            X_train, X_test, y_train, y_test = train_test_split(
-                X, y, test_size=test_size
+            X_test, X_train, y_test, y_train = self.random_train_test_split(
+                X, test_size, y
             )
             model.fit(X_train, y_train)
             score_array.append(model.score(X_test, y_test))
-        print(
-            f"scores using {type(model).__name__} with {folds}-fold cross-validation:",
-            score_array,
-        )
+        # print(f"scores using {type(model).__name__} with {folds}-fold cross-validation:",score_array,)
         score_array = np.array(score_array)
-        print(
-            f"{type(model).__name__}: %0.2f accuracy with a standard deviation of %0.2f"
-            % (score_array.mean(), score_array.std())
-        )
-        # print("-------------------------------------")
+        # print(f"{type(model).__name__}: %0.2f accuracy with a standard deviation of %0.2f"% (score_array.mean(), score_array.std()))
         return score_array
+
+    def random_train_test_split(self, X, test_size, y):
+        # split the data set randomly into test and train sets
+        # random_state=some number will always output the same sets by every execution
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
+        return X_test, X_train, y_test, y_train
+
+    def premeditate_train_test_split(self, X, test_size, y):
+        unique_labels = set(y)
+        randrange.randint(0, 9)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
+        return X_test, X_train, y_test, y_train
 
     def train_and_test_model_accuracy(
         self,

@@ -188,7 +188,7 @@ def main():
     # analyse_nans()
     # visualize_nans()
     # classify_IRIS()
-    classify_STG()
+    # classify_STG()
     classify_IFG()
 
 
