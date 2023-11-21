@@ -90,6 +90,10 @@ def classify_STG(folds=5, test_size=0.25):
         "DecisionTree",
         "GaussianNaiveBayes",
         "LinearDiscriminant",
+        "MLP",
+        "LogisticRegression",
+        "RandomForest",
+        # "LinearRegression",
     ]
     labels = [(0.25, brain_data.subject_labels), (0.33, brain_data.image_labels)]
     STG = brain_data.STG[1]
@@ -126,6 +130,10 @@ def classify_IFG(folds=5, test_size=0.25):
         "DecisionTree",
         "GaussianNaiveBayes",
         "LinearDiscriminant",
+        "MLP",
+        "LogisticRegression",
+        "RandomForest",
+        # "LinearRegression",
     ]
     labels = [(0.33, brain_data.image_labels), (0.25, brain_data.subject_labels)]
     IFG = brain_data.IFG[1]
