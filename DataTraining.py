@@ -18,13 +18,13 @@ from EvaluateTrainingModel import EvaluateTrainingModel
 
 class DataTraining:
     def k_fold_training_and_validation(
-        self, model: BaseEstimator, X, y, folds=5, test_size=0.2
+        self, model: BaseEstimator, X, y, folds=5, test_size=0.25
     ):
         score_array = []
         for i in range(folds):
-            # X_test, X_train, y_test, y_train = self.random_train_test_split( X, test_size, y)
-            X_test, X_train, y_test, y_train = self.premeditate_train_test_split(
-                X, test_size, y
+            # X_test, X_train, y_test, y_train = self.random_train_test_split( X, y, test_size)
+            X_test, X_train, y_test, y_train = self.premeditate_random_train_test_split(
+                X, y, test_size
             )
             model.fit(X_train, y_train)
             score_array.append(model.score(X_test, y_test))
@@ -33,39 +33,44 @@ class DataTraining:
         # print(f"{type(model).__name__}: %0.2f accuracy with a standard deviation of %0.2f"% (score_array.mean(), score_array.std()))
         return score_array
 
-    def random_train_test_split(self, X, test_size, y):
+    def random_train_test_split(self, X, y, test_size):
         # split the data set randomly into test and train sets
         # random_state=some number will always output the same sets by every execution
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
         return X_test, X_train, y_test, y_train
 
-    def premeditate_train_test_split(self, X, test_size, y):
-        X_test = []
-        X_train = []
-        y_test = []
-        y_train = []
+    def premeditate_random_train_test_split(self, X, y, test_size):
+        X_test, X_train, y_test, y_train = [], [], [], []
         train_size = 1.0 - test_size
+        sample_start = 0
+        sample_stop = 0
         config = BrainDataConfig()
         for subset_size in config.patients:
             subset_samples = subset_size * config.trails
             n_test = ceil(subset_size * test_size)
             n_train = floor(subset_size * train_size)
-            subset_indices = np.arange(start=0, stop=subset_samples, step=config.trails)
+            sample_stop = sample_stop + subset_samples
+            print("sample_start", sample_start)
+            print("sample_stop", sample_stop)
+            # subset_indices = np.arange(start=0, stop=subset_samples, step=config.trails)
+            subset_indices = np.arange(
+                start=sample_start, stop=sample_stop, step=config.trails
+            )
+            sample_start = sample_stop
             rng = np.random.mtrand._rand
             permutation = rng.permutation(subset_indices)
             subset_test_ind = permutation[:n_test]
             subset_train_ind = permutation[n_test : (n_test + n_train)]
-            for test_ind in subset_test_ind:
-                end = test_ind + config.trails
-                X_test.extend(X[test_ind:end])
-                y_test.extend(y[test_ind:end])
-
-            for train_ind in subset_train_ind:
-                end = train_ind + config.trails
-                X_train.extend(X[train_ind:end])
-                y_train.extend(y[train_ind:end])
+            self.extract_subset_chunk(X, X_test, y, y_test, subset_test_ind, config)
+            self.extract_subset_chunk(X, X_train, y, y_train, subset_train_ind, config)
 
         return np.array(X_test), np.array(X_train), np.array(y_test), np.array(y_train)
+
+    def extract_subset_chunk(self, X, X_subset, y, y_subset, subset_indices, config):
+        for start_index in subset_indices:
+            end_index = start_index + config.trails
+            X_subset.extend(X[start_index:end_index])
+            y_subset.extend(y[start_index:end_index])
 
     def train_and_test_model_accuracy(
         self,
@@ -73,7 +78,7 @@ class DataTraining:
         y,
         classifier="SVM",
         folds=5,
-        test_size=0.3,
+        test_size=0.25,
         popmean=0.3,
         significance_level=0.05,
         strategy=None,
@@ -112,7 +117,7 @@ class DataTraining:
         else:
             raise TypeError("Classifier Not Supported")
 
-        scores = DataTraining().k_fold_training_and_validation(
+        scores = self.k_fold_training_and_validation(
             model=model, X=X, y=y[1], folds=folds, test_size=test_size
         )
         return EvaluateTrainingModel().evaluate_training_model_by_ttest_list(
@@ -120,7 +125,7 @@ class DataTraining:
         )
 
     def classify_brain_data(
-        self, classifiers: list[str], labels, data, strategies, folds=5, test_size=0.3
+        self, classifiers: list[str], labels, data, strategies, folds=5, test_size=0.25
     ):
         # data_dict = dict({})
         data_list = list()

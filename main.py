@@ -68,13 +68,13 @@ def classify_IRIS():
         X=X,
         y=y,
         classifier="svm",
-        test_size=0.3,
+        test_size=0.25,
         popmean=0.33,
     )
     print(result)
 
 
-def classify_STG(folds=5, test_size=0.3):
+def classify_STG(folds=5, test_size=0.25):
     brain_data = BrainData(load_data=True)
     strategies = [
         "mean",
@@ -91,7 +91,7 @@ def classify_STG(folds=5, test_size=0.3):
         "GaussianNaiveBayes",
         "LinearDiscriminant",
     ]
-    labels = [(0.33, brain_data.image_labels), (0.25, brain_data.subject_labels)]
+    labels = [(0.25, brain_data.subject_labels), (0.33, brain_data.image_labels)]
     STG = brain_data.STG[1]
 
     training = DataTraining()
@@ -110,7 +110,7 @@ def classify_STG(folds=5, test_size=0.3):
     )
 
 
-def classify_IFG(folds=5, test_size=0.3):
+def classify_IFG(folds=5, test_size=0.25):
     brain_data = BrainData(load_data=True)
     strategies = [
         "mean",
@@ -188,8 +188,8 @@ def main():
     # analyse_nans()
     # visualize_nans()
     # classify_IRIS()
-    # classify_STG()
-    classify_IFG()
+    classify_STG()
+    # classify_IFG()
 
 
 if __name__ == "__main__":
