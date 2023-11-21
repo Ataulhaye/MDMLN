@@ -1,3 +1,7 @@
+import math
+from math import ceil, floor
+from random import randrange
+
 import numpy as np
 from sklearn import svm
 from sklearn.base import BaseEstimator
@@ -6,9 +10,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
-from random import randrange
 
 from BrainData import BrainData
+from BrainDataConfig import BrainDataConfig
 from EvaluateTrainingModel import EvaluateTrainingModel
 
 
@@ -18,7 +22,8 @@ class DataTraining:
     ):
         score_array = []
         for i in range(folds):
-            X_test, X_train, y_test, y_train = self.random_train_test_split(
+            # X_test, X_train, y_test, y_train = self.random_train_test_split( X, test_size, y)
+            X_test, X_train, y_test, y_train = self.premeditate_train_test_split(
                 X, test_size, y
             )
             model.fit(X_train, y_train)
@@ -35,10 +40,32 @@ class DataTraining:
         return X_test, X_train, y_test, y_train
 
     def premeditate_train_test_split(self, X, test_size, y):
-        unique_labels = set(y)
-        randrange.randint(0, 9)
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
-        return X_test, X_train, y_test, y_train
+        X_test = []
+        X_train = []
+        y_test = []
+        y_train = []
+        train_size = 1.0 - test_size
+        config = BrainDataConfig()
+        for subset_size in config.patients:
+            subset_samples = subset_size * config.trails
+            n_test = ceil(subset_size * test_size)
+            n_train = floor(subset_size * train_size)
+            subset_indices = np.arange(start=0, stop=subset_samples, step=config.trails)
+            rng = np.random.mtrand._rand
+            permutation = rng.permutation(subset_indices)
+            subset_test_ind = permutation[:n_test]
+            subset_train_ind = permutation[n_test : (n_test + n_train)]
+            for test_ind in subset_test_ind:
+                end = test_ind + config.trails
+                X_test.extend(X[test_ind:end])
+                y_test.extend(y[test_ind:end])
+
+            for train_ind in subset_train_ind:
+                end = train_ind + config.trails
+                X_train.extend(X[train_ind:end])
+                y_train.extend(y[train_ind:end])
+
+        return np.array(X_test), np.array(X_train), np.array(y_test), np.array(y_train)
 
     def train_and_test_model_accuracy(
         self,
