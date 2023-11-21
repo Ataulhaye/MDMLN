@@ -10,10 +10,13 @@ from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
-
+from sklearn.neural_network import MLPClassifier
 from BrainData import BrainData
 from BrainDataConfig import BrainDataConfig
 from EvaluateTrainingModel import EvaluateTrainingModel
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LinearRegression
 
 
 class DataTraining:
@@ -50,9 +53,6 @@ class DataTraining:
             n_test = ceil(subset_size * test_size)
             n_train = floor(subset_size * train_size)
             sample_stop = sample_stop + subset_samples
-            print("sample_start", sample_start)
-            print("sample_stop", sample_stop)
-            # subset_indices = np.arange(start=0, stop=subset_samples, step=config.trails)
             subset_indices = np.arange(
                 start=sample_start, stop=sample_stop, step=config.trails
             )
@@ -114,6 +114,14 @@ class DataTraining:
             model = GaussianNB()
         elif classifier == "LinearDiscriminant":
             model = LinearDiscriminantAnalysis()
+        elif classifier == "MLP":
+            model = MLPClassifier(random_state=1, max_iter=300)
+        elif classifier == "LogisticRegression":
+            model = LogisticRegression(random_state=0)
+        elif classifier == "RandomForest":
+            model = RandomForestClassifier(max_depth=2, random_state=0)
+        # elif classifier == "LinearRegression":
+        # model = LinearRegression()
         else:
             raise TypeError("Classifier Not Supported")
 
