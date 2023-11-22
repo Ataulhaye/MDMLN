@@ -76,6 +76,8 @@ class BrainData:
             return data[:, ~np.isnan(data).any(axis=0)]
         elif strategy == "remove-trails":
             return NotImplementedError
+        elif strategy == None:
+            return data
         else:
             imputer = SimpleImputer(missing_values=np.nan, strategy=strategy)
             imputer.fit(data)

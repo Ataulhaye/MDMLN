@@ -103,7 +103,7 @@ class ExportData:
                 ] = f"{export_entity.result[0]} {export_entity.result[1]}"
 
                 csv_data.append(insert_row)
-            print(export_entity)
+            # print(export_entity)
 
         return csv_data
 

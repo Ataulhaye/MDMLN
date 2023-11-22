@@ -17,9 +17,17 @@ from EvaluateTrainingModel import EvaluateTrainingModel
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import HistGradientBoostingClassifier
+
+from ExportEntity import ExportEntity
 
 
 class DataTraining:
+    nan_classifiers = [
+        "DecisionTree",
+        "HistGradientBoosting",
+    ]
+
     def k_fold_training_and_validation(
         self, model: BaseEstimator, X, y, folds=5, test_size=0.25
     ):
@@ -115,15 +123,26 @@ class DataTraining:
         elif classifier == "LinearDiscriminant":
             model = LinearDiscriminantAnalysis()
         elif classifier == "MLP":
-            model = MLPClassifier(random_state=1, max_iter=300)
+            model = MLPClassifier()
         elif classifier == "LogisticRegression":
-            model = LogisticRegression(random_state=0)
+            model = LogisticRegression()
         elif classifier == "RandomForest":
             model = RandomForestClassifier(max_depth=2, random_state=0)
         # elif classifier == "LinearRegression":
         # model = LinearRegression()
+        elif classifier == "HistGradientBoosting":
+            model = HistGradientBoostingClassifier()
         else:
             raise TypeError("Classifier Not Supported")
+
+        if strategy == None and classifier not in self.nan_classifiers:
+            return ExportEntity(
+                p_value=None,
+                row_name=type(model).__name__,
+                sub_column_name=strategy,
+                column_name=y[0],
+                result=tuple(("", "")),
+            )
 
         scores = self.k_fold_training_and_validation(
             model=model, X=X, y=y[1], folds=folds, test_size=test_size

@@ -10,6 +10,46 @@ from EvaluateTrainingModel import EvaluateTrainingModel
 from ExportData import ExportData
 from PlotData import VisualizeData
 
+strategies = [
+    None,
+    "mean",
+    "median",
+    "most_frequent",
+    "constant",
+    "remove-voxels",
+    "n_neighbors",
+]
+classifiers = [
+    "DecisionTree",
+    "HistGradientBoosting",
+    "SVM",
+    "KNearestNeighbors",
+    "GaussianNaiveBayes",
+    "LinearDiscriminant",
+    "MLP",
+    "LogisticRegression",
+    "RandomForest",
+]
+strategies0 = [
+    None
+    # "mean",
+    # "median",
+    # "most_frequent",
+    # "constant",
+    # "remove-voxels",
+    # "n_neighbors",
+]
+classifiers0 = [
+    # "SVM",
+    # "KNearestNeighbors",
+    "DecisionTree",  # solve nan
+    # "GaussianNaiveBayes",
+    # "LinearDiscriminant",
+    # "MLP",
+    # "LogisticRegression",
+    # "RandomForest",
+]
+
 
 def run_evaluation():
     X, y = datasets.load_iris(return_X_y=True)
@@ -74,27 +114,9 @@ def classify_IRIS():
     print(result)
 
 
-def classify_STG(folds=5, test_size=0.25):
+def classify_STG(folds=5, test_size=0.3):
     brain_data = BrainData(load_data=True)
-    strategies = [
-        "mean",
-        "median",
-        "most_frequent",
-        "constant",
-        "remove-voxels",
-        "n_neighbors",
-    ]
-    classifiers = [
-        "SVM",
-        "KNearestNeighbors",
-        "DecisionTree",
-        "GaussianNaiveBayes",
-        "LinearDiscriminant",
-        "MLP",
-        "LogisticRegression",
-        "RandomForest",
-        # "LinearRegression",
-    ]
+
     labels = [(0.25, brain_data.subject_labels), (0.33, brain_data.image_labels)]
     STG = brain_data.STG[1]
 
@@ -114,27 +136,9 @@ def classify_STG(folds=5, test_size=0.25):
     )
 
 
-def classify_IFG(folds=5, test_size=0.25):
+def classify_IFG(folds=5, test_size=0.3):
     brain_data = BrainData(load_data=True)
-    strategies = [
-        "mean",
-        "median",
-        "most_frequent",
-        "constant",
-        "remove-voxels",
-        "n_neighbors",
-    ]
-    classifiers = [
-        "SVM",
-        "KNearestNeighbors",
-        "DecisionTree",
-        "GaussianNaiveBayes",
-        "LinearDiscriminant",
-        "MLP",
-        "LogisticRegression",
-        "RandomForest",
-        # "LinearRegression",
-    ]
+
     labels = [(0.33, brain_data.image_labels), (0.25, brain_data.subject_labels)]
     IFG = brain_data.IFG[1]
 
