@@ -13,6 +13,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
 from BrainData import BrainData
 from BrainDataConfig import BrainDataConfig
+from BrainDataLabel import BrainDataLabel
 from EvaluateTrainingModel import EvaluateTrainingModel
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
@@ -57,12 +58,12 @@ class DataTraining:
         sample_stop = 0
         config = BrainDataConfig()
         for subset_size in config.patients:
-            subset_samples = subset_size * config.trails
+            subset_samples = subset_size * config.conditions
             n_test = ceil(subset_size * test_size)
             n_train = floor(subset_size * train_size)
             sample_stop = sample_stop + subset_samples
             subset_indices = np.arange(
-                start=sample_start, stop=sample_stop, step=config.trails
+                start=sample_start, stop=sample_stop, step=config.conditions
             )
             sample_start = sample_stop
             rng = np.random.mtrand._rand
@@ -74,20 +75,28 @@ class DataTraining:
 
         return np.array(X_test), np.array(X_train), np.array(y_test), np.array(y_train)
 
-    def extract_subset_chunk(self, X, X_subset, y, y_subset, subset_indices, config):
-        for start_index in subset_indices:
-            end_index = start_index + config.trails
-            X_subset.extend(X[start_index:end_index])
-            y_subset.extend(y[start_index:end_index])
+    def extract_subset_chunk(
+        self,
+        X: list,
+        X_subset: list,
+        y: list,
+        y_subset: list,
+        subset_indices: list,
+        config: BrainDataConfig,
+    ):
+        for start in subset_indices:
+            end = start + config.conditions
+            X_subset.extend(X[start:end])
+            y_subset.extend(y[start:end])
 
     def train_and_test_model_accuracy(
         self,
         X,
-        y,
+        y: BrainDataLabel,
+        popmean,
         classifier="SVM",
         folds=5,
-        test_size=0.25,
-        popmean=0.3,
+        test_size=0.2,
         significance_level=0.05,
         strategy=None,
     ):
@@ -140,34 +149,39 @@ class DataTraining:
                 p_value=None,
                 row_name=type(model).__name__,
                 sub_column_name=strategy,
-                column_name=y[0],
+                column_name=y.name,
                 result=tuple(("", "")),
             )
 
         scores = self.k_fold_training_and_validation(
-            model=model, X=X, y=y[1], folds=folds, test_size=test_size
+            model=model, X=X, y=y.labels, folds=folds, test_size=test_size
         )
         return EvaluateTrainingModel().evaluate_training_model_by_ttest_list(
-            model, popmean, scores, significance_level, y[0], strategy
+            model, popmean, scores, significance_level, y.name, strategy
         )
 
     def classify_brain_data(
-        self, classifiers: list[str], labels, data, strategies, folds=5, test_size=0.25
+        self,
+        classifiers: list[str],
+        labels: list[BrainDataLabel],
+        data,
+        strategies,
+        folds=5,
+        test_size=0.2,
     ):
         # data_dict = dict({})
         data_list = list()
         for strategy in strategies:
             X = BrainData().normalize_data(data, strategy=strategy)
-            for tp in labels:
-                mean, label = tp
+            for label in labels:
                 for classifier in classifiers:
                     results = self.train_and_test_model_accuracy(
                         X=X,
                         y=label,
+                        popmean=label.popmean,
                         classifier=classifier,
                         folds=folds,
                         test_size=test_size,
-                        popmean=mean,
                         strategy=strategy,
                     )
                     data_list.append(results)

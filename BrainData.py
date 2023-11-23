@@ -5,6 +5,9 @@ from sklearn import datasets
 from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
+from BrainDataConfig import BrainDataConfig
+
+from BrainDataLabel import BrainDataLabel
 
 
 class BrainData:
@@ -21,18 +24,46 @@ class BrainData:
 
             # Labels
             # self.subject_labels = np.array(["N"] * 4 * 43 + ["D"] * 4 * 33 + ["S"] * 4 * 46)
-            self.subject_labels = tuple(
-                (
-                    "subject_labels",
-                    np.array(["N"] * 4 * 43 + ["D"] * 4 * 33 + ["S"] * 4 * 46),
-                )
+            # self.subject_labels_o = tuple(("subject_labels",np.array(["N"] * 4 * 43 + ["D"] * 4 * 33 + ["S"] * 4 * 46),))
+
+            config = BrainDataConfig()
+
+            self.subject_labels = BrainDataLabel(
+                name="subject_labels",
+                popmean=config.subject_label_popmean,
+                labels=np.array(
+                    [config.neurotypical]
+                    * config.conditions
+                    * config.neurotypical_patients
+                    + [config.depressive_disorder]
+                    * config.conditions
+                    * config.depressive_disorder_patients
+                    + [config.schizophrenia_spectrum]
+                    * config.conditions
+                    * config.schizophrenia_spectrum_patients
+                ),
             )
             # subject_labels 172=N, 132=D, 184=S sumup to 488
 
             # self.image_labels = np.array(["AR", "AU", "CR", "CU"] * (43 + 33 + 46))
 
-            self.image_labels = tuple(
-                ("image_labels", np.array(["AR", "AU", "CR", "CU"] * (43 + 33 + 46)))
+            # self.image_labels_o = tuple(("image_labels", np.array(["AR", "AU", "CR", "CU"] * (43 + 33 + 46))))
+            self.image_labels = BrainDataLabel(
+                name="image_labels",
+                popmean=config.image_label_popmean,
+                labels=np.array(
+                    [
+                        config.abstract_related,
+                        config.abstract_unrelated,
+                        config.concrete_related,
+                        config.concrete_unrelated,
+                    ]
+                    * (
+                        config.neurotypical_patients
+                        + config.depressive_disorder_patients
+                        + config.schizophrenia_spectrum_patients
+                    )
+                ),
             )
             # self.all_labels = [
             # sb + im for sb, im in zip(self.subject_labels, self.image_labels)
@@ -44,8 +75,10 @@ class BrainData:
                         [
                             sb + im
                             for sb, im in zip(
-                                self.subject_labels[1],
-                                self.image_labels[1],
+                                # self.subject_labels[1],
+                                # self.image_labels[1],
+                                self.subject_labels.labels,
+                                self.image_labels.labels,
                             )
                         ]
                     ),

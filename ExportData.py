@@ -68,18 +68,18 @@ class ExportData:
     #  for i in value:
     #     print(i)
     def prepare_data_matrix(self, data: list[ExportEntity]):
-        csv_data = [["Classifier"]]
+        matrix = [["Classifier"]]
         for export_entity in data:
             col = f"{export_entity.sub_column_name}-{export_entity.column_name}"
-            if col not in csv_data[0]:
-                csv_data[0].append(col)
-            row_col_index = self.get_index(csv_data, export_entity.row_name)
+            if col not in matrix[0]:
+                matrix[0].append(col)
+            row_col_index = self.get_index(matrix, export_entity.row_name)
 
-            col_index = csv_data[0].index(col)
+            col_index = matrix[0].index(col)
 
             if row_col_index is not None:
                 row_index = row_col_index[0]
-                row = csv_data[row_index]
+                row = matrix[row_index]
                 size = len(row) - 1
                 if size < col_index:
                     for i in range(col_index - size):
@@ -90,7 +90,7 @@ class ExportData:
                 # else:
                 row[col_index] = f"{export_entity.result[0]} {export_entity.result[1]}"
 
-                csv_data[row_index] = row
+                matrix[row_index] = row
 
             else:
                 insert_row = [None] * (col_index + 1)
@@ -102,10 +102,10 @@ class ExportData:
                     col_index
                 ] = f"{export_entity.result[0]} {export_entity.result[1]}"
 
-                csv_data.append(insert_row)
+                matrix.append(insert_row)
             # print(export_entity)
 
-        return csv_data
+        return matrix
 
     # returns row, col index of a given value
     def get_index(self, matrix, v):

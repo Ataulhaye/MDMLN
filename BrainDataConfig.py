@@ -1,6 +1,6 @@
 class BrainDataConfig:
     def __init__(self):
-        self.trails = 4
+        self.conditions = 4
 
         self.neurotypical_patients = 43
         self.depressive_disorder_patients = 33
@@ -23,3 +23,18 @@ class BrainDataConfig:
             self.depressive_disorder_patients,
             self.schizophrenia_spectrum_patients,
         ]
+
+        self.subject_labels = [
+            self.neurotypical,
+            self.depressive_disorder,
+            self.schizophrenia_spectrum,
+        ]
+
+        self.image_labels = [
+            self.abstract_related,
+            self.abstract_unrelated,
+            self.concrete_related,
+            self.concrete_unrelated,
+        ]
+        self.subject_label_popmean = round(((100 / len(self.subject_labels)) / 100), 2)
+        self.image_label_popmean = round(((100 / len(self.image_labels)) / 100), 2)

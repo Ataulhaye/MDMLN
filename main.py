@@ -5,6 +5,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 
 from BrainData import BrainData
+from BrainDataConfig import BrainDataConfig
 from DataTraining import DataTraining
 from EvaluateTrainingModel import EvaluateTrainingModel
 from ExportData import ExportData
@@ -21,15 +22,19 @@ strategies = [
 ]
 classifiers = [
     "DecisionTree",
-    "HistGradientBoosting",
+    # "HistGradientBoosting",
     "SVM",
-    "KNearestNeighbors",
-    "GaussianNaiveBayes",
-    "LinearDiscriminant",
-    "MLP",
-    "LogisticRegression",
-    "RandomForest",
+    # "KNearestNeighbors",
+    # "GaussianNaiveBayes",
+    # "LinearDiscriminant",
+    # "MLP",
+    # "LogisticRegression",
+    # "RandomForest",
 ]
+brain_data = BrainData(load_data=True)
+
+labels = [brain_data.subject_labels, brain_data.image_labels]
+
 strategies0 = [
     None
     # "mean",
@@ -108,16 +113,13 @@ def classify_IRIS():
         X=X,
         y=y,
         classifier="svm",
-        test_size=0.25,
+        test_size=0.2,
         popmean=0.33,
     )
     print(result)
 
 
-def classify_STG(folds=5, test_size=0.3):
-    brain_data = BrainData(load_data=True)
-
-    labels = [(0.25, brain_data.subject_labels), (0.33, brain_data.image_labels)]
+def classify_STG(folds=5, test_size=0.2):
     STG = brain_data.STG[1]
 
     training = DataTraining()
@@ -136,12 +138,8 @@ def classify_STG(folds=5, test_size=0.3):
     )
 
 
-def classify_IFG(folds=5, test_size=0.3):
-    brain_data = BrainData(load_data=True)
-
-    labels = [(0.33, brain_data.image_labels), (0.25, brain_data.subject_labels)]
+def classify_IFG(folds=5, test_size=0.2):
     IFG = brain_data.IFG[1]
-
     training = DataTraining()
     export_data = training.classify_brain_data(
         classifiers,
