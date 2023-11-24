@@ -6,20 +6,18 @@ import numpy as np
 from sklearn import svm
 from sklearn.base import BaseEstimator
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
+from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
+from sklearn.tree import DecisionTreeClassifier
+
 from BrainData import BrainData
 from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
 from EvaluateTrainingModel import EvaluateTrainingModel
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LinearRegression
-from sklearn.ensemble import HistGradientBoostingClassifier
-
 from ExportEntity import ExportEntity
 
 
@@ -30,7 +28,7 @@ class DataTraining:
     ]
 
     def k_fold_training_and_validation(
-        self, model: BaseEstimator, X, y, folds=5, test_size=0.25
+        self, model: BaseEstimator, X, y, folds=5, test_size=0.2
     ):
         score_array = []
         for i in range(folds):

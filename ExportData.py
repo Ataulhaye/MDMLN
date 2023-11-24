@@ -1,12 +1,14 @@
 import csv
 from datetime import datetime
+from string import ascii_uppercase
 
 import numpy as np
 import openpyxl
 from openpyxl import Workbook
-from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font
-from string import ascii_uppercase
+from openpyxl.utils import get_column_letter
+
+from ExelSettings import ExelSettings
 from ExportEntity import ExportEntity
 
 
@@ -34,44 +36,67 @@ class ExportData:
 
         ws.title = title
 
+        sett = ExelSettings()
+
         col_widths = self.calculate_column_width(matrix)
 
-        for i, column_width in enumerate(col_widths, 1):  # ,1 to start at 1
-            ws.column_dimensions[get_column_letter(i)].width = column_width
+        cell_position = self.calculate_cell_positions(matrix)
 
-        cell_names = self.calculate_cell_positions(matrix)
+        for i, row in enumerate(matrix[0]):
+            ws.column_dimensions[cell_position[0][i][0]].width = col_widths[i]
 
         for row in matrix:
             if type(row) != list:
                 row = list(row)
             ws.append(row)
 
-        self.set_font_significant_result(cell_names, matrix, ws)
+        self.set_font_significant_result(cell_position, matrix, ws)
 
-        self.set_header_font(cell_names, matrix, ws)
+        self.set_header_font(cell_position, matrix, ws, col_widths, sett)
 
-        self.set_first_column_font(cell_names, matrix, ws)
+        self.set_first_column_font(cell_position, matrix, ws, col_widths, sett)
 
         sheet_name = self.get_file_name(extension=".xlsx", sheet_name=sheet_name)
 
         # Save File
         wb.save(sheet_name)
 
-    def set_first_column_font(self, cell_names, matrix, ws):
+    def set_first_column_font(
+        self, cell_position, matrix, ws, col_widths, setting: ExelSettings
+    ):
         for j, row in enumerate(matrix):
-            cell = ws[cell_names[j][0]]
-            cell.font = Font(name="Cambria", sz=14)
+            cell = ws[cell_position[j][0]]
+            cell.font = Font(name=setting.header_family, sz=setting.header_font)
 
-    def set_header_font(self, cell_names, matrix, ws):
+        self.repair_first_column_width(cell_position, ws, col_widths, setting)
+
+    def repair_first_column_width(
+        self, cell_position, ws, col_widths, setting: ExelSettings
+    ):
+        ws.column_dimensions[cell_position[0][0][0]].width = col_widths[0] + (
+            (setting.header_font - setting.default_font) * 2
+        )
+
+    def set_header_font(
+        self, cell_position, matrix, ws, col_widths, setting: ExelSettings
+    ):
         for i, cell in enumerate(matrix[0]):
-            cell = ws[cell_names[0][i]]
-            cell.font = Font(name="Cambria", sz=14)
+            cell = ws[cell_position[0][i]]
+            cell.font = Font(name=setting.header_family, sz=setting.header_font)
+            self.repair_header_cell_width(cell_position, ws, col_widths, i, setting)
 
-    def set_font_significant_result(self, cell_names, matrix, ws):
+    def repair_header_cell_width(
+        self, cell_position, ws, col_widths, i, setting: ExelSettings
+    ):
+        ws.column_dimensions[cell_position[0][i][0]].width = col_widths[i] + (
+            (setting.header_font - setting.default_font)
+        )
+
+    def set_font_significant_result(self, cell_position, matrix, ws):
         for i, row in enumerate(matrix):
             for j, val in enumerate(row):
                 if "Not" not in val and j != 0 and i != 0:
-                    cell = ws[cell_names[i][j]]
+                    cell = ws[cell_position[i][j]]
                     cell.font = Font(bold=True)
 
     def calculate_cell_positions(self, matrix):

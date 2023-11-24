@@ -24,7 +24,7 @@ classifiers = [
     # "DecisionTree",
     # "HistGradientBoosting",
     "SVM",
-    # "KNearestNeighbors",
+    "KNearestNeighbors",
     # "GaussianNaiveBayes",
     # "LinearDiscriminant",
     # "MLP",
@@ -134,7 +134,10 @@ def classify_STG(folds=5, test_size=0.2):
     export = ExportData()
     # export.create_and_write_CSV(export_data, "IFG-Results", "IFG")
     export.create_and_write_datasheet(
-        export_data, f"STG-Results", f"STG-{folds}-Folds-Classification", transpose=True
+        export_data,
+        f"STG-Results",
+        f"STG-{folds}-Folds-Classification",
+        transpose=False,
     )
 
 
