@@ -12,16 +12,16 @@ from ExportData import ExportData
 from PlotData import VisualizeData
 
 strategies = [
-    None,
+    # None,
     "mean",
     "median",
-    "most_frequent",
-    "constant",
-    "remove-voxels",
-    "n_neighbors",
+    # "most_frequent",
+    # "constant",
+    # "remove-voxels",
+    # "n_neighbors",
 ]
 classifiers = [
-    "DecisionTree",
+    # "DecisionTree",
     # "HistGradientBoosting",
     "SVM",
     # "KNearestNeighbors",

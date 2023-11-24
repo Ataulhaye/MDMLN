@@ -5,7 +5,8 @@ import numpy as np
 import openpyxl
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
-
+from openpyxl.styles import Font
+from string import ascii_uppercase
 from ExportEntity import ExportEntity
 
 
@@ -38,15 +39,49 @@ class ExportData:
         for i, column_width in enumerate(col_widths, 1):  # ,1 to start at 1
             ws.column_dimensions[get_column_letter(i)].width = column_width
 
+        cell_names = self.calculate_cell_positions(matrix)
+
         for row in matrix:
             if type(row) != list:
                 row = list(row)
             ws.append(row)
 
+        self.set_font_significant_result(cell_names, matrix, ws)
+
+        self.set_header_font(cell_names, matrix, ws)
+
+        self.set_first_column_font(cell_names, matrix, ws)
+
         sheet_name = self.get_file_name(extension=".xlsx", sheet_name=sheet_name)
 
         # Save File
         wb.save(sheet_name)
+
+    def set_first_column_font(self, cell_names, matrix, ws):
+        for j, row in enumerate(matrix):
+            cell = ws[cell_names[j][0]]
+            cell.font = Font(name="Cambria", sz=14)
+
+    def set_header_font(self, cell_names, matrix, ws):
+        for i, cell in enumerate(matrix[0]):
+            cell = ws[cell_names[0][i]]
+            cell.font = Font(name="Cambria", sz=14)
+
+    def set_font_significant_result(self, cell_names, matrix, ws):
+        for i, row in enumerate(matrix):
+            for j, val in enumerate(row):
+                if "Not" not in val and j != 0 and i != 0:
+                    cell = ws[cell_names[i][j]]
+                    cell.font = Font(bold=True)
+
+    def calculate_cell_positions(self, matrix):
+        cell_names = []
+        for i, row in enumerate(matrix):
+            row_names = []
+            for j, val in enumerate(row):
+                row_names.append(f"{ascii_uppercase[j]}{i+1}")
+            cell_names.append(row_names)
+        return cell_names
 
     def calculate_column_width(self, matrix):
         max_column_widths = [0] * len(matrix[0])
