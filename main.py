@@ -15,9 +15,9 @@ strategies = [
     # None,
     "mean",
     "median",
-    # "most_frequent",
+    "most_frequent",
     # "constant",
-    # "remove-voxels",
+    "remove-voxels",
     # "n_neighbors",
 ]
 classifiers = [
@@ -26,7 +26,7 @@ classifiers = [
     "SVM",
     "KNearestNeighbors",
     # "GaussianNaiveBayes",
-    # "LinearDiscriminant",
+    "LinearDiscriminant",
     # "MLP",
     # "LogisticRegression",
     # "RandomForest",
@@ -202,7 +202,7 @@ def main():
     # visualize_nans()
     # classify_IRIS()
     classify_STG()
-    # classify_IFG()
+    classify_IFG()
 
 
 if __name__ == "__main__":
