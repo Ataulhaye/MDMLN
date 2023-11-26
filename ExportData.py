@@ -22,7 +22,7 @@ class ExportData:
     def create_and_write_datasheet(
         self, data, sheet_name, title="results", transpose=False
     ):
-        matrix = self.prepare_data_matrix_N(data)
+        matrix = self.prepare_data_matrix(data)
 
         if transpose is True:
             matrix = np.transpose(matrix)
@@ -48,7 +48,7 @@ class ExportData:
                 row = list(row)
             ws.append(row)
 
-        self.set_font_significant_result(cell_position, matrix, ws)
+        self.set_font_significant_result(cell_position, matrix, ws, transpose)
 
         self.set_header_font(cell_position, matrix, ws, col_widths, sett)
 
@@ -129,10 +129,13 @@ class ExportData:
             (setting.header_font - setting.default_font)
         )
 
-    def set_font_significant_result(self, cell_position, matrix, ws):
+    def set_font_significant_result(self, cell_position, matrix, ws, transpose):
+        k = 0
+        if transpose:
+            k = 1
         for i, row in enumerate(matrix):
             for j, val in enumerate(row):
-                if "Not" not in val and j != 0 and i != 0 and j != 1:
+                if "Not" not in val and j > k and i > 0:
                     cell = ws[cell_position[i][j]]
                     cell.font = Font(bold=True)
 
@@ -155,56 +158,11 @@ class ExportData:
         return max_column_widths
 
     def get_file_name(self, extension, sheet_name):
-        dt = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+        dt = datetime.now().strftime("%d-%m-%Y_%H-%M-%S_%f")
         sheet_name = f"{sheet_name}_{dt}{extension}"
         return sheet_name
 
-    # for key, value in data.items():
-    #    print(key)
-    #   print(value)
-    #  for i in value:
-    #     print(i)
     def prepare_data_matrix(self, data: list[ExportEntity]):
-        matrix = [["Classifier"]]
-        for export_entity in data:
-            col = f"{export_entity.sub_column_name}-{export_entity.column_name}"
-            if col not in matrix[0]:
-                matrix[0].append(col)
-            row_col_index = self.get_index(matrix, export_entity.row_name)
-
-            col_index = matrix[0].index(col)
-
-            if row_col_index is not None:
-                row_index = row_col_index[0]
-                row = matrix[row_index]
-                size = len(row) - 1
-                if size < col_index:
-                    for i in range(col_index - size):
-                        row.append(None)
-
-                # if "Not" in export_entity.result[0]:
-                # row[col_index] = f"{export_entity.result[0]} {export_entity.result[1]}   p_value: {export_entity.p_value}"
-                # else:
-                row[col_index] = f"{export_entity.result[0]} {export_entity.result[1]}"
-
-                matrix[row_index] = row
-
-            else:
-                insert_row = [None] * (col_index + 1)
-                insert_row[0] = export_entity.row_name
-                # if "Not" in export_entity.result[0]:
-                # insert_row[col_index] = f"{export_entity.result[0]} {export_entity.result[1]}   p_value: {export_entity.p_value}"
-                # else:
-                insert_row[
-                    col_index
-                ] = f"{export_entity.result[0]} {export_entity.result[1]}"
-
-                matrix.append(insert_row)
-            # print(export_entity)
-
-        return matrix
-
-    def prepare_data_matrix_N(self, data: list[ExportEntity]):
         matrix = [["Strategy"], ["Classifier"]]
 
         for i, export_entity in enumerate(data):
@@ -263,18 +221,7 @@ class ExportData:
         return rows, columns
 
     # returns row, col index of a given value
-    def get_index(self, matrix, v):
-        for i, x in enumerate(matrix):
-            if v in x:
-                return (i, x.index(v))
-
-        """create_and_write_datasheet(
-            [
-                ("ID", "Name", "Email"),
-                (1, "abc", "agmail.com"),
-                (2, "def", "dgmail.com"),
-                (3, "ghi", "ggmail.com"),
-            ],
-            "tstdata",
-        )
-        """
+    def get_index(self, matrix, value):
+        for i, row in enumerate(matrix):
+            if value in row:
+                return (i, row.index(value))

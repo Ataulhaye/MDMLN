@@ -11,50 +11,6 @@ from EvaluateTrainingModel import EvaluateTrainingModel
 from ExportData import ExportData
 from PlotData import VisualizeData
 
-strategies = [
-    # None,
-    "mean",
-    "median",
-    "most_frequent",
-    # "constant",
-    "remove-voxels",
-    # "n_neighbors",
-]
-classifiers = [
-    # "DecisionTree",
-    # "HistGradientBoosting",
-    "SVM",
-    "KNearestNeighbors",
-    # "GaussianNaiveBayes",
-    "LinearDiscriminant",
-    # "MLP",
-    # "LogisticRegression",
-    # "RandomForest",
-]
-brain_data = BrainData(load_data=True)
-
-labels = [brain_data.subject_labels, brain_data.image_labels]
-
-strategies0 = [
-    None
-    # "mean",
-    # "median",
-    # "most_frequent",
-    # "constant",
-    # "remove-voxels",
-    # "n_neighbors",
-]
-classifiers0 = [
-    # "SVM",
-    # "KNearestNeighbors",
-    "DecisionTree",  # solve nan
-    # "GaussianNaiveBayes",
-    # "LinearDiscriminant",
-    # "MLP",
-    # "LogisticRegression",
-    # "RandomForest",
-]
-
 
 def run_evaluation():
     X, y = datasets.load_iris(return_X_y=True)
@@ -119,7 +75,7 @@ def classify_IRIS():
     print(result)
 
 
-def classify_STG(folds=5, test_size=0.2):
+def classify_STG(folds, test_size, brain_data, classifiers, labels, strategies):
     STG = brain_data.STG[1]
 
     training = DataTraining()
@@ -139,9 +95,15 @@ def classify_STG(folds=5, test_size=0.2):
         f"STG-{folds}-Folds-Classification",
         transpose=False,
     )
+    export.create_and_write_datasheet(
+        export_data,
+        f"STG-Results",
+        f"STG-{folds}-Folds-Classification",
+        transpose=True,
+    )
 
 
-def classify_IFG(folds=5, test_size=0.2):
+def classify_IFG(folds, test_size, brain_data, classifiers, labels, strategies):
     IFG = brain_data.IFG[1]
     training = DataTraining()
     export_data = training.classify_brain_data(
@@ -160,6 +122,12 @@ def classify_IFG(folds=5, test_size=0.2):
         f"IFG-Results",
         f"IFG-{folds}-Folds-Classification",
         transpose=True,
+    )
+    export.create_and_write_datasheet(
+        export_data,
+        f"IFG-Results",
+        f"IFG-{folds}-Folds-Classification",
+        transpose=False,
     )
 
 
@@ -201,8 +169,34 @@ def main():
     # analyse_nans()
     # visualize_nans()
     # classify_IRIS()
-    classify_STG()
-    classify_IFG()
+    folds = 5
+    test_size = 0.2
+    strategies = [
+        # None,
+        "mean",
+        "median",
+        "most_frequent",
+        # "constant",
+        "remove-voxels",
+        # "n_neighbors",
+    ]
+    classifiers = [
+        # "DecisionTree",
+        # "HistGradientBoosting",
+        "SVM",
+        "KNearestNeighbors",
+        # "GaussianNaiveBayes",
+        "LinearDiscriminant",
+        # "MLP",
+        # "LogisticRegression",
+        # "RandomForest",
+    ]
+    brain_data = BrainData(load_data=True)
+
+    labels = [brain_data.subject_labels, brain_data.image_labels]
+
+    classify_STG(folds, test_size, brain_data, classifiers, labels, strategies)
+    classify_IFG(folds, test_size, brain_data, classifiers, labels, strategies)
 
 
 if __name__ == "__main__":
