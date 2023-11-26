@@ -51,7 +51,7 @@ class EvaluateTrainingModel:
         else:
             return f"{classifier_name} classifier performance is not significant. P-value is: {p_value}"  # not significantly different by chance
 
-    def evaluate_training_model_by_ttest(
+    def evaluate_training_model_by_ttest_dict(
         classifier, popmean, scores, significance_level, data_label, strategy
     ):
         classifier_name = type(classifier).__name__
@@ -77,8 +77,14 @@ class EvaluateTrainingModel:
         )
         return final_dict
 
-    def evaluate_training_model_by_ttest_list(
-        self, classifier, popmean, scores, significance_level, data_label, strategy
+    def evaluate_training_model_by_ttest(
+        self,
+        classifier,
+        popmean: float,
+        scores: list[float],
+        data_label: str,
+        strategy: str,
+        significance_level: float = 0.05,
     ):
         classifier_name = type(classifier).__name__
         t_statistic, p_value = stats.ttest_1samp(

@@ -1,4 +1,5 @@
 import math
+import time
 from math import ceil, floor
 from random import randrange
 
@@ -27,15 +28,30 @@ class DataTraining:
         "HistGradientBoosting",
     ]
 
-    def k_fold_training_and_validation(
-        self, model: BaseEstimator, X, y, folds=5, test_size=0.2
+    def training_prediction_using_cross_validation(
+        self,
+        model: BaseEstimator,
+        X,
+        y,
+        folds: int = 5,
+        test_size: float = 0.2,
+        predefined_split: bool = True,
     ):
         score_array = []
         for i in range(folds):
-            # X_test, X_train, y_test, y_train = self.random_train_test_split( X, y, test_size)
-            X_test, X_train, y_test, y_train = self.premeditate_random_train_test_split(
-                X, y, test_size
-            )
+            X_test, X_train, y_test, y_train = None, None, None, None
+            if predefined_split:
+                (
+                    X_test,
+                    X_train,
+                    y_test,
+                    y_train,
+                ) = self.premeditate_random_train_test_split(X, y, test_size)
+            else:
+                X_test, X_train, y_test, y_train = self.random_train_test_split(
+                    X, y, test_size
+                )
+
             model.fit(X_train, y_train)
             score_array.append(model.score(X_test, y_test))
         # print(f"scores using {type(model).__name__} with {folds}-fold cross-validation:",score_array,)
@@ -49,7 +65,7 @@ class DataTraining:
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
         return X_test, X_train, y_test, y_train
 
-    def premeditate_random_train_test_split(self, X, y, test_size):
+    def premeditate_random_train_test_split(self, X, y, test_size: float):
         X_test, X_train, y_test, y_train = [], [], [], []
         train_size = 1.0 - test_size
         sample_start = 0
@@ -92,11 +108,11 @@ class DataTraining:
         X,
         y: BrainDataLabel,
         popmean,
+        folds,
+        test_size,
+        strategy,
+        predefined_split,
         classifier="SVM",
-        folds=5,
-        test_size=0.2,
-        significance_level=0.05,
-        strategy=None,
     ):
         """Performe k-Fold classification, training and testing
         Args:
@@ -150,12 +166,22 @@ class DataTraining:
                 column_name=y.name,
                 result=tuple(("", "")),
             )
-
-        scores = self.k_fold_training_and_validation(
-            model=model, X=X, y=y.labels, folds=folds, test_size=test_size
+        start = time.time()
+        print(f"Started training and prediction of model: {type(model).__name__}")
+        scores = self.training_prediction_using_cross_validation(
+            model=model,
+            X=X,
+            y=y.labels,
+            folds=folds,
+            test_size=test_size,
+            predefined_split=predefined_split,
         )
-        return EvaluateTrainingModel().evaluate_training_model_by_ttest_list(
-            model, popmean, scores, significance_level, y.name, strategy
+        end = time.time()
+        print(
+            f"Finished training and prediction of {type(model).__name__} in {round(((end - start)/60),2)} minutes."
+        )
+        return EvaluateTrainingModel().evaluate_training_model_by_ttest(
+            model, popmean, scores, y.name, strategy
         )
 
     def classify_brain_data(
@@ -164,8 +190,9 @@ class DataTraining:
         labels: list[BrainDataLabel],
         data,
         strategies,
-        folds=5,
-        test_size=0.2,
+        predefined_split,
+        folds,
+        test_size,
     ):
         # data_dict = dict({})
         data_list = list()
@@ -177,10 +204,11 @@ class DataTraining:
                         X=X,
                         y=label,
                         popmean=label.popmean,
-                        classifier=classifier,
                         folds=folds,
                         test_size=test_size,
                         strategy=strategy,
+                        predefined_split=predefined_split,
+                        classifier=classifier,
                     )
                     data_list.append(results)
                     # key = list(results.keys())[0]

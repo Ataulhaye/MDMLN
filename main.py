@@ -46,15 +46,17 @@ def run_evaluation():
 
     print("----------------------------")
     svm_clf = svm.SVC(kernel="linear", C=1)
-    svm_scores = DataTraining.k_fold_training_and_validation(svm_clf, X, y)
+    svm_scores = DataTraining.training_prediction_using_cross_validation(svm_clf, X, y)
 
     print("----------------------------")
     dtree_clf = DecisionTreeClassifier(random_state=0)
-    dtree_scores = DataTraining.k_fold_training_and_validation(dtree_clf, X, y)
+    dtree_scores = DataTraining.training_prediction_using_cross_validation(
+        dtree_clf, X, y
+    )
 
     print("----------------------------")
     knc = KNeighborsClassifier(n_neighbors=3)
-    knc_scores = DataTraining.k_fold_training_and_validation(knc, X, y)
+    knc_scores = DataTraining.training_prediction_using_cross_validation(knc, X, y)
 
     print("----------------------------------------------------")
     EvaluateTrainingModel.evaluate_models(svm_scores, svm_clf, dtree_scores, dtree_clf)
@@ -84,6 +86,7 @@ def classify_STG(folds, test_size, brain_data, classifiers, labels, strategies):
         labels=labels,
         data=STG,
         strategies=strategies,
+        predefined_split=True,
         folds=folds,
         test_size=test_size,
     )
@@ -111,6 +114,7 @@ def classify_IFG(folds, test_size, brain_data, classifiers, labels, strategies):
         labels=labels,
         data=IFG,
         strategies=strategies,
+        predefined_split=True,
         folds=folds,
         test_size=test_size,
     )
