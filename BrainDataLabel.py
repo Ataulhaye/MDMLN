@@ -1,8 +1,8 @@
-from numpy import dtype
+from numpy import dtype, ndarray
 
 
 class BrainDataLabel:
-    def __init__(self, name, popmean, labels: list[dtype]):
+    def __init__(self, name, popmean, labels: ndarray):
         self.name = name
         self.popmean = popmean
         self.labels = labels

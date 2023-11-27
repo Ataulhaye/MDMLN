@@ -15,7 +15,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 
-from BrainData import BrainData
+from Brain import Brain
 from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
 from EvaluateTrainingModel import EvaluateTrainingModel
@@ -197,7 +197,7 @@ class DataTraining:
         # data_dict = dict({})
         data_list = list()
         for strategy in strategies:
-            X = BrainData().normalize_data(data, strategy=strategy)
+            X = Brain().normalize_data(data, strategy=strategy)
             for label in labels:
                 for classifier in classifiers:
                     results = self.train_and_test_model_accuracy(

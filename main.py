@@ -4,7 +4,7 @@ from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 
-from BrainData import BrainData
+from Brain import Brain
 from BrainDataConfig import BrainDataConfig
 from DataTraining import DataTraining
 from EvaluateTrainingModel import EvaluateTrainingModel
@@ -136,7 +136,7 @@ def classify_IFG(folds, test_size, brain_data, classifiers, labels, strategies):
 
 
 def analyse_nans():
-    data = BrainData(load_data=True)
+    data = Brain(load_data=True)
     nans_column_wise = data.calculate_nans_voxel_wise(data.STG[1])
     print("nans_column_wise", len(nans_column_wise))
     nans_voxel_wise = data.calculate_nans_trail_wise(data.STG[1])
@@ -145,7 +145,7 @@ def analyse_nans():
 
 
 def visualize_nans():
-    bd = BrainData(load_data=True)
+    bd = Brain(load_data=True)
     data_list = [bd.STG, bd.IFG]
     for dt in data_list:
         title, data = dt
@@ -195,7 +195,7 @@ def main():
         # "LogisticRegression",
         # "RandomForest",
     ]
-    brain_data = BrainData(load_data=True)
+    brain_data = Brain(load_data=True)
 
     labels = [brain_data.subject_labels, brain_data.image_labels]
 

@@ -10,8 +10,10 @@ from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
 
 
-class BrainData:
-    def __init__(self, load_data=False):
+class Brain:
+    def __init__(self, area:str,data_path:str, load_data=False):
+        self.area = area
+        self.voxels = scipy.io.loadmat(data_path)
         if load_data is True:
             STG_data = scipy.io.loadmat("./left_STG_MTG_AALlable_ROI.rex.mat")
             # self.STG_raw = STG["R"]
