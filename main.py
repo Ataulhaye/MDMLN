@@ -6,6 +6,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
+from BrainDataLabel import BrainDataLabel
 from DataTraining import DataTraining
 from EvaluateTrainingModel import EvaluateTrainingModel
 from ExportData import ExportData
@@ -67,112 +68,130 @@ def run_evaluation():
 
 def classify_IRIS():
     X, y = datasets.load_iris(return_X_y=True)
+    iris_label = BrainDataLabel(name="IRIS", popmean=0.33, labels=y)
     result = DataTraining().train_and_test_model_accuracy(
         X=X,
-        y=y,
-        classifier="svm",
+        y=iris_label,
+        classifier="SVM",
         test_size=0.2,
-        popmean=0.33,
+        popmean=iris_label.popmean,
+        folds=5,
+        predefined_split=True,
+        strategy="m",
     )
     print(result)
 
 
-def classify_STG(folds, test_size, brain_data, classifiers, labels, strategies):
-    STG = brain_data.STG[1]
-
-    training = DataTraining()
-    export_data = training.classify_brain_data(
-        classifiers,
-        labels=labels,
-        data=STG,
-        strategies=strategies,
-        predefined_split=True,
-        folds=folds,
-        test_size=test_size,
-    )
-    export = ExportData()
-    # export.create_and_write_CSV(export_data, "IFG-Results", "IFG")
-    export.create_and_write_datasheet(
-        export_data,
-        f"STG-Results",
-        f"STG-{folds}-Folds-Classification",
-        transpose=False,
-    )
-    export.create_and_write_datasheet(
-        export_data,
-        f"STG-Results",
-        f"STG-{folds}-Folds-Classification",
-        transpose=True,
-    )
-
-
-def classify_IFG(folds, test_size, brain_data, classifiers, labels, strategies):
-    IFG = brain_data.IFG[1]
-    training = DataTraining()
-    export_data = training.classify_brain_data(
-        classifiers,
-        labels=labels,
-        data=IFG,
-        strategies=strategies,
-        predefined_split=True,
-        folds=folds,
-        test_size=test_size,
-    )
-
-    export = ExportData()
-    # export.create_and_write_CSV(export_data, "IFG-Results", "IFG")
-    export.create_and_write_datasheet(
-        export_data,
-        f"IFG-Results",
-        f"IFG-{folds}-Folds-Classification",
-        transpose=True,
-    )
-    export.create_and_write_datasheet(
-        export_data,
-        f"IFG-Results",
-        f"IFG-{folds}-Folds-Classification",
-        transpose=False,
-    )
-
-
 def analyse_nans():
-    data = Brain(load_data=True)
-    nans_column_wise = data.calculate_nans_voxel_wise(data.STG[1])
-    print("nans_column_wise", len(nans_column_wise))
-    nans_voxel_wise = data.calculate_nans_trail_wise(data.STG[1])
-    print("nans_voxel_wise", len(nans_voxel_wise))
+    config = BrainDataConfig()
+    STG = Brain(area=config.STG, data_path=config.STG_path, load_labels=True)
+    nans_column_wise = STG.calculate_nans_voxel_wise(STG.voxels)
+    print("STG nans_column_wise", len(nans_column_wise))
+    nans_voxel_wise = STG.calculate_nans_trail_wise(STG.voxels)
+    print("STG nans_voxel_wise", len(nans_voxel_wise))
+    print("------------")
+
+    IFG = Brain(area=config.IFG, data_path=config.IFG_path, load_labels=True)
+    nans_column_wise_IFG = IFG.calculate_nans_voxel_wise(IFG.voxels)
+    print("IFG nans_column_wise", len(nans_column_wise_IFG))
+    nans_voxel_wise_IFG = IFG.calculate_nans_trail_wise(IFG.voxels)
+    print("IFG nans_voxel_wise", len(nans_voxel_wise_IFG))
     print("------------")
 
 
 def visualize_nans():
-    bd = Brain(load_data=True)
-    data_list = [bd.STG, bd.IFG]
-    for dt in data_list:
-        title, data = dt
-        nans_column_wise = bd.calculate_nans_voxel_wise(data)
-        columns = [i for i in range(data.shape[1])]
+    config = BrainDataConfig()
+    STG = Brain(area=config.STG, data_path=config.STG_path, load_labels=True)
+    IFG = Brain(area=config.IFG, data_path=config.IFG_path, load_labels=True)
+    data_list = [STG, IFG]
+    for data in data_list:
+        nans_column_wise = STG.calculate_nans_voxel_wise(data.voxels)
+        columns = [i for i in range(data.voxels.shape[1])]
         VisualizeData.plot_bar_graph(
             ("Columns", columns),
             ("nans-length-column-wise", nans_column_wise),
-            title=title,
+            title=data.area,
         )
 
-        nans_voxel_wise = bd.calculate_nans_trail_wise(data)
-        rows = [i for i in range(data.shape[0])]
+        nans_voxel_wise = STG.calculate_nans_trail_wise(data.voxels)
+        rows = [i for i in range(data.voxels.shape[0])]
         VisualizeData.plot_bar_graph(
             ("nans-length-voxel-wise", nans_voxel_wise),
             ("rows", rows),
             bar_color="red",
-            title=title,
+            title=data.area,
         )
 
     # VisualizeData.plot_data_bar(np.array(x), np.array(nans_column_wise))
 
 
+def classify_STG(folds, test_size, classifiers, strategies):
+    config = BrainDataConfig()
+    STG = Brain(area=config.STG, data_path=config.STG_path, load_labels=True)
+    labels = [STG.subject_labels, STG.image_labels]
+
+    training = DataTraining()
+    export_data = training.classify_brain_data(
+        classifiers,
+        labels=labels,
+        data=STG.voxels,
+        strategies=strategies,
+        predefined_split=True,
+        folds=folds,
+        test_size=test_size,
+    )
+    export = ExportData()
+    # export.create_and_write_CSV(export_data, "IFG-Results", "IFG")
+    export.create_and_write_datasheet(
+        export_data,
+        f"STG-Results",
+        f"STG-{folds}-Folds-Classification",
+        transpose=False,
+    )
+    export.create_and_write_datasheet(
+        export_data,
+        f"STG-Results",
+        f"STG-{folds}-Folds-Classification",
+        transpose=True,
+    )
+
+
+def classify_IFG(folds, test_size, classifiers, strategies):
+    config = BrainDataConfig()
+    IFG = Brain(area=config.IFG, data_path=config.IFG_path, load_labels=True)
+    labels = [IFG.subject_labels, IFG.image_labels]
+
+    training = DataTraining()
+    export_data = training.classify_brain_data(
+        classifiers,
+        labels=labels,
+        data=IFG.voxels,
+        strategies=strategies,
+        predefined_split=True,
+        folds=folds,
+        test_size=test_size,
+    )
+
+    export = ExportData()
+    # export.create_and_write_CSV(export_data, "IFG-Results", "IFG")
+    export.create_and_write_datasheet(
+        export_data,
+        f"IFG-Results",
+        f"IFG-{folds}-Folds-Classification",
+        transpose=True,
+    )
+    export.create_and_write_datasheet(
+        export_data,
+        f"IFG-Results",
+        f"IFG-{folds}-Folds-Classification",
+        transpose=False,
+    )
+
+
 def main():
     # analyse_nans()
     # visualize_nans()
-    # classify_IRIS()
+    classify_IRIS()
     folds = 5
     test_size = 0.2
     strategies = [
@@ -195,12 +214,9 @@ def main():
         # "LogisticRegression",
         # "RandomForest",
     ]
-    brain_data = Brain(load_data=True)
 
-    labels = [brain_data.subject_labels, brain_data.image_labels]
-
-    classify_STG(folds, test_size, brain_data, classifiers, labels, strategies)
-    classify_IFG(folds, test_size, brain_data, classifiers, labels, strategies)
+    classify_STG(folds, test_size, classifiers, strategies)
+    classify_IFG(folds, test_size, classifiers, strategies)
 
 
 if __name__ == "__main__":

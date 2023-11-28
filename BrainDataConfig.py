@@ -38,3 +38,9 @@ class BrainDataConfig:
         ]
         self.subject_label_popmean = round(((100 / len(self.subject_labels)) / 100), 2)
         self.image_label_popmean = round(((100 / len(self.image_labels)) / 100), 2)
+
+        self.STG_path = "./left_STG_MTG_AALlable_ROI.rex.mat"
+        self.STG = "STG"
+
+        self.IFG_path = "./ROI_aal_wfupick_left44_45.rex.mat"
+        self.IFG = "IFG"

@@ -5,24 +5,25 @@ from sklearn import datasets
 from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
-from BrainDataConfig import BrainDataConfig
 
+from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
 
 
 class Brain:
-    def __init__(self, area:str,data_path:str, load_data=False):
+    def __init__(self, area: str = None, data_path: str = None, load_labels=False):
         self.area = area
-        self.voxels = scipy.io.loadmat(data_path)
-        if load_data is True:
-            STG_data = scipy.io.loadmat("./left_STG_MTG_AALlable_ROI.rex.mat")
-            # self.STG_raw = STG["R"]
-            self.STG = tuple(("STG", STG_data["R"]))
+        if data_path is not None:
+            data = scipy.io.loadmat(data_path)
+            self.voxels: np.ndarray = data["R"]
+        if load_labels is True:
+            # STG_data = scipy.io.loadmat("./left_STG_MTG_AALlable_ROI.rex.mat")
+            # self.STG = tuple(("STG", STG_data["R"]))
 
-            IFG_data = scipy.io.loadmat("./ROI_aal_wfupick_left44_45.rex.mat")
+            # IFG_data = scipy.io.loadmat("./ROI_aal_wfupick_left44_45.rex.mat")
 
             # self.IFG_raw = IFG["R"]
-            self.IFG = tuple(("IFG", IFG_data["R"]))
+            # self.IFG = tuple(("IFG", IFG_data["R"]))
 
             # Labels
             # self.subject_labels = np.array(["N"] * 4 * 43 + ["D"] * 4 * 33 + ["S"] * 4 * 46)
