@@ -11,12 +11,12 @@ from ExportEntity import ExportEntity
 
 
 class ExportData:
-    def create_and_write_CSV(self, data, sheet_name, title="results", delimeter=","):
+    def create_and_write_csv(self, data, sheet_name, title="results", delimiter=","):
         csv_data = self.prepare_data_matrix(data)
         file_name = self.get_file_name(extension=".csv", sheet_name=sheet_name)
         with open(file_name, "w", newline="") as file:
             for ed in csv_data:
-                wr = csv.writer(file, delimiter=delimeter, quoting=csv.QUOTE_ALL)
+                wr = csv.writer(file, delimiter=delimiter, quoting=csv.QUOTE_ALL)
                 wr.writerow(ed)
 
     def create_and_write_datasheet(
@@ -95,21 +95,24 @@ class ExportData:
 
         self.repair_row_width(cell_position, ws, col_widths, matrix)
 
+    @staticmethod
     def repair_first_column_width(
-        self, cell_position, ws, col_widths, setting: ExelSettings
+            cell_position, ws, col_widths, setting: ExelSettings
     ):
         ws.column_dimensions[cell_position[0][0][0]].width = col_widths[0] + (
             (setting.header_font - setting.default_font) * 2
         )
 
+    @staticmethod
     def repair_column_width(
-        self, cell_position, ws, col_widths, setting: ExelSettings, column: int
+            cell_position, ws, col_widths, setting: ExelSettings, column: int
     ):
         ws.column_dimensions[cell_position[0][column][0]].width = col_widths[column] + (
             (setting.header_font - setting.default_font) * 2
         )
 
-    def repair_row_width(self, cell_position, ws, col_widths, matrix):
+    @staticmethod
+    def repair_row_width(cell_position, ws, col_widths, matrix):
         for i, row in enumerate(matrix[0]):
             if i > 0:
                 ws.column_dimensions[cell_position[0][i][0]].width = col_widths[i]
@@ -122,14 +125,16 @@ class ExportData:
             cell.font = Font(name=setting.header_family, sz=setting.header_font)
             self.repair_header_cell_width(cell_position, ws, col_widths, i, setting)
 
+    @staticmethod
     def repair_header_cell_width(
-        self, cell_position, ws, col_widths, i, setting: ExelSettings
+            cell_position, ws, col_widths, i, setting: ExelSettings
     ):
         ws.column_dimensions[cell_position[0][i][0]].width = col_widths[i] + (
             (setting.header_font - setting.default_font)
         )
 
-    def set_font_significant_result(self, cell_position, matrix, ws, transpose):
+    @staticmethod
+    def set_font_significant_result(cell_position, matrix, ws, transpose):
         k = 0
         if transpose:
             k = 1
@@ -139,7 +144,8 @@ class ExportData:
                     cell = ws[cell_position[i][j]]
                     cell.font = Font(bold=True)
 
-    def calculate_cell_positions(self, matrix):
+    @staticmethod
+    def calculate_cell_positions(matrix):
         cell_names = []
         for i, row in enumerate(matrix):
             row_names = []
@@ -148,7 +154,8 @@ class ExportData:
             cell_names.append(row_names)
         return cell_names
 
-    def calculate_column_width(self, matrix):
+    @staticmethod
+    def calculate_column_width(matrix):
         max_column_widths = [0] * len(matrix[0])
         for row in matrix:
             for i, cell in enumerate(row):
@@ -157,7 +164,8 @@ class ExportData:
                     max_column_widths[i] = cell_length
         return max_column_widths
 
-    def get_file_name(self, extension, sheet_name):
+    @staticmethod
+    def get_file_name(extension, sheet_name):
         dt = datetime.now().strftime("%d-%m-%Y_%H-%M-%S_%f")
         sheet_name = f"{sheet_name}_{dt}{extension}"
         return sheet_name
@@ -203,13 +211,15 @@ class ExportData:
 
         return matrix
 
-    def init_matrix(self, rows, columns):
+    @staticmethod
+    def init_matrix(rows, columns):
         matrix = []
         for r in range(rows):
             matrix.append([None] * columns)
         return matrix
 
-    def matrix_dimensions(self, data: list[ExportEntity]):
+    @staticmethod
+    def matrix_dimensions(data: list[ExportEntity]):
         row_data, col_data = [], []
         for export_entity in data:
             col_data.append(
@@ -221,7 +231,8 @@ class ExportData:
         return rows, columns
 
     # returns row, col index of a given value
-    def get_index(self, matrix, value):
+    @staticmethod
+    def get_index(matrix, value):
         for i, row in enumerate(matrix):
             if value in row:
-                return (i, row.index(value))
+                return i, row.index(value)

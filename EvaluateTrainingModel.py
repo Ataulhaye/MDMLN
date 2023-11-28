@@ -1,4 +1,6 @@
+from typing_extensions import deprecated
 import scipy.stats as stats
+from numpy import ndarray
 
 from ExportEntity import ExportEntity
 
@@ -35,6 +37,7 @@ class EvaluateTrainingModel:
                     est2_mean * 100,
                 )
 
+    @deprecated("use evaluate_training_model_by_ttest")
     def evaluate_training_model_ttest(classifier, popmean, scores, significance_level):
         classifier_name = type(classifier).__name__
         t_statistic, p_value = stats.ttest_1samp(a=scores, popmean=popmean)
@@ -81,11 +84,14 @@ class EvaluateTrainingModel:
         self,
         classifier,
         popmean: float,
-        scores: list[float],
+        scores: ndarray[float],
         data_label: str,
         strategy: str,
         significance_level: float = 0.05,
     ):
+        """
+        significance_level (float, optional): significance level of 0.05 indicates a 5% risk of concluding that a difference exists when there is no actual difference. Defaults to 0.05.
+        """
         classifier_name = type(classifier).__name__
         t_statistic, p_value = stats.ttest_1samp(
             a=scores, popmean=popmean, alternative="greater"

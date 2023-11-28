@@ -66,11 +66,11 @@ def run_evaluation():
     print("----------------------------------------------------")
 
 
-def classify_IRIS():
-    X, y = datasets.load_iris(return_X_y=True)
+def classify_iris():
+    x, y = datasets.load_iris(return_X_y=True)
     iris_label = BrainDataLabel(name="IRIS", popmean=0.33, labels=y)
     result = DataTraining().train_and_test_model_accuracy(
-        X=X,
+        x=x,
         y=iris_label,
         classifier="SVM",
         test_size=0.2,
@@ -84,28 +84,28 @@ def classify_IRIS():
 
 def analyse_nans():
     config = BrainDataConfig()
-    STG = Brain(area=config.STG, data_path=config.STG_path, load_labels=True)
-    nans_column_wise = STG.calculate_nans_voxel_wise(STG.voxels)
-    print("STG nans_column_wise", len(nans_column_wise))
-    nans_voxel_wise = STG.calculate_nans_trail_wise(STG.voxels)
-    print("STG nans_voxel_wise", len(nans_voxel_wise))
+    stg = Brain(area=config.STG, data_path=config.STG_path, load_labels=True)
+    nans_column_wise = stg.calculate_nans_voxel_wise(stg.voxels)
+    print("stg nans_column_wise", len(nans_column_wise))
+    nans_voxel_wise = stg.calculate_nans_trail_wise(stg.voxels)
+    print("stg nans_voxel_wise", len(nans_voxel_wise))
     print("------------")
 
-    IFG = Brain(area=config.IFG, data_path=config.IFG_path, load_labels=True)
-    nans_column_wise_IFG = IFG.calculate_nans_voxel_wise(IFG.voxels)
-    print("IFG nans_column_wise", len(nans_column_wise_IFG))
-    nans_voxel_wise_IFG = IFG.calculate_nans_trail_wise(IFG.voxels)
-    print("IFG nans_voxel_wise", len(nans_voxel_wise_IFG))
+    ifg = Brain(area=config.IFG, data_path=config.IFG_path, load_labels=True)
+    nans_column_wise_ifg = ifg.calculate_nans_voxel_wise(ifg.voxels)
+    print("IFG nans_column_wise", len(nans_column_wise_ifg))
+    nans_voxel_wise_ifg = ifg.calculate_nans_trail_wise(ifg.voxels)
+    print("IFG nans_voxel_wise", len(nans_voxel_wise_ifg))
     print("------------")
 
 
 def visualize_nans():
     config = BrainDataConfig()
-    STG = Brain(area=config.STG, data_path=config.STG_path, load_labels=True)
-    IFG = Brain(area=config.IFG, data_path=config.IFG_path, load_labels=True)
-    data_list = [STG, IFG]
+    stg = Brain(area=config.STG, data_path=config.STG_path, load_labels=True)
+    ifg = Brain(area=config.IFG, data_path=config.IFG_path, load_labels=True)
+    data_list = [stg, ifg]
     for data in data_list:
-        nans_column_wise = STG.calculate_nans_voxel_wise(data.voxels)
+        nans_column_wise = stg.calculate_nans_voxel_wise(data.voxels)
         columns = [i for i in range(data.voxels.shape[1])]
         VisualizeData.plot_bar_graph(
             ("Columns", columns),
@@ -113,7 +113,7 @@ def visualize_nans():
             title=data.area,
         )
 
-        nans_voxel_wise = STG.calculate_nans_trail_wise(data.voxels)
+        nans_voxel_wise = stg.calculate_nans_trail_wise(data.voxels)
         rows = [i for i in range(data.voxels.shape[0])]
         VisualizeData.plot_bar_graph(
             ("nans-length-voxel-wise", nans_voxel_wise),
@@ -125,16 +125,16 @@ def visualize_nans():
     # VisualizeData.plot_data_bar(np.array(x), np.array(nans_column_wise))
 
 
-def classify_STG(folds, test_size, classifiers, strategies):
+def classify_stg(folds, test_size, classifiers, strategies):
     config = BrainDataConfig()
-    STG = Brain(area=config.STG, data_path=config.STG_path, load_labels=True)
-    labels = [STG.subject_labels, STG.image_labels]
+    stg = Brain(area=config.STG, data_path=config.STG_path, load_labels=True)
+    labels = [stg.subject_labels, stg.image_labels]
 
     training = DataTraining()
     export_data = training.classify_brain_data(
         classifiers,
         labels=labels,
-        data=STG.voxels,
+        data=stg.voxels,
         strategies=strategies,
         predefined_split=True,
         folds=folds,
@@ -156,16 +156,16 @@ def classify_STG(folds, test_size, classifiers, strategies):
     )
 
 
-def classify_IFG(folds, test_size, classifiers, strategies):
+def classify_ifg(folds, test_size, classifiers, strategies):
     config = BrainDataConfig()
-    IFG = Brain(area=config.IFG, data_path=config.IFG_path, load_labels=True)
-    labels = [IFG.subject_labels, IFG.image_labels]
+    ifg = Brain(area=config.IFG, data_path=config.IFG_path, load_labels=True)
+    labels = [ifg.subject_labels, ifg.image_labels]
 
     training = DataTraining()
     export_data = training.classify_brain_data(
         classifiers,
         labels=labels,
-        data=IFG.voxels,
+        data=ifg.voxels,
         strategies=strategies,
         predefined_split=True,
         folds=folds,
@@ -189,9 +189,9 @@ def classify_IFG(folds, test_size, classifiers, strategies):
 
 
 def main():
-    # analyse_nans()
-    # visualize_nans()
-    classify_IRIS()
+    analyse_nans()
+    visualize_nans()
+    classify_iris()
     folds = 5
     test_size = 0.2
     strategies = [
@@ -215,8 +215,8 @@ def main():
         # "RandomForest",
     ]
 
-    classify_STG(folds, test_size, classifiers, strategies)
-    classify_IFG(folds, test_size, classifiers, strategies)
+    classify_stg(folds, test_size, classifiers, strategies)
+    classify_ifg(folds, test_size, classifiers, strategies)
 
 
 if __name__ == "__main__":
