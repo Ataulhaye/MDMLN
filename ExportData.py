@@ -22,8 +22,8 @@ class ExportData:
     def create_and_write_datasheet(
         self, data, sheet_name, title="results", transpose=False
     ):
-        matrix = data
-        # matrix = self.prepare_data_matrix(data)
+        # matrix = data
+        matrix = self.prepare_data_matrix(data)
 
         if transpose is True:
             matrix = np.transpose(matrix)
