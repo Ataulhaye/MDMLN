@@ -22,7 +22,8 @@ class ExportData:
     def create_and_write_datasheet(
         self, data, sheet_name, title="results", transpose=False
     ):
-        matrix = self.prepare_data_matrix(data)
+        matrix = data
+        # matrix = self.prepare_data_matrix(data)
 
         if transpose is True:
             matrix = np.transpose(matrix)
@@ -53,6 +54,25 @@ class ExportData:
         self.set_header_font(cell_position, matrix, ws, col_widths, sett)
 
         self.set_first_column_font(cell_position, matrix, ws, col_widths, sett)
+
+        if transpose:
+            x = 2
+            for row in matrix:
+                ws.merge_cells(
+                    start_row=x, start_column=1, end_row=(x + 1), end_column=1
+                )
+                if x % 2 == 0:
+                    x = x + 2
+        else:
+            x = 2
+            for row in matrix:
+                ws.merge_cells(
+                    start_row=1, start_column=x, end_row=1, end_column=(x + 1)
+                )
+                if x % 2 == 0:
+                    x = x + 2
+            # step incrment x to 2 to ..
+            # ws.merge_cells(start_row=x, start_column=1, end_row=x, end_column=1)
 
         if transpose:
             self.set_2nd_column_font(
@@ -96,16 +116,14 @@ class ExportData:
         self.repair_row_width(cell_position, ws, col_widths, matrix)
 
     @staticmethod
-    def repair_first_column_width(
-            cell_position, ws, col_widths, setting: ExelSettings
-    ):
+    def repair_first_column_width(cell_position, ws, col_widths, setting: ExelSettings):
         ws.column_dimensions[cell_position[0][0][0]].width = col_widths[0] + (
             (setting.header_font - setting.default_font) * 2
         )
 
     @staticmethod
     def repair_column_width(
-            cell_position, ws, col_widths, setting: ExelSettings, column: int
+        cell_position, ws, col_widths, setting: ExelSettings, column: int
     ):
         ws.column_dimensions[cell_position[0][column][0]].width = col_widths[column] + (
             (setting.header_font - setting.default_font) * 2
@@ -127,7 +145,7 @@ class ExportData:
 
     @staticmethod
     def repair_header_cell_width(
-            cell_position, ws, col_widths, i, setting: ExelSettings
+        cell_position, ws, col_widths, i, setting: ExelSettings
     ):
         ws.column_dimensions[cell_position[0][i][0]].width = col_widths[i] + (
             (setting.header_font - setting.default_font)
@@ -236,3 +254,70 @@ class ExportData:
         for i, row in enumerate(matrix):
             if value in row:
                 return i, row.index(value)
+
+
+d = [
+    [
+        "Strategy",
+        "mean",
+        "mean",
+        "median",
+        "median",
+        "most_frequent",
+        "most_frequent",
+        "remove-voxels",
+        "remove-voxels",
+    ],
+    [
+        "Classifier",
+        "subject_labels",
+        "image_labels",
+        "subject_labels",
+        "image_labels",
+        "subject_labels",
+        "image_labels",
+        "subject_labels",
+        "image_labels",
+    ],
+    [
+        "SVC",
+        "Not significant: 34.81%",
+        "Significant: 31.35%",
+        "Not significant: 40.96%",
+        "Significant: 32.69%",
+        "Not significant: 43.46%",
+        "Significant: 32.12%",
+        "Not significant: 37.31%",
+        "Significant: 31.92%",
+    ],
+    [
+        "KNeighborsClassifier",
+        "Significant: 37.31%",
+        "Significant: 26.35%",
+        "Not significant: 34.62%",
+        "Not significant: 27.31%",
+        "Not significant: 36.35%",
+        "Significant: 28.65%",
+        "Not significant: 39.42%",
+        "Significant: 26.92%",
+    ],
+    [
+        "LinearDiscriminantAnalysis",
+        "Not significant: 35.58%",
+        "Significant: 34.04%",
+        "Significant: 40.38%",
+        "Significant: 30.19%",
+        "Significant: 56.35%",
+        "Significant: 34.62%",
+        "Not significant: 36.92%",
+        "Significant: 32.50%",
+    ],
+]
+
+ed = ExportData()
+ed.create_and_write_datasheet(
+    data=d, sheet_name="UnitTest", title="Test", transpose=True
+)
+ed.create_and_write_datasheet(
+    data=d, sheet_name="UnitTest", title="Test", transpose=False
+)

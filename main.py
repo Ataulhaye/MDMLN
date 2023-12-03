@@ -189,9 +189,9 @@ def classify_ifg(folds, test_size, classifiers, strategies):
 
 
 def main():
-    analyse_nans()
-    visualize_nans()
-    classify_iris()
+    # analyse_nans()
+    # visualize_nans()
+    # classify_iris()
     folds = 5
     test_size = 0.2
     strategies = [
