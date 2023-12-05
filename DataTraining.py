@@ -3,17 +3,22 @@ import time
 from math import ceil, floor
 from random import randrange
 
+import lightgbm as lgb
 import numpy as np
+from catboost import CatBoostClassifier
+from lightgbm import LGBMClassifier
 from sklearn import svm
 from sklearn.base import BaseEstimator
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
+from xgboost import XGBClassifier
 
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
@@ -23,10 +28,7 @@ from ExportEntity import ExportEntity
 
 
 class DataTraining:
-    nan_classifiers = [
-        "DecisionTree",
-        "HistGradientBoosting",
-    ]
+    nan_classifiers = ["DecisionTree", "HistGradientBoosting", "LGBM", "CatBoost"]
 
     def training_prediction_using_cross_validation(
         self,
@@ -152,8 +154,12 @@ class DataTraining:
             model = LogisticRegression()
         elif classifier == "RandomForest":
             model = RandomForestClassifier(max_depth=2, random_state=0)
-        # elif classifier == "LinearRegression":
-        # model = LinearRegression()
+        # elif classifier == "XGBoost":
+        # model = XGBClassifier()
+        elif classifier == "LGBM":
+            model = LGBMClassifier()
+        elif classifier == "CatBoost":
+            model = CatBoostClassifier(verbose=0, n_estimators=100)
         elif classifier == "HistGradientBoosting":
             model = HistGradientBoostingClassifier()
         else:

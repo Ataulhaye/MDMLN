@@ -4,7 +4,7 @@ from string import ascii_uppercase
 
 import numpy as np
 import openpyxl
-from openpyxl.styles import Font
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Protection, Side
 
 from ExelSettings import ExelSettings
 from ExportEntity import ExportEntity
@@ -55,24 +55,14 @@ class ExportData:
 
         self.set_first_column_font(cell_position, matrix, ws, col_widths, sett)
 
-        if transpose:
-            x = 2
-            for row in matrix:
-                ws.merge_cells(
-                    start_row=x, start_column=1, end_row=(x + 1), end_column=1
-                )
-                if x % 2 == 0:
-                    x = x + 2
-        else:
-            x = 2
-            for row in matrix:
-                ws.merge_cells(
-                    start_row=1, start_column=x, end_row=1, end_column=(x + 1)
-                )
-                if x % 2 == 0:
-                    x = x + 2
-            # step incrment x to 2 to ..
-            # ws.merge_cells(start_row=x, start_column=1, end_row=x, end_column=1)
+        self.merge_strategy_cells(transpose, matrix, ws)
+
+        # step incrment x to 2 to ..
+        # ws.merge_cells(start_row=x, start_column=1, end_row=x, end_column=1)
+
+        # for rows in ws.iter_rows(min_row=1, max_row=1, min_col=1):
+        # for cell in rows:
+        # cell.fill = PatternFill(bgColor="FFC7CE", fill_type = "solid")
 
         if transpose:
             self.set_2nd_column_font(
@@ -87,6 +77,24 @@ class ExportData:
 
         # Save File
         wb.save(sheet_name)
+
+    @staticmethod
+    def merge_strategy_cells(transpose, matrix, ws):
+        x = 2
+        for row in matrix:
+            if transpose:
+                sc = 1
+                ec = 1
+                rs = x
+                re = x + 1
+            else:
+                sc = x
+                ec = x + 1
+                rs = 1
+                re = 1
+            ws.merge_cells(start_row=rs, start_column=sc, end_row=re, end_column=ec)
+            if x % 2 == 0:
+                x = x + 2
 
     def set_first_column_font(
         self, cell_position, matrix, ws, col_widths, setting: ExelSettings
@@ -254,70 +262,3 @@ class ExportData:
         for i, row in enumerate(matrix):
             if value in row:
                 return i, row.index(value)
-
-
-d = [
-    [
-        "Strategy",
-        "mean",
-        "mean",
-        "median",
-        "median",
-        "most_frequent",
-        "most_frequent",
-        "remove-voxels",
-        "remove-voxels",
-    ],
-    [
-        "Classifier",
-        "subject_labels",
-        "image_labels",
-        "subject_labels",
-        "image_labels",
-        "subject_labels",
-        "image_labels",
-        "subject_labels",
-        "image_labels",
-    ],
-    [
-        "SVC",
-        "Not significant: 34.81%",
-        "Significant: 31.35%",
-        "Not significant: 40.96%",
-        "Significant: 32.69%",
-        "Not significant: 43.46%",
-        "Significant: 32.12%",
-        "Not significant: 37.31%",
-        "Significant: 31.92%",
-    ],
-    [
-        "KNeighborsClassifier",
-        "Significant: 37.31%",
-        "Significant: 26.35%",
-        "Not significant: 34.62%",
-        "Not significant: 27.31%",
-        "Not significant: 36.35%",
-        "Significant: 28.65%",
-        "Not significant: 39.42%",
-        "Significant: 26.92%",
-    ],
-    [
-        "LinearDiscriminantAnalysis",
-        "Not significant: 35.58%",
-        "Significant: 34.04%",
-        "Significant: 40.38%",
-        "Significant: 30.19%",
-        "Significant: 56.35%",
-        "Significant: 34.62%",
-        "Not significant: 36.92%",
-        "Significant: 32.50%",
-    ],
-]
-
-ed = ExportData()
-ed.create_and_write_datasheet(
-    data=d, sheet_name="UnitTest", title="Test", transpose=True
-)
-ed.create_and_write_datasheet(
-    data=d, sheet_name="UnitTest", title="Test", transpose=False
-)

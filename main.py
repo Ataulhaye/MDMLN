@@ -72,7 +72,7 @@ def classify_iris():
     result = DataTraining().train_and_test_model_accuracy(
         x=x,
         y=iris_label,
-        classifier="SVM",
+        classifier="LGBM",
         test_size=0.2,
         popmean=iris_label.popmean,
         folds=5,
@@ -195,28 +195,30 @@ def main():
     folds = 5
     test_size = 0.2
     strategies = [
-        # None,
+        None,
         "mean",
         "median",
         "most_frequent",
-        # "constant",
+        "constant",
         "remove-voxels",
-        # "n_neighbors",
+        "n_neighbors",
     ]
     classifiers = [
-        # "DecisionTree",
+        # "XGBoost" # not working,
+        "CatBoost",
+        "LGBM",  # works fine also for nans
+        "DecisionTree",
         # "HistGradientBoosting",
         "SVM",
         "KNearestNeighbors",
-        # "GaussianNaiveBayes",
+        "GaussianNaiveBayes",
         "LinearDiscriminant",
-        # "MLP",
-        # "LogisticRegression",
-        # "RandomForest",
+        "MLP",
+        "LogisticRegression",
+        "RandomForest",
     ]
-
-    classify_stg(folds, test_size, classifiers, strategies)
     classify_ifg(folds, test_size, classifiers, strategies)
+    classify_stg(folds, test_size, classifiers, strategies)
 
 
 if __name__ == "__main__":
