@@ -125,7 +125,7 @@ def visualize_nans():
     # VisualizeData.plot_data_bar(np.array(x), np.array(nans_column_wise))
 
 
-def classify_stg(folds, test_size, classifiers, strategies):
+def classify_stg(folds, test_size, classifiers, strategies, predefined_split):
     config = BrainDataConfig()
     stg = Brain(area=config.STG, data_path=config.STG_path, load_labels=True)
     labels = [stg.subject_labels, stg.image_labels]
@@ -136,27 +136,34 @@ def classify_stg(folds, test_size, classifiers, strategies):
         labels=labels,
         data=stg.voxels,
         strategies=strategies,
-        predefined_split=True,
+        predefined_split=predefined_split,
         folds=folds,
         test_size=test_size,
     )
+
+    split = None
+    if predefined_split:
+        split = "cr_split"
+    else:
+        split = "r_split"
+
     export = ExportData()
     # export.create_and_write_CSV(export_data, "IFG-Results", "IFG")
     export.create_and_write_datasheet(
         export_data,
         f"STG-Results",
-        f"STG-{folds}-Folds-Classification",
+        f"STG-{folds}-Folds-{split}-Clf",
         transpose=False,
     )
     export.create_and_write_datasheet(
         export_data,
         f"STG-Results",
-        f"STG-{folds}-Folds-Classification",
+        f"STG-{folds}-Folds-{split}-Clf",
         transpose=True,
     )
 
 
-def classify_ifg(folds, test_size, classifiers, strategies):
+def classify_ifg(folds, test_size, classifiers, strategies, predefined_split):
     config = BrainDataConfig()
     ifg = Brain(area=config.IFG, data_path=config.IFG_path, load_labels=True)
     labels = [ifg.subject_labels, ifg.image_labels]
@@ -167,23 +174,27 @@ def classify_ifg(folds, test_size, classifiers, strategies):
         labels=labels,
         data=ifg.voxels,
         strategies=strategies,
-        predefined_split=True,
+        predefined_split=predefined_split,
         folds=folds,
         test_size=test_size,
     )
-
+    split = None
+    if predefined_split:
+        split = "cr_split"
+    else:
+        split = "r_split"
     export = ExportData()
     # export.create_and_write_CSV(export_data, "IFG-Results", "IFG")
     export.create_and_write_datasheet(
         export_data,
         f"IFG-Results",
-        f"IFG-{folds}-Folds-Classification",
+        f"IFG-{folds}-Folds-{split}-Clf",
         transpose=True,
     )
     export.create_and_write_datasheet(
         export_data,
         f"IFG-Results",
-        f"IFG-{folds}-Folds-Classification",
+        f"IFG-{folds}-Folds-{split}-Clf",
         transpose=False,
     )
 
@@ -206,7 +217,7 @@ def main():
     classifiers = [
         # "XGBoost" # not working,
         "CatBoost",
-        "LGBM",  # works fine also for nans
+        "LGBM",
         "DecisionTree",
         # "HistGradientBoosting",
         "SVM",
@@ -217,8 +228,15 @@ def main():
         "LogisticRegression",
         "RandomForest",
     ]
-    classify_ifg(folds, test_size, classifiers, strategies)
-    classify_stg(folds, test_size, classifiers, strategies)
+    # strategies = ["remove-voxels"]
+    # classifiers = ["SVM"]
+    predefined_split = False
+    classify_ifg(folds, test_size, classifiers, strategies, predefined_split)
+    classify_stg(folds, test_size, classifiers, strategies, predefined_split)
+
+    predefined_split = True
+    classify_ifg(folds, test_size, classifiers, strategies, predefined_split)
+    classify_stg(folds, test_size, classifiers, strategies, predefined_split)
 
 
 if __name__ == "__main__":
