@@ -3,3 +3,5 @@ class ExelSettings:
         self.header_font = 14
         self.header_family = "Cambria"
         self.default_font = 11
+        self.cell_fill_type = "solid"
+        self.cell_fill_color = "D9D9D9"

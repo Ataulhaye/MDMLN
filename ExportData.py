@@ -39,23 +39,25 @@ class ExportData:
 
         col_widths = self.calculate_column_width(matrix)
 
-        cell_position = self.calculate_cell_positions(matrix)
+        cell_positions = self.calculate_cell_positions(matrix)
 
         for i, row in enumerate(matrix[0]):
-            ws.column_dimensions[cell_position[0][i][0]].width = col_widths[i]
+            ws.column_dimensions[cell_positions[0][i][0]].width = col_widths[i]
 
         for row in matrix:
             if type(row) != list:
                 row = list(row)
             ws.append(row)
 
-        self.set_font_significant_result(cell_position, matrix, ws, transpose)
+        self.set_font_significant_result(cell_positions, matrix, ws, transpose)
 
-        self.set_header_font(cell_position, matrix, ws, col_widths, sett)
+        self.set_header_font(cell_positions, matrix, ws, col_widths, sett)
 
-        self.set_first_column_font(cell_position, matrix, ws, col_widths, sett)
+        self.set_first_column_font(cell_positions, matrix, ws, col_widths, sett)
 
         self.merge_strategy_cells(transpose, matrix, ws)
+
+        self.fill_color(cell_positions, matrix, ws, sett)
 
         # step incrment x to 2 to ..
         # ws.merge_cells(start_row=x, start_column=1, end_row=x, end_column=1)
@@ -66,17 +68,26 @@ class ExportData:
 
         if transpose:
             self.set_2nd_column_font(
-                cell_position, matrix, ws, col_widths, sett, transpose
+                cell_positions, matrix, ws, col_widths, sett, transpose
             )
         else:
             self.set_2nd_row_font(
-                cell_position, matrix, ws, col_widths, sett, transpose
+                cell_positions, matrix, ws, col_widths, sett, transpose
             )
 
         sheet_name = self.get_file_name(extension=".xlsx", sheet_name=sheet_name)
 
         # Save File
         wb.save(sheet_name)
+
+    def fill_color(self, cell_position, matrix, ws, setting: ExelSettings):
+        for j, row in enumerate(matrix):
+            cell = ws[cell_position[j][0]]
+            cell.fill = PatternFill(
+                start_color=setting.cell_fill_color,
+                end_color=setting.cell_fill_color,
+                fill_type=setting.cell_fill_type,
+            )
 
     @staticmethod
     def merge_strategy_cells(transpose, matrix, ws):

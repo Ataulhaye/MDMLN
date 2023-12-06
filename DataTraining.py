@@ -3,7 +3,6 @@ import time
 from math import ceil, floor
 from random import randrange
 
-import lightgbm as lgb
 import numpy as np
 from catboost import CatBoostClassifier
 from lightgbm import LGBMClassifier

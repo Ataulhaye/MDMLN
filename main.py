@@ -215,7 +215,7 @@ def main():
         "n_neighbors",
     ]
     classifiers = [
-        # "XGBoost" # not working,
+        # "XGBoost" # not working, Invalid classes inferred from unique values of `y`.  Expected: [0 1 2], got ['D' 'N' 'S']
         "CatBoost",
         "LGBM",
         "DecisionTree",
@@ -228,8 +228,8 @@ def main():
         "LogisticRegression",
         "RandomForest",
     ]
-    # strategies = ["remove-voxels"]
-    # classifiers = ["SVM"]
+    strategies = ["remove-voxels"]
+    classifiers = ["SVM"]
     predefined_split = False
     classify_ifg(folds, test_size, classifiers, strategies, predefined_split)
     classify_stg(folds, test_size, classifiers, strategies, predefined_split)
