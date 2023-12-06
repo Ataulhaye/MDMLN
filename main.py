@@ -228,15 +228,15 @@ def main():
         "LogisticRegression",
         "RandomForest",
     ]
-    strategies = ["remove-voxels"]
-    classifiers = ["SVM"]
+    strategies = ["mean", "remove-voxels", "median"]
+    classifiers = ["SVM", "DecisionTree"]
     predefined_split = False
     classify_ifg(folds, test_size, classifiers, strategies, predefined_split)
     classify_stg(folds, test_size, classifiers, strategies, predefined_split)
 
     predefined_split = True
-    classify_ifg(folds, test_size, classifiers, strategies, predefined_split)
-    classify_stg(folds, test_size, classifiers, strategies, predefined_split)
+    # classify_ifg(folds, test_size, classifiers, strategies, predefined_split)
+    # classify_stg(folds, test_size, classifiers, strategies, predefined_split)
 
 
 if __name__ == "__main__":

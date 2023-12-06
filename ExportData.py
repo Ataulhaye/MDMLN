@@ -80,14 +80,30 @@ class ExportData:
         # Save File
         wb.save(sheet_name)
 
-    def fill_color(self, cell_position, matrix, ws, setting: ExelSettings):
-        for j, row in enumerate(matrix):
-            cell = ws[cell_position[j][0]]
-            cell.fill = PatternFill(
-                start_color=setting.cell_fill_color,
-                end_color=setting.cell_fill_color,
-                fill_type=setting.cell_fill_type,
-            )
+    def fill_color(self, cell_positions, matrix, ws, setting: ExelSettings):
+        i = 0
+        for row in matrix:
+            j = 0
+            for cont in row:
+                cell = ws[cell_positions[i][j]]
+                if i == 0:
+                    cell.fill = PatternFill(
+                        start_color=setting.header_cell_fill_color,
+                        end_color=setting.header_cell_fill_color,
+                        fill_type=setting.cell_fill_type,
+                    )
+                else:
+                    cell.fill = PatternFill(
+                        start_color=setting.cell_fill_color,
+                        end_color=setting.cell_fill_color,
+                        fill_type=setting.cell_fill_type,
+                    )
+                j = j + 1
+            if i > 0 and i % 2 == 0:
+                i = i + 2
+            i = i + 1
+            if len(matrix) <= i:
+                break
 
     @staticmethod
     def merge_strategy_cells(transpose, matrix, ws):
