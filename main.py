@@ -149,12 +149,7 @@ def classify_stg(folds, test_size, classifiers, strategies, predefined_split):
 
     export = ExportData()
     # export.create_and_write_CSV(export_data, "IFG-Results", "IFG")
-    export.create_and_write_datasheet(
-        export_data,
-        f"STG-Results",
-        f"STG-{folds}-Folds-{split}-Clf",
-        transpose=False,
-    )
+    # export.create_and_write_datasheet(export_data,f"STG-Results",f"STG-{folds}-Folds-{split}-Clf",transpose=False,)
     export.create_and_write_datasheet(
         export_data,
         f"STG-Results",
@@ -231,7 +226,7 @@ def main():
     strategies = ["mean", "remove-voxels", "median"]
     classifiers = ["SVM", "DecisionTree"]
     predefined_split = False
-    classify_ifg(folds, test_size, classifiers, strategies, predefined_split)
+    # classify_ifg(folds, test_size, classifiers, strategies, predefined_split)
     classify_stg(folds, test_size, classifiers, strategies, predefined_split)
 
     predefined_split = True

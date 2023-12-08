@@ -12,13 +12,12 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import mean_squared_error
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
-
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
@@ -58,6 +57,26 @@ class DataTraining:
         # print(f"scores using {type(model).__name__} with {folds}-fold cross-validation:",score_array,)
         score_array = np.array(score_array)
         # print(f"{type(model).__name__}: %0.2f accuracy with a standard deviation of %0.2f"% (score_array.mean(), score_array.std()))
+        return score_array
+
+    def training_prediction_using_default_cross_validation(
+        self,
+        model,
+        x,
+        y,
+        folds: int = 5,
+        test_size: float = 0.2,
+        predefined_split: bool = True,
+    ):
+        score_array = []
+
+        score_array = cross_val_score(
+            model,
+            x,
+            y,
+            cv=folds,
+        )
+
         return score_array
 
     @staticmethod
@@ -173,8 +192,12 @@ class DataTraining:
                 result=tuple(("", "")),
             )
         start = time.time()
-        print(f"Started training and prediction of model: {type(model).__name__}")
-        scores = self.training_prediction_using_cross_validation(
+        print(
+            f"Started training and prediction of model: {type(model).__name__} using strategy as {strategy} on {y.name} with {folds}-fold"
+        )
+
+        # scores = self.training_prediction_using_cross_validation(model=model,x=x,y=y.labels,folds=folds,test_size=test_size, predefined_split=predefined_split,)
+        scores = self.training_prediction_using_default_cross_validation(
             model=model,
             x=x,
             y=y.labels,
@@ -182,9 +205,14 @@ class DataTraining:
             test_size=test_size,
             predefined_split=predefined_split,
         )
+
+        print(
+            f"Scores of {type(model).__name__} using strategy as {strategy} on {y.name} with default {folds}-fold cross-validation:",
+            scores,
+        )
         end = time.time()
         print(
-            f"Finished training and prediction of {type(model).__name__} in {round(((end - start)/60),2)} minutes."
+            f"Finished training and prediction of model: {type(model).__name__} using strategy as {strategy} on {y.name} with {folds}-fold in {round(((end - start)/60),2)} minutes."
         )
         return EvaluateTrainingModel().evaluate_training_model_by_ttest(
             model, popmean, scores, y.name, strategy
