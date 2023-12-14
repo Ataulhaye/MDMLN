@@ -198,7 +198,7 @@ def main():
     # analyse_nans()
     # visualize_nans()
     # classify_iris()
-    folds = 5
+    folds = 1
     test_size = 0.2
     strategies = [
         None,
@@ -223,11 +223,11 @@ def main():
         "LogisticRegression",
         "RandomForest",
     ]
-    strategies = ["mean", "remove-voxels", "median"]
+    strategies = ["remove-voxels"]
     classifiers = ["SVM", "DecisionTree"]
     predefined_split = False
-    # classify_ifg(folds, test_size, classifiers, strategies, predefined_split)
-    classify_stg(folds, test_size, classifiers, strategies, predefined_split)
+    classify_ifg(folds, test_size, classifiers, strategies, predefined_split)
+    # classify_stg(folds, test_size, classifiers, strategies, predefined_split)
 
     predefined_split = True
     # classify_ifg(folds, test_size, classifiers, strategies, predefined_split)

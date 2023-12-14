@@ -3,7 +3,10 @@ import time
 from math import ceil, floor
 from random import randrange
 
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import shap
 from catboost import CatBoostClassifier
 from lightgbm import LGBMClassifier
 from sklearn import svm
@@ -12,12 +15,13 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import mean_squared_error
-from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
+
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
@@ -54,10 +58,39 @@ class DataTraining:
 
             model.fit(x_train, y_train)
             score_array.append(model.score(x_test, y_test))
+
+        self.explain_model(
+            model,
+            x,
+            y,
+            x_train,
+            x_test,
+            y_train,
+            y_test,
+        )
         # print(f"scores using {type(model).__name__} with {folds}-fold cross-validation:",score_array,)
         score_array = np.array(score_array)
+
         # print(f"{type(model).__name__}: %0.2f accuracy with a standard deviation of %0.2f"% (score_array.mean(), score_array.std()))
         return score_array
+
+    def explain_model(
+        self,
+        model,
+        x,
+        y,
+        x_train,
+        x_test,
+        y_train,
+        y_test,
+    ):
+        # explain all the predictions in the test set
+        explainer = shap.KernelExplainer(model.predict_proba, x_train)
+        shap_values = explainer.shap_values(x_test)
+        shap.force_plot(explainer.expected_value[0], shap_values[0], x_test)
+
+        plt.savefig("shap_summary.svg", dpi=700)
+        plt.close()
 
     def training_prediction_using_default_cross_validation(
         self,
@@ -157,7 +190,7 @@ class DataTraining:
         """
         model = None
         if classifier == "SVM":
-            model = svm.SVC(kernel="linear", C=1)
+            model = svm.SVC(kernel="linear", C=1, probability=True)
         elif classifier == "KNearestNeighbors":
             model = KNeighborsClassifier(n_neighbors=3)
         elif classifier == "DecisionTree":
@@ -196,8 +229,7 @@ class DataTraining:
             f"Started training and prediction of model: {type(model).__name__} using strategy as {strategy} on {y.name} with {folds}-fold"
         )
 
-        # scores = self.training_prediction_using_cross_validation(model=model,x=x,y=y.labels,folds=folds,test_size=test_size, predefined_split=predefined_split,)
-        scores = self.training_prediction_using_default_cross_validation(
+        scores = self.training_prediction_using_cross_validation(
             model=model,
             x=x,
             y=y.labels,
@@ -205,6 +237,7 @@ class DataTraining:
             test_size=test_size,
             predefined_split=predefined_split,
         )
+        # scores = self.training_prediction_using_default_cross_validation(model=model,x=x,y=y.labels,folds=folds,test_size=test_size,predefined_split=predefined_split,)
 
         print(
             f"Scores of {type(model).__name__} using strategy as {strategy} on {y.name} with default {folds}-fold cross-validation:",
