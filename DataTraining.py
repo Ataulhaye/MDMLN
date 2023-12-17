@@ -90,8 +90,20 @@ class DataTraining:
         shap_values = explainer.shap_values(x_test)
         # shap.force_plot(explainer.expected_value[0], shap_values[0], x_test)
 
-        shap.force_plot(explainer.expected_value, shap_values, x_test)
+        shap.force_plot(
+            base_value=explainer.expected_value,
+            shap_values=shap_values,
+            features=x_test,
+        )
 
+        shap.summary_plot(shap_values=shap_values, features=x_test, feature_names=y)
+
+        shap.decision_plot(explainer.expected_value, shap_values, x_test, link="logit")
+        shap.plots.force(
+            explainer.expected_value, shap_values[0, :], x_test[0, :], matplotlib=True
+        )
+        shap.decision_plot(explainer.expected_value, shap_values, x_test)
+        shap.dependence_plot(0, shap_values, x_test)
         plt.savefig("shap.svg", dpi=700)
         plt.close()
 
