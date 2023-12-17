@@ -11,7 +11,13 @@ from BrainDataLabel import BrainDataLabel
 
 
 class Brain:
-    def __init__(self, area: str = None, data_path: str = None, load_labels=False):
+    def __init__(
+        self,
+        area: str = None,
+        data_path: str = None,
+        load_labels=False,
+        load_int_labels=False,
+    ):
         self.area = area
         if data_path is not None:
             data = scipy.io.loadmat(data_path)
@@ -60,6 +66,42 @@ class Brain:
                         config.abstract_unrelated,
                         config.concrete_related,
                         config.concrete_unrelated,
+                    ]
+                    * (
+                        config.neurotypical_patients
+                        + config.depressive_disorder_patients
+                        + config.schizophrenia_spectrum_patients
+                    )
+                ),
+            )
+
+        if load_int_labels is True:
+            config = BrainDataConfig()
+            self.subject_labels_int = BrainDataLabel(
+                name="subject_labels_int",
+                popmean=config.subject_label_popmean,
+                labels=np.array(
+                    [config.neurotypical_int]
+                    * config.conditions
+                    * config.neurotypical_patients
+                    + [config.depressive_disorder_int]
+                    * config.conditions
+                    * config.depressive_disorder_patients
+                    + [config.schizophrenia_spectrum_int]
+                    * config.conditions
+                    * config.schizophrenia_spectrum_patients
+                ),
+            )
+
+            self.image_labels_int = BrainDataLabel(
+                name="image_labels_int",
+                popmean=config.image_label_popmean,
+                labels=np.array(
+                    [
+                        config.abstract_related_int,
+                        config.abstract_unrelated_int,
+                        config.concrete_related_int,
+                        config.concrete_unrelated_int,
                     ]
                     * (
                         config.neurotypical_patients

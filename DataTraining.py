@@ -85,11 +85,14 @@ class DataTraining:
         y_test,
     ):
         # explain all the predictions in the test set
-        explainer = shap.KernelExplainer(model.predict_proba, x_train)
+        # explainer = shap.KernelExplainer(model.predict_proba, x_train)
+        explainer = shap.KernelExplainer(model.predict, x_train)
         shap_values = explainer.shap_values(x_test)
-        shap.force_plot(explainer.expected_value[0], shap_values[0], x_test)
+        # shap.force_plot(explainer.expected_value[0], shap_values[0], x_test)
 
-        plt.savefig("shap_summary.svg", dpi=700)
+        shap.force_plot(explainer.expected_value, shap_values, x_test)
+
+        plt.savefig("shap.svg", dpi=700)
         plt.close()
 
     def training_prediction_using_default_cross_validation(
@@ -190,7 +193,7 @@ class DataTraining:
         """
         model = None
         if classifier == "SVM":
-            model = svm.SVC(kernel="linear", C=1, probability=True)
+            model = svm.SVC(kernel="linear", C=1)  # , probability=True
         elif classifier == "KNearestNeighbors":
             model = KNeighborsClassifier(n_neighbors=3)
         elif classifier == "DecisionTree":

@@ -160,13 +160,18 @@ def classify_stg(folds, test_size, classifiers, strategies, predefined_split):
 
 def classify_ifg(folds, test_size, classifiers, strategies, predefined_split):
     config = BrainDataConfig()
-    ifg = Brain(area=config.IFG, data_path=config.IFG_path, load_labels=True)
-    labels = [ifg.subject_labels, ifg.image_labels]
-
+    ifg = Brain(
+        area=config.IFG,
+        data_path=config.IFG_path,
+        load_labels=True,
+        load_int_labels=True,
+    )
+    # labels = [ifg.subject_labels, ifg.image_labels]
+    int_labels = [ifg.subject_labels_int, ifg.image_labels_int]
     training = DataTraining()
     export_data = training.classify_brain_data(
         classifiers,
-        labels=labels,
+        labels=int_labels,
         data=ifg.voxels,
         strategies=strategies,
         predefined_split=predefined_split,
@@ -224,7 +229,7 @@ def main():
         "RandomForest",
     ]
     strategies = ["remove-voxels"]
-    classifiers = ["SVM", "DecisionTree"]
+    classifiers = ["SVM"]
     predefined_split = False
     classify_ifg(folds, test_size, classifiers, strategies, predefined_split)
     # classify_stg(folds, test_size, classifiers, strategies, predefined_split)

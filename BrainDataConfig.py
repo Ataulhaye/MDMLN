@@ -11,11 +11,22 @@ class BrainDataConfig:
         self.depressive_disorder = "D"
         self.schizophrenia_spectrum = "S"
 
+        # subject labels
+        self.neurotypical_int = 0
+        self.depressive_disorder_int = 1
+        self.schizophrenia_spectrum_int = 2
+
         # image labels
         self.abstract_related = "AR"
         self.abstract_unrelated = "AU"
         self.concrete_related = "CR"
         self.concrete_unrelated = "CU"
+
+        # image labels
+        self.abstract_related_int = 0
+        self.abstract_unrelated_int = 1
+        self.concrete_related_int = 2
+        self.concrete_unrelated_int = 3
 
         # this order has to be maintained
         self.patients = [
