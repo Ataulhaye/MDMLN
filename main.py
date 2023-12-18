@@ -133,6 +133,7 @@ def classify_stg(folds, test_size, classifiers, strategies, predefined_split):
         load_labels=True,
         load_int_labels=True,
     )
+    # stg.voxels_subset(stg.voxels, 50, config)
     # labels = [stg.subject_labels, stg.image_labels]
     int_labels = [stg.subject_labels_int, stg.image_labels_int]
     training = DataTraining()

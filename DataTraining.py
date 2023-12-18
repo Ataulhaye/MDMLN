@@ -287,12 +287,17 @@ class DataTraining:
     ):
         # data_dict = dict({})
         data_list = list()
+        config = BrainDataConfig()
         for strategy in strategies:
-            x = Brain().normalize_data(data, strategy=strategy)
+            b = Brain()
+            x = b.normalize_data(data, strategy=strategy)
             for label in labels:
+                subset = b.voxels_labels_subset(x, 50, config, label)
+                X = subset[0]
+                label = subset[1]
                 for classifier in classifiers:
                     results = self.train_and_test_model_accuracy(
-                        x=x,
+                        x=X,
                         y=label,
                         popmean=label.popmean,
                         folds=folds,

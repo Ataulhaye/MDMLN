@@ -204,6 +204,34 @@ class Brain:
 
         return nans_len_list
 
+    def voxels_labels_subset(
+        self,
+        voxels: np.ndarray,
+        size: int,
+        config: BrainDataConfig,
+        label: BrainDataLabel,
+    ):
+        if size > voxels.shape[0]:
+            raise IndexError(
+                "Cardinality of the subset cannot be greater then the set itself"
+            )
+        subset_X = self.extract_subset(voxels, size, config)
+        subset_labels = self.extract_subset(label.labels, size, config)
+        label.labels = subset_labels
+        return subset_X, label
+
+    def extract_subset(self, data: np.ndarray, size: int, config: BrainDataConfig):
+        subset = None
+        chunks = []
+        start = 0
+        for patient in config.patients:
+            subset_per_patient = patient * config.conditions
+            v = data[start : (start + size)]
+            chunks.append(v)
+            start = start + subset_per_patient
+        subset = np.concatenate(chunks)
+        return subset
+
 
 # Ata:
 # Test different classifiers with the MTG and IFG
