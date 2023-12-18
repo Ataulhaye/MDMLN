@@ -95,16 +95,25 @@ class DataTraining:
             shap_values=shap_values,
             features=x_test,
         )
+        plt.savefig("force1812.svg", dpi=700)
 
         shap.summary_plot(shap_values=shap_values, features=x_test, feature_names=y)
+        plt.savefig("summary1812.svg", dpi=700)
 
         shap.decision_plot(explainer.expected_value, shap_values, x_test, link="logit")
+
+        plt.savefig("desicionlogit1812.svg", dpi=700)
+
         shap.plots.force(
             explainer.expected_value, shap_values[0, :], x_test[0, :], matplotlib=True
         )
+        plt.savefig("forceFirst1812.svg", dpi=700)
+
         shap.decision_plot(explainer.expected_value, shap_values, x_test)
+        plt.savefig("desicion1812.svg", dpi=700)
+
         shap.dependence_plot(0, shap_values, x_test)
-        plt.savefig("shap.svg", dpi=700)
+        plt.savefig("dependence1812.svg", dpi=700)
         plt.close()
 
     def training_prediction_using_default_cross_validation(

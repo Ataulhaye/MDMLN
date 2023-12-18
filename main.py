@@ -127,13 +127,18 @@ def visualize_nans():
 
 def classify_stg(folds, test_size, classifiers, strategies, predefined_split):
     config = BrainDataConfig()
-    stg = Brain(area=config.STG, data_path=config.STG_path, load_labels=True)
-    labels = [stg.subject_labels, stg.image_labels]
-
+    stg = Brain(
+        area=config.STG,
+        data_path=config.STG_path,
+        load_labels=True,
+        load_int_labels=True,
+    )
+    # labels = [stg.subject_labels, stg.image_labels]
+    int_labels = [stg.subject_labels_int, stg.image_labels_int]
     training = DataTraining()
     export_data = training.classify_brain_data(
         classifiers,
-        labels=labels,
+        labels=int_labels,
         data=stg.voxels,
         strategies=strategies,
         predefined_split=predefined_split,
@@ -231,8 +236,8 @@ def main():
     strategies = ["remove-voxels"]
     classifiers = ["SVM"]
     predefined_split = False
-    classify_ifg(folds, test_size, classifiers, strategies, predefined_split)
-    # classify_stg(folds, test_size, classifiers, strategies, predefined_split)
+    # classify_ifg(folds, test_size, classifiers, strategies, predefined_split)
+    classify_stg(folds, test_size, classifiers, strategies, predefined_split)
 
     predefined_split = True
     # classify_ifg(folds, test_size, classifiers, strategies, predefined_split)
