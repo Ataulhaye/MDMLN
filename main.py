@@ -145,6 +145,7 @@ def classify_stg(folds, test_size, classifiers, strategies, predefined_split):
         predefined_split=predefined_split,
         folds=folds,
         test_size=test_size,
+        partially=True,
     )
 
     split = None

@@ -293,17 +293,20 @@ class DataTraining:
         predefined_split,
         folds,
         test_size,
+        partially=False,
     ):
         # data_dict = dict({})
         data_list = list()
         config = BrainDataConfig()
         for strategy in strategies:
             b = Brain()
-            x = b.normalize_data(data, strategy=strategy)
+            X = b.normalize_data(data, strategy=strategy)
             for label in labels:
-                subset = b.voxels_labels_subset(x, 25, config, label)
-                X = subset[0]
-                label = subset[1]
+                if partially == True:
+                    subset = b.voxels_labels_subset(X, 25, config, label)
+                    X = subset[0]
+                    label = subset[1]
+
                 for classifier in classifiers:
                     results = self.train_and_test_model_accuracy(
                         x=X,
