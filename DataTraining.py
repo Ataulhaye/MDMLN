@@ -16,6 +16,7 @@ from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassif
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.decomposition import PCA
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
@@ -95,33 +96,33 @@ class DataTraining:
             shap_values=shap_values,
             features=x_test,
         )
-        plt.savefig("force1912.svg", dpi=700)
+        plt.savefig("force1912pca.svg", dpi=700)
         plt.close()
 
         shap.decision_plot(explainer.expected_value, shap_values, x_test, link="logit")
-        plt.savefig("desicionlogit1912.svg", dpi=700)
+        plt.savefig("desicionlogit1912pca.svg", dpi=700)
         plt.close()
 
         shap.plots.force(
             explainer.expected_value, shap_values[0, :], x_test[0, :], matplotlib=True
         )
-        plt.savefig("forceFirst1912.svg", dpi=700)
+        plt.savefig("forceFirst1912pca.svg", dpi=700)
         plt.close()
 
         shap.decision_plot(explainer.expected_value, shap_values, x_test)
-        plt.savefig("desicion1912.svg", dpi=700)
+        plt.savefig("desicion1912pca.svg", dpi=700)
         plt.close()
 
         shap.dependence_plot(0, shap_values, x_test)
-        plt.savefig("dependence1912.svg", dpi=700)
+        plt.savefig("dependence1912pca.svg", dpi=700)
         plt.close()
 
         shap.summary_plot(shap_values=shap_values, features=x_test)
-        plt.savefig("summary1912names.svg", dpi=700)
+        plt.savefig("summary1912namespca.svg", dpi=700)
         plt.close()
 
         shap.summary_plot(shap_values=shap_values, features=x_test, feature_names=y)
-        plt.savefig("summary1912.svg", dpi=700)
+        plt.savefig("summary1912pca.svg", dpi=700)
 
         plt.close()
 
@@ -294,6 +295,7 @@ class DataTraining:
         folds,
         test_size,
         partially=False,
+        dimension_reduction=False,
     ):
         # data_dict = dict({})
         data_list = list()
@@ -302,10 +304,13 @@ class DataTraining:
             b = Brain()
             X = b.normalize_data(data, strategy=strategy)
             for label in labels:
-                if partially == True:
+                if partially:
                     subset = b.voxels_labels_subset(X, 25, config, label)
                     X = subset[0]
                     label = subset[1]
+                if dimension_reduction:
+                    pca = PCA()  # n_components=300
+                    X = pca.fit_transform(X)
 
                 for classifier in classifiers:
                     results = self.train_and_test_model_accuracy(

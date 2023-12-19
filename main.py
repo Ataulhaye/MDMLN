@@ -149,7 +149,8 @@ def classify_stg(
         predefined_split=predefined_split,
         folds=folds,
         test_size=test_size,
-        partially=True,
+        partially=False,
+        dimension_reduction=True,
     )
 
     split = None
@@ -215,6 +216,7 @@ def classify_ifg(
 
 
 def main():
+    # test_pca()
     # analyse_nans()
     # visualize_nans()
     # classify_iris()
@@ -254,6 +256,41 @@ def main():
     predefined_split = True
     # classify_ifg(folds, test_size, classifiers, strategies, predefined_split)
     # classify_stg(folds, test_size, classifiers, strategies, predefined_split)
+
+
+def test_pca():
+    from sklearn.decomposition import PCA
+    from sklearn.tree import DecisionTreeClassifier
+    from sklearn.datasets import load_iris
+
+    # load data
+    iris = load_iris()
+
+    # initiate PCA and classifier
+    pca = PCA(n_components=2)
+    newdata_transformed = pca.transform(iris.data)
+    classifier = DecisionTreeClassifier()
+
+    # transform / fit
+
+    X_transformed = pca.fit_transform(iris.data)
+    classifier.fit(X_transformed, iris.target)
+
+    # predict "new" data
+    # (I'm faking it here by using the original data)
+
+    newdata = iris.data
+
+    # transform new data using already fitted pca
+    # (don't re-fit the pca)
+    newdata_transformed = pca.transform(newdata)
+
+    # predict labels using the trained classifier
+    score = classifier.score(newdata_transformed, iris.target)
+
+    pred_labels = classifier.predict(newdata_transformed)
+
+    print(pred_labels)
 
 
 if __name__ == "__main__":
