@@ -125,21 +125,25 @@ def visualize_nans():
     # VisualizeData.plot_data_bar(np.array(x), np.array(nans_column_wise))
 
 
-def classify_stg(folds, test_size, classifiers, strategies, predefined_split):
+def classify_stg(
+    folds, test_size, classifiers, strategies, predefined_split, int_labels=False
+):
     config = BrainDataConfig()
     stg = Brain(
         area=config.STG,
         data_path=config.STG_path,
         load_labels=True,
-        load_int_labels=True,
+        load_int_labels=int_labels,
     )
-    # stg.voxels_subset(stg.voxels, 50, config)
-    # labels = [stg.subject_labels, stg.image_labels]
-    int_labels = [stg.subject_labels_int, stg.image_labels_int]
+
+    data_labels = [stg.subject_labels, stg.image_labels]
+    if int_labels:
+        data_labels = [stg.subject_labels_int, stg.image_labels_int]
+
     training = DataTraining()
     export_data = training.classify_brain_data(
         classifiers,
-        labels=int_labels,
+        labels=data_labels,
         data=stg.voxels,
         strategies=strategies,
         predefined_split=predefined_split,
@@ -165,20 +169,24 @@ def classify_stg(folds, test_size, classifiers, strategies, predefined_split):
     )
 
 
-def classify_ifg(folds, test_size, classifiers, strategies, predefined_split):
+def classify_ifg(
+    folds, test_size, classifiers, strategies, predefined_split, int_labels=False
+):
     config = BrainDataConfig()
     ifg = Brain(
         area=config.IFG,
         data_path=config.IFG_path,
         load_labels=True,
-        load_int_labels=True,
+        load_int_labels=int_labels,
     )
-    # labels = [ifg.subject_labels, ifg.image_labels]
-    int_labels = [ifg.subject_labels_int, ifg.image_labels_int]
+    data_labels = [ifg.subject_labels, ifg.image_labels]
+    if int_labels:
+        data_labels = [ifg.subject_labels_int, ifg.image_labels_int]
+
     training = DataTraining()
     export_data = training.classify_brain_data(
         classifiers,
-        labels=int_labels,
+        labels=data_labels,
         data=ifg.voxels,
         strategies=strategies,
         predefined_split=predefined_split,
@@ -238,8 +246,10 @@ def main():
     strategies = ["remove-voxels"]
     classifiers = ["SVM"]
     predefined_split = False
-    # classify_ifg(folds, test_size, classifiers, strategies, predefined_split)
-    classify_stg(folds, test_size, classifiers, strategies, predefined_split)
+    # classify_ifg(folds, test_size, classifiers, strategies, predefined_split, int_labels=False)
+    classify_stg(
+        folds, test_size, classifiers, strategies, predefined_split, int_labels=True
+    )
 
     predefined_split = True
     # classify_ifg(folds, test_size, classifiers, strategies, predefined_split)
