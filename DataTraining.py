@@ -95,25 +95,34 @@ class DataTraining:
             shap_values=shap_values,
             features=x_test,
         )
-        plt.savefig("force1812.svg", dpi=700)
-
-        shap.summary_plot(shap_values=shap_values, features=x_test, feature_names=y)
-        plt.savefig("summary1812.svg", dpi=700)
+        plt.savefig("force1912.svg", dpi=700)
+        plt.close()
 
         shap.decision_plot(explainer.expected_value, shap_values, x_test, link="logit")
-
-        plt.savefig("desicionlogit1812.svg", dpi=700)
+        plt.savefig("desicionlogit1912.svg", dpi=700)
+        plt.close()
 
         shap.plots.force(
             explainer.expected_value, shap_values[0, :], x_test[0, :], matplotlib=True
         )
-        plt.savefig("forceFirst1812.svg", dpi=700)
+        plt.savefig("forceFirst1912.svg", dpi=700)
+        plt.close()
 
         shap.decision_plot(explainer.expected_value, shap_values, x_test)
-        plt.savefig("desicion1812.svg", dpi=700)
+        plt.savefig("desicion1912.svg", dpi=700)
+        plt.close()
 
         shap.dependence_plot(0, shap_values, x_test)
-        plt.savefig("dependence1812.svg", dpi=700)
+        plt.savefig("dependence1912.svg", dpi=700)
+        plt.close()
+
+        shap.summary_plot(shap_values=shap_values, features=x_test)
+        plt.savefig("summary1912names.svg", dpi=700)
+        plt.close()
+
+        shap.summary_plot(shap_values=shap_values, features=x_test, feature_names=y)
+        plt.savefig("summary1912.svg", dpi=700)
+
         plt.close()
 
     def training_prediction_using_default_cross_validation(
@@ -292,7 +301,7 @@ class DataTraining:
             b = Brain()
             x = b.normalize_data(data, strategy=strategy)
             for label in labels:
-                subset = b.voxels_labels_subset(x, 50, config, label)
+                subset = b.voxels_labels_subset(x, 25, config, label)
                 X = subset[0]
                 label = subset[1]
                 for classifier in classifiers:
