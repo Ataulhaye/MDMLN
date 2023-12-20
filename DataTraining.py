@@ -1,27 +1,22 @@
-import math
 import time
+from datetime import datetime
 from math import ceil, floor
-from random import randrange
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import shap
 from catboost import CatBoostClassifier
 from lightgbm import LGBMClassifier
 from sklearn import svm
-from sklearn.base import BaseEstimator
+from sklearn.decomposition import PCA
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
-from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.metrics import mean_squared_error
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score, train_test_split
-from sklearn.decomposition import PCA
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
-from xgboost import XGBClassifier
 
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
@@ -41,8 +36,9 @@ class DataTraining:
         folds: int = 5,
         test_size: float = 0.2,
         predefined_split: bool = True,
+        explaination=False,
     ):
-        score_array = []
+        scores = []
         for i in range(folds):
             x_test, x_train, y_test, y_train = None, None, None, None
             if predefined_split:
@@ -51,29 +47,30 @@ class DataTraining:
                     x_train,
                     y_test,
                     y_train,
-                ) = self.premeditate_random_train_test_split(x, y, test_size)
+                ) = self.premeditate_random_train_test_split(x, y.labels, test_size)
             else:
                 x_test, x_train, y_test, y_train = self.random_train_test_split(
-                    x, y, test_size
+                    x, y.labels, test_size
                 )
 
             model.fit(x_train, y_train)
-            score_array.append(model.score(x_test, y_test))
+            scores.append(model.score(x_test, y_test))
 
-        self.explain_model(
-            model,
-            x,
-            y,
-            x_train,
-            x_test,
-            y_train,
-            y_test,
-        )
+        if explaination:
+            self.explain_model(
+                model,
+                x,
+                y,
+                x_train,
+                x_test,
+                y_train,
+                y_test,
+            )
         # print(f"scores using {type(model).__name__} with {folds}-fold cross-validation:",score_array,)
-        score_array = np.array(score_array)
+        scores = np.array(scores)
 
         # print(f"{type(model).__name__}: %0.2f accuracy with a standard deviation of %0.2f"% (score_array.mean(), score_array.std()))
-        return score_array
+        return scores
 
     def explain_model(
         self,
@@ -96,35 +93,35 @@ class DataTraining:
             shap_values=shap_values,
             features=x_test,
         )
-        plt.savefig("force1912pca.svg", dpi=700)
+        name = f"{y.name}_force"
+        graph_name = self.get_graph_file_name(name=name)
+        plt.savefig(graph_name, dpi=700)
         plt.close()
 
-        shap.decision_plot(explainer.expected_value, shap_values, x_test, link="logit")
-        plt.savefig("desicionlogit1912pca.svg", dpi=700)
-        plt.close()
+        # shap.decision_plot(explainer.expected_value, shap_values, x_test, link="logit")
+        # plt.savefig("desicionlogit1912pca.svg", dpi=700)
+        # plt.close()
 
-        shap.plots.force(
-            explainer.expected_value, shap_values[0, :], x_test[0, :], matplotlib=True
-        )
-        plt.savefig("forceFirst1912pca.svg", dpi=700)
-        plt.close()
+        # shap.plots.force(explainer.expected_value, shap_values[0, :], x_test[0, :], matplotlib=True)
+        # plt.savefig("forceFirst1912pca.svg", dpi=700)
+        # plt.close()
 
+        name = f"{y.name}_decision"
+        graph_name = self.get_graph_file_name(name=name)
         shap.decision_plot(explainer.expected_value, shap_values, x_test)
-        plt.savefig("desicion1912pca.svg", dpi=700)
+        plt.savefig(graph_name, dpi=700)
         plt.close()
 
-        shap.dependence_plot(0, shap_values, x_test)
-        plt.savefig("dependence1912pca.svg", dpi=700)
-        plt.close()
-
+        name = f"{y.name}_summary"
+        graph_name = self.get_graph_file_name(name=name)
         shap.summary_plot(shap_values=shap_values, features=x_test)
-        plt.savefig("summary1912namespca.svg", dpi=700)
+        plt.savefig(graph_name, dpi=700)
         plt.close()
 
-        shap.summary_plot(shap_values=shap_values, features=x_test, feature_names=y)
-        plt.savefig("summary1912pca.svg", dpi=700)
-
-        plt.close()
+    @staticmethod
+    def get_graph_file_name(name, extension=".svg"):
+        dt = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+        return f"{name}_{dt}{extension}"
 
     def training_prediction_using_default_cross_validation(
         self,
@@ -201,6 +198,7 @@ class DataTraining:
         strategy,
         predefined_split,
         classifier="SVM",
+        explaination=False,
     ):
         """Performs k-Fold classification, training and testing
         Args:
@@ -216,6 +214,7 @@ class DataTraining:
             strategy: used for data normalization
             predefined_split: if True the split will be according to the BrainDataConfig conditions
             popmean (float, optional): popmean of data. Defaults to 0.3.
+            explaination=False, do the KernalExplanation and draw graphs
         Raises:
             TypeError: _description_
 
@@ -266,10 +265,11 @@ class DataTraining:
         scores = self.training_prediction_using_cross_validation(
             model=model,
             x=x,
-            y=y.labels,
+            y=y,
             folds=folds,
             test_size=test_size,
             predefined_split=predefined_split,
+            explaination=explaination,
         )
         # scores = self.training_prediction_using_default_cross_validation(model=model,x=x,y=y.labels,folds=folds,test_size=test_size,predefined_split=predefined_split,)
 
@@ -296,6 +296,7 @@ class DataTraining:
         test_size,
         partially=False,
         dimension_reduction=False,
+        explain=False,
     ):
         # data_dict = dict({})
         data_list = list()
@@ -309,7 +310,7 @@ class DataTraining:
                     X = subset[0]
                     label = subset[1]
                 if dimension_reduction:
-                    pca = PCA()  # n_components=300
+                    pca = PCA(n_components=50)  # n_components=300
                     X = pca.fit_transform(X)
 
                 for classifier in classifiers:
@@ -322,6 +323,7 @@ class DataTraining:
                         strategy=strategy,
                         predefined_split=predefined_split,
                         classifier=classifier,
+                        explaination=explain,
                     )
                     data_list.append(results)
         return data_list

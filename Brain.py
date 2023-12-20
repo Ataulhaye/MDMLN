@@ -1,3 +1,5 @@
+import itertools
+
 import numpy as np
 import pandas as pd
 import scipy
@@ -5,7 +7,7 @@ from sklearn import datasets
 from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
-import itertools
+
 from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
 
@@ -210,7 +212,7 @@ class Brain:
         config: BrainDataConfig,
         label: BrainDataLabel,
     ):
-        brain_data: [Brain] = []
+        brain_data: list[Brain] = []
         # brain_data = []
         comb_src = None
         subject = False
