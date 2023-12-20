@@ -215,9 +215,7 @@ def classify_ifg(
     )
 
 
-def stg_binary_classification(
-    folds, test_size, classifiers, strategies, predefined_split
-):
+def stg_binary_classification(test_size, classifiers, strategies, predefined_split):
     config = BrainDataConfig()
     stg = Brain(
         area=config.STG,
@@ -232,14 +230,15 @@ def stg_binary_classification(
         training = DataTraining()
         export_data = training.classify_brain_data(
             classifiers,
-            labels=bd.binary_labels,
+            labels=[bd.binary_labels],
             data=bd.voxels,
             strategies=strategies,
             predefined_split=predefined_split,
-            folds=folds,
+            folds=1,
             test_size=test_size,
             partially=False,
             dimension_reduction=True,
+            explain=True,
         )
 
     stg_image_binary_data = stg.binary_data(config, stg.image_labels_int)
@@ -248,14 +247,15 @@ def stg_binary_classification(
         training = DataTraining()
         export_data = training.classify_brain_data(
             classifiers,
-            labels=bd.binary_labels,
+            labels=[bd.binary_labels],
             data=bd.voxels,
             strategies=strategies,
             predefined_split=predefined_split,
-            folds=folds,
+            folds=1,
             test_size=test_size,
             partially=False,
             dimension_reduction=True,
+            explain=True,
         )
 
 
@@ -294,9 +294,7 @@ def main():
     classifiers = ["SVM"]
     predefined_split = False
     # classify_ifg(folds, test_size, classifiers, strategies, predefined_split, int_labels=False)
-    stg_binary_classification(
-        folds, test_size, classifiers, strategies, predefined_split
-    )
+    stg_binary_classification(test_size, classifiers, strategies, predefined_split)
     classify_stg(
         folds, test_size, classifiers, strategies, predefined_split, int_labels=True
     )
@@ -307,9 +305,9 @@ def main():
 
 
 def test_pca():
+    from sklearn.datasets import load_iris
     from sklearn.decomposition import PCA
     from sklearn.tree import DecisionTreeClassifier
-    from sklearn.datasets import load_iris
 
     # load data
     iris = load_iris()

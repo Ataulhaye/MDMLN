@@ -65,6 +65,7 @@ class DataTraining:
                 x_test,
                 y_train,
                 y_test,
+                scores,
             )
         # print(f"scores using {type(model).__name__} with {folds}-fold cross-validation:",score_array,)
         scores = np.array(scores)
@@ -72,16 +73,7 @@ class DataTraining:
         # print(f"{type(model).__name__}: %0.2f accuracy with a standard deviation of %0.2f"% (score_array.mean(), score_array.std()))
         return scores
 
-    def explain_model(
-        self,
-        model,
-        x,
-        y,
-        x_train,
-        x_test,
-        y_train,
-        y_test,
-    ):
+    def explain_model(self, model, x, y, x_train, x_test, y_train, y_test, scores):
         # explain all the predictions in the test set
         # explainer = shap.KernelExplainer(model.predict_proba, x_train)
         explainer = shap.KernelExplainer(model.predict, x_train)
@@ -93,7 +85,7 @@ class DataTraining:
             shap_values=shap_values,
             features=x_test,
         )
-        name = f"{y.name}_force"
+        name = f"{y.name}_{scores[0]}_force"
         graph_name = self.get_graph_file_name(name=name)
         plt.savefig(graph_name, dpi=700)
         plt.close()
@@ -106,13 +98,13 @@ class DataTraining:
         # plt.savefig("forceFirst1912pca.svg", dpi=700)
         # plt.close()
 
-        name = f"{y.name}_decision"
+        name = f"{y.name}_{scores[0]}_decision"
         graph_name = self.get_graph_file_name(name=name)
         shap.decision_plot(explainer.expected_value, shap_values, x_test)
         plt.savefig(graph_name, dpi=700)
         plt.close()
 
-        name = f"{y.name}_summary"
+        name = f"{y.name}_{scores[0]}_summary"
         graph_name = self.get_graph_file_name(name=name)
         shap.summary_plot(shap_values=shap_values, features=x_test)
         plt.savefig(graph_name, dpi=700)
