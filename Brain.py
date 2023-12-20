@@ -5,7 +5,7 @@ from sklearn import datasets
 from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
-
+import itertools
 from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
 
@@ -19,6 +19,7 @@ class Brain:
         load_int_labels=False,
     ):
         self.area = area
+        self.binary_labels = None
         if data_path is not None:
             data = scipy.io.loadmat(data_path)
             self.voxels: np.ndarray = data["R"]
@@ -75,7 +76,7 @@ class Brain:
                 ),
             )
 
-        if load_int_labels is True:
+        if load_int_labels:
             config = BrainDataConfig()
             self.subject_labels_int = BrainDataLabel(
                 name="subject_labels_int",
@@ -203,6 +204,86 @@ class Brain:
             nans_len_list.append(nans_length)
 
         return nans_len_list
+
+    def binary_data(
+        self,
+        config: BrainDataConfig,
+        label: BrainDataLabel,
+    ):
+        brain_data: [Brain] = []
+        # brain_data = []
+        comb_src = None
+        subject = False
+
+        if "subject" in label.name:
+            comb_src = config.subject_labels_int
+            subject = True
+        else:
+            comb_src = config.image_labels_int
+        combinations = list(itertools.combinations(comb_src, 2))
+
+        for combination in combinations:
+            voxels = None
+            labels = None
+            if subject:
+                voxels = self.subject_binary_data(self.voxels, config, combination)
+                labels = self.subject_binary_data(label.labels, config, combination)
+            else:
+                voxels = self.image_binary_data(self.voxels, config, combination)
+                labels = self.image_binary_data(label.labels, config, combination)
+
+            brain = Brain()
+            brain.area = self.area
+            brain.voxels = voxels
+            binary_label = BrainDataLabel(
+                name=f"binary_{label.name}{combination}",
+                popmean=config.binary_popmean,
+                labels=labels,
+            )
+            brain.binary_labels = binary_label
+            brain_data.append(brain)
+
+        return brain_data
+
+    def image_binary_data(self, data, config: BrainDataConfig, combination):
+        chunks = []
+        for label in combination:
+            match label:
+                case config.abstract_related_int:
+                    v = data[0::4]
+                    chunks.append(v)
+                case config.abstract_unrelated_int:
+                    v = data[1::4]
+                    chunks.append(v)
+                case config.concrete_related_int:
+                    v = data[2::4]
+                    chunks.append(v)
+                case config.concrete_unrelated_int:
+                    v = data[3::4]
+                    chunks.append(v)
+
+        return np.concatenate(chunks)
+
+    def subject_binary_data(self, data, config: BrainDataConfig, combination):
+        chunks = []
+        for label in combination:
+            match label:
+                case config.neurotypical_int:
+                    end = config.patients[label] * config.conditions
+                    v = data[0:end]
+                    chunks.append(v)
+                case config.depressive_disorder_int:
+                    start = config.patients[0] * config.conditions
+                    end = config.patients[label] * config.conditions
+                    v = data[start : (start + end)]
+                    chunks.append(v)
+                case config.schizophrenia_spectrum_int:
+                    start = config.patients[0] * config.conditions
+                    end = config.patients[1] * config.conditions
+                    v = data[(start + end) :]
+                    chunks.append(v)
+
+        return np.concatenate(chunks)
 
     def voxels_labels_subset(
         self,

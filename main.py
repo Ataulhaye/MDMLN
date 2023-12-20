@@ -215,11 +215,56 @@ def classify_ifg(
     )
 
 
+def stg_binary_classification(
+    folds, test_size, classifiers, strategies, predefined_split
+):
+    config = BrainDataConfig()
+    stg = Brain(
+        area=config.STG,
+        data_path=config.STG_path,
+        load_labels=True,
+        load_int_labels=True,
+    )
+
+    stg_subject_binary_data = stg.binary_data(config, stg.subject_labels_int)
+
+    for bd in stg_subject_binary_data:
+        training = DataTraining()
+        export_data = training.classify_brain_data(
+            classifiers,
+            labels=bd.binary_labels,
+            data=bd.voxels,
+            strategies=strategies,
+            predefined_split=predefined_split,
+            folds=folds,
+            test_size=test_size,
+            partially=False,
+            dimension_reduction=True,
+        )
+
+    stg_image_binary_data = stg.binary_data(config, stg.image_labels_int)
+
+    for bd in stg_image_binary_data:
+        training = DataTraining()
+        export_data = training.classify_brain_data(
+            classifiers,
+            labels=bd.binary_labels,
+            data=bd.voxels,
+            strategies=strategies,
+            predefined_split=predefined_split,
+            folds=folds,
+            test_size=test_size,
+            partially=False,
+            dimension_reduction=True,
+        )
+
+
 def main():
     # test_pca()
     # analyse_nans()
     # visualize_nans()
     # classify_iris()
+
     folds = 1
     test_size = 0.2
     strategies = [
@@ -249,6 +294,9 @@ def main():
     classifiers = ["SVM"]
     predefined_split = False
     # classify_ifg(folds, test_size, classifiers, strategies, predefined_split, int_labels=False)
+    stg_binary_classification(
+        folds, test_size, classifiers, strategies, predefined_split
+    )
     classify_stg(
         folds, test_size, classifiers, strategies, predefined_split, int_labels=True
     )

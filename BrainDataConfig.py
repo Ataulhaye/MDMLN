@@ -41,14 +41,30 @@ class BrainDataConfig:
             self.schizophrenia_spectrum,
         ]
 
+        self.subject_labels_int = [
+            self.neurotypical_int,
+            self.depressive_disorder_int,
+            self.schizophrenia_spectrum_int,
+        ]
+
         self.image_labels = [
             self.abstract_related,
             self.abstract_unrelated,
             self.concrete_related,
             self.concrete_unrelated,
         ]
+
+        self.image_labels_int = [
+            self.abstract_related_int,
+            self.abstract_unrelated_int,
+            self.concrete_related_int,
+            self.concrete_unrelated_int,
+        ]
+
         self.subject_label_popmean = round(((100 / len(self.subject_labels)) / 100), 2)
         self.image_label_popmean = round(((100 / len(self.image_labels)) / 100), 2)
+
+        self.binary_popmean = 0.5
 
         self.STG_path = "./left_STG_MTG_AALlable_ROI.rex.mat"
         self.STG = "STG"
