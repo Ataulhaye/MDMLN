@@ -223,7 +223,11 @@ def stg_binary_classification(test_size, classifiers, strategies, predefined_spl
         load_labels=True,
         load_int_labels=True,
     )
-
+    split = None
+    if predefined_split:
+        split = "cr_split"
+    else:
+        split = "r_split"
     stg_subject_binary_data = stg.binary_data(config, stg.subject_labels_int)
 
     for bd in stg_subject_binary_data:
@@ -239,6 +243,13 @@ def stg_binary_classification(test_size, classifiers, strategies, predefined_spl
             partially=False,
             dimension_reduction=True,
             explain=True,
+        )
+        export = ExportData()
+        export.create_and_write_datasheet(
+            export_data,
+            f"STG-Results",
+            f"STG-{1}-Folds-{split}-Clf",
+            transpose=True,
         )
 
     stg_image_binary_data = stg.binary_data(config, stg.image_labels_int)
@@ -257,6 +268,13 @@ def stg_binary_classification(test_size, classifiers, strategies, predefined_spl
             dimension_reduction=True,
             explain=True,
         )
+    export = ExportData()
+    export.create_and_write_datasheet(
+        export_data,
+        f"STG-Results",
+        f"STG-{1}-Folds-{split}-Clf",
+        transpose=True,
+    )
 
 
 def main():
@@ -295,9 +313,7 @@ def main():
     predefined_split = False
     # classify_ifg(folds, test_size, classifiers, strategies, predefined_split, int_labels=False)
     stg_binary_classification(test_size, classifiers, strategies, predefined_split)
-    classify_stg(
-        folds, test_size, classifiers, strategies, predefined_split, int_labels=True
-    )
+    # classify_stg(folds, test_size, classifiers, strategies, predefined_split, int_labels=True)
 
     predefined_split = True
     # classify_ifg(folds, test_size, classifiers, strategies, predefined_split)
