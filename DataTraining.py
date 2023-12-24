@@ -23,8 +23,8 @@ from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
 from EvaluateTrainingModel import EvaluateTrainingModel
 from ExportEntity import ExportEntity
-from TrainingConfig import TrainingConfig
 from TestTrainingSet import TestTrainingSet
+from TrainingConfig import TrainingConfig
 
 
 class DataTraining:
@@ -89,13 +89,17 @@ class DataTraining:
             brain.normalize_data_safely(strategy=train_config.strategy, data_set=set)
 
             if train_config.dimension_reduction:
-                pca = PCA(n_components=0.99)
+                x_dim = set.X_train.shape[1]
+                pca = PCA(n_components=0.99, svd_solver="full")
                 pca.fit(set.X_train)
                 pca_x_train = pca.transform(set.X_train)
                 pca_x_test = pca.transform(set.X_test)
                 print("explained_variance_ratio: ", pca.explained_variance_ratio_.sum())
                 set.X_train = pca_x_train
                 set.X_test = pca_x_test
+                print(
+                    f"Data reduced from {x_dim} dimensions to {set.X_train.shape[1]} dimensions"
+                )
 
             model.fit(set.X_train, set.y_train)
             scores.append(model.score(set.X_test, set.y_test))
