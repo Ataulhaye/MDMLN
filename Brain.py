@@ -20,9 +20,11 @@ class Brain:
         data_path: str = None,
         load_labels=False,
         load_int_labels=False,
+        current_labels: BrainDataLabel = None,
     ):
         self.area = area
-        self.binary_labels = None
+        self.current_labels = current_labels
+        # self.binary_labels = None
         if data_path is not None:
             data = scipy.io.loadmat(data_path)
             self.voxels: np.ndarray = data["R"]
@@ -165,7 +167,7 @@ class Brain:
             imputer.fit(data)
             return imputer.transform(data)
 
-    def normalize_data_safely(self, data: TestTrainingSet, strategy="mean"):
+    def normalize_data_safely(self, data_set: TestTrainingSet, strategy="mean"):
         """_summary_
 
         Args:
@@ -184,24 +186,31 @@ class Brain:
         """
         if strategy == "n_neighbors":
             imputer = KNNImputer(n_neighbors=2)
-            imputer.fit(data.X_train)
-            data.X_train = imputer.transform(data.X_train)
-            data.X_test = imputer.transform(data.X_test)
-            return data
+            imputer.fit(data_set.X_train)
+            x_train = imputer.transform(data_set.X_train)
+            data_set.X_train = x_train
+            x_test = imputer.transform(data_set.X_test)
+            data_set.X_test = x_test
+            return data_set
         elif strategy == "remove-voxels":
-            data.X_train[:, ~np.isnan(data.X_train).any(axis=0)]
-            data.X_test[:, ~np.isnan(data.X_test).any(axis=0)]
-            return data
+            X = np.concatenate((data_set.X_train, data_set.X_test))
+            train_len = data_set.X_train.shape[0]
+            X_r = X[:, ~np.isnan(X).any(axis=0)]
+            data_set.X_train = X_r[0:train_len]
+            data_set.X_test = X_r[train_len:]
+            return data_set
         elif strategy == "remove-trails":
             return NotImplementedError
         elif strategy == None:
-            return data
+            return data_set
         else:
             imputer = SimpleImputer(missing_values=np.nan, strategy=strategy)
-            imputer.fit(data.X_train)
-            data.X_train = imputer.transform(data.X_train)
-            data.X_test = imputer.transform(data.X_test)
-            return data
+            imputer.fit(data_set.X_train)
+            x_train = imputer.transform(data_set.X_train)
+            data_set.X_train = x_train
+            x_test = imputer.transform(data_set.X_test)
+            data_set.X_test = x_test
+            return data_set
 
     def calculate_nans_trail_wise(self, data):
         # lis = [sum(np.isnan(x)) for x in zip(*data)]
@@ -281,7 +290,8 @@ class Brain:
                 popmean=config.binary_popmean,
                 labels=labels,
             )
-            brain.binary_labels = binary_label
+            # brain.binary_labels = binary_label
+            brain.current_labels = binary_label
             brain_data.append(brain)
 
         return brain_data
@@ -326,6 +336,34 @@ class Brain:
 
         return np.concatenate(chunks)
 
+    def brain_subset(
+        self,
+        size: int,
+        config: BrainDataConfig,
+    ):
+        if size > self.voxels.shape[0]:
+            raise IndexError(
+                "Cardinality of the subset cannot be greater then the set itself"
+            )
+
+        subset_X = self.extract_subset(self.voxels, size, config)
+        self.voxels = subset_X
+        subset_labels = self.extract_subset(self.current_labels.labels, size, config)
+        self.current_labels.labels = subset_labels
+        return self
+
+    def extract_subset(self, data: np.ndarray, size: int, config: BrainDataConfig):
+        subset = None
+        chunks = []
+        start = 0
+        for patient in config.patients:
+            subset_per_patient = patient * config.conditions
+            v = data[start : (start + size)]
+            chunks.append(v)
+            start = start + subset_per_patient
+        subset = np.concatenate(chunks)
+        return subset
+
     def voxels_labels_subset(
         self,
         voxels: np.ndarray,
@@ -353,6 +391,9 @@ class Brain:
             start = start + subset_per_patient
         subset = np.concatenate(chunks)
         return subset
+
+    def __repr__(self) -> str:
+        return f"Area:{self.area}, Voxels:{self.voxels.shape}, {self.current_labels}"
 
 
 # Ata:

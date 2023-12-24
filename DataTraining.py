@@ -23,6 +23,8 @@ from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
 from EvaluateTrainingModel import EvaluateTrainingModel
 from ExportEntity import ExportEntity
+from TrainingConfig import TrainingConfig
+from TestTrainingSet import TestTrainingSet
 
 
 class DataTraining:
@@ -72,6 +74,73 @@ class DataTraining:
 
         # print(f"{type(model).__name__}: %0.2f accuracy with a standard deviation of %0.2f"% (score_array.mean(), score_array.std()))
         return scores
+
+    def training_prediction_using_cross_validation_n(
+        self, model, brain: Brain, train_config: TrainingConfig
+    ):
+        scores = []
+        for i in range(train_config.folds):
+            set = None
+            if train_config.predefined_split:
+                set = self.premeditate_random_train_test_split_n(brain, train_config)
+            else:
+                set = self.random_train_test_split_n(brain, train_config.test_size)
+
+            brain.normalize_data_safely(strategy=train_config.strategy, data_set=set)
+
+            if train_config.dimension_reduction:
+                pca = PCA(n_components=0.99)
+                pca.fit(set.X_train)
+                pca_x_train = pca.transform(set.X_train)
+                pca_x_test = pca.transform(set.X_test)
+                print("explained_variance_ratio: ", pca.explained_variance_ratio_.sum())
+                set.X_train = pca_x_train
+                set.X_test = pca_x_test
+
+            model.fit(set.X_train, set.y_train)
+            scores.append(model.score(set.X_test, set.y_test))
+
+        if train_config.explain:
+            self.explain_model_n(
+                model,
+                brain=brain,
+                tt_set=set,
+                scores=scores,
+            )
+        # print(f"scores using {type(model).__name__} with {folds}-fold cross-validation:",score_array,)
+        scores = np.array(scores)
+
+        # print(f"{type(model).__name__}: %0.2f accuracy with a standard deviation of %0.2f"% (score_array.mean(), score_array.std()))
+        return scores
+
+    def explain_model_n(self, model, brain: Brain, tt_set: TestTrainingSet, scores):
+        # explain all the predictions in the test set
+        # explainer = shap.KernelExplainer(model.predict_proba, x_train)
+        explainer = shap.KernelExplainer(model.predict, tt_set.X_train)
+        shap_values = explainer.shap_values(tt_set.X_test)
+        # shap.force_plot(explainer.expected_value[0], shap_values[0], x_test)
+
+        shap.force_plot(
+            base_value=explainer.expected_value,
+            shap_values=shap_values,
+            features=tt_set.X_test,
+        )
+        name = f"{brain.current_labels.name}_{round(scores[0],2)}_force"
+        graph_name = self.get_graph_file_name(name=name)
+        plt.savefig(graph_name, dpi=700)
+        plt.close()
+
+        name = f"{brain.current_labels.name}_{round(scores[0],2)}_decision"
+        graph_name = self.get_graph_file_name(name=name)
+        shap.decision_plot(explainer.expected_value, shap_values, tt_set.X_test)
+        plt.savefig(graph_name, dpi=700)
+        plt.close()
+
+        name = f"{brain.current_labels.name}_{round(scores[0],2)}_summary"
+        graph_name = self.get_graph_file_name(name=name)
+        shap.summary_plot(shap_values=shap_values, features=tt_set.X_test)
+        plt.savefig(graph_name, dpi=700)
+        plt.close()
 
     def explain_model(self, model, x, y, x_train, x_test, y_train, y_test, scores):
         # explain all the predictions in the test set
@@ -142,6 +211,19 @@ class DataTraining:
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
         return x_test, x_train, y_test, y_train
 
+    def random_train_test_split_n(self, brain: Brain, test_size):
+        # split the data set randomly into test and train sets
+        # random_state=some number will always output the same sets by every execution
+        x_train, x_test, y_train, y_test = train_test_split(
+            brain.voxels, brain.current_labels.labels, test_size=test_size
+        )
+        set = TestTrainingSet()
+        set.X_train = x_train
+        set.y_train = y_train
+        set.X_test = x_test
+        set.y_test = y_test
+        return set
+
     def premeditate_random_train_test_split(self, x, y, test_size: float):
         x_test, x_train, y_test, y_train = [], [], [], []
         train_size = 1.0 - test_size
@@ -165,6 +247,51 @@ class DataTraining:
             self.extract_subset_chunk(x, x_train, y, y_train, subset_train_ind, config)
 
         return np.array(x_test), np.array(x_train), np.array(y_test), np.array(y_train)
+
+    def premeditate_random_train_test_split_n(
+        self, brain: Brain, train_config: TrainingConfig
+    ):
+        x_test, x_train, y_test, y_train = [], [], [], []
+        train_size = 1.0 - train_config.test_size
+        sample_start = 0
+        sample_stop = 0
+        config = BrainDataConfig()
+        for subset_size in config.patients:
+            subset_samples = subset_size * config.conditions
+            n_test = ceil(subset_size * train_config.test_size)
+            n_train = floor(subset_size * train_size)
+            sample_stop = sample_stop + subset_samples
+            subset_indices = np.arange(
+                start=sample_start, stop=sample_stop, step=config.conditions
+            )
+            sample_start = sample_stop
+            rng = np.random.mtrand._rand
+            permutation = rng.permutation(subset_indices)
+            subset_test_ind = permutation[:n_test]
+            subset_train_ind = permutation[n_test : (n_test + n_train)]
+            self.extract_subset_chunk(
+                brain.voxels,
+                x_test,
+                brain.current_labels.labels,
+                y_test,
+                subset_test_ind,
+                config,
+            )
+            self.extract_subset_chunk(
+                brain.voxels,
+                x_train,
+                brain.current_labels.labels,
+                y_train,
+                subset_train_ind,
+                config,
+            )
+
+        set = TestTrainingSet()
+        set.X_test = np.array(x_test)
+        set.X_train = np.array(x_train)
+        set.y_test = np.array(y_test)
+        set.y_train = np.array(y_train)
+        return set
 
     @staticmethod
     def extract_subset_chunk(
@@ -277,6 +404,84 @@ class DataTraining:
             model, popmean, scores, y.name, strategy
         )
 
+    def train_and_test_model_accuracy_n(
+        self,
+        brain: Brain,
+        train_config: TrainingConfig,
+    ):
+        """Performs k-Fold classification, training and testing
+        Args:
+        Raises:
+            TypeError: _description_
+
+        Returns:
+            ExportEntity: _description_
+        """
+        model = None
+
+        match train_config.classifier:
+            case "SVM":
+                model = svm.SVC(kernel="linear", C=1)
+            case "KNearestNeighbors":
+                model = KNeighborsClassifier(n_neighbors=3)
+            case "DecisionTree":
+                model = DecisionTreeClassifier(random_state=0)
+            case "GaussianNaiveBayes":
+                model = GaussianNB()
+            case "LinearDiscriminant":
+                model = LinearDiscriminantAnalysis()
+            case "MLP":
+                model = MLPClassifier()
+            case "LogisticRegression":
+                model = LogisticRegression()
+            case "RandomForest":
+                model = RandomForestClassifier(max_depth=2, random_state=0)
+            case "LGBM":
+                model = LGBMClassifier()
+            case "CatBoost":
+                model = CatBoostClassifier(verbose=0, n_estimators=100)
+            case "HistGradientBoosting":
+                model = HistGradientBoostingClassifier()
+            case _:
+                raise TypeError("Classifier Not Supported")
+
+        if (
+            train_config.strategy is None
+            and train_config.classifier not in train_config.nan_classifiers
+        ):
+            return ExportEntity(
+                p_value=None,
+                row_name=type(model).__name__,
+                sub_column_name=train_config.strategy,
+                column_name=brain.current_labels.name,
+                result=tuple(("", "")),
+            )
+        start = time.time()
+        print(
+            f"Started training and prediction of model: {type(model).__name__} using strategy as {train_config.strategy} on {brain.current_labels.name} with {train_config.folds}-fold"
+        )
+
+        scores = self.training_prediction_using_cross_validation_n(
+            model=model, train_config=train_config, brain=brain
+        )
+        # scores = self.training_prediction_using_default_cross_validation(model=model,x=x,y=y.labels,folds=folds,test_size=test_size,predefined_split=predefined_split,)
+
+        print(
+            f"Scores of {type(model).__name__} using strategy as {train_config.strategy} on {brain.current_labels.name} with default {train_config.folds}-fold cross-validation:",
+            scores,
+        )
+        end = time.time()
+        print(
+            f"Finished training and prediction of model: {type(model).__name__} using strategy as {train_config.strategy} on {brain.current_labels.name} with {train_config.folds}-fold in {round(((end - start)/60),2)} minutes."
+        )
+        return EvaluateTrainingModel().evaluate_training_model_by_ttest(
+            model,
+            brain.current_labels.popmean,
+            scores,
+            brain.current_labels.name,
+            train_config.strategy,
+        )
+
     def classify_brain_data(
         self,
         classifiers: list[str],
@@ -318,6 +523,28 @@ class DataTraining:
                         explaination=explain,
                     )
                     data_list.append(results)
+        return data_list
+
+    def brain_data_classification(
+        self,
+        brain: Brain,
+        train_config: TrainingConfig,
+        strategies: list[str],
+        classifiers: list[str],
+    ):
+        data_list = list()
+        config = BrainDataConfig()
+
+        if train_config.partially:
+            brain.brain_subset(25, config)
+
+        for classifier in classifiers:
+            train_config.classifier = classifier
+            for strategy in strategies:
+                train_config.strategy = strategy
+                results = self.train_and_test_model_accuracy_n(brain, train_config)
+                data_list.append(results)
+
         return data_list
 
 

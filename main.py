@@ -11,6 +11,7 @@ from DataTraining import DataTraining
 from EvaluateTrainingModel import EvaluateTrainingModel
 from ExportData import ExportData
 from PlotData import VisualizeData
+from TrainingConfig import TrainingConfig
 
 
 def run_evaluation():
@@ -215,7 +216,7 @@ def classify_ifg(
     )
 
 
-def stg_binary_classification(test_size, classifiers, strategies, predefined_split):
+def stg_binary_classification(classifiers, strategies, t_config: TrainingConfig):
     config = BrainDataConfig()
     stg = Brain(
         area=config.STG,
@@ -224,31 +225,30 @@ def stg_binary_classification(test_size, classifiers, strategies, predefined_spl
         load_int_labels=True,
     )
     split = None
-    if predefined_split:
+    if t_config.predefined_split:
         split = "cr_split"
     else:
         split = "r_split"
     stg_subject_binary_data = stg.binary_data(config, stg.subject_labels_int)
 
+    t_config.dimension_reduction = True
+    t_config.explain = True
+    t_config.folds = 1
+    t_config.predefined_split = False
+
     for bd in stg_subject_binary_data:
         training = DataTraining()
-        export_data = training.classify_brain_data(
+        export_data = training.brain_data_classification(
+            bd,
+            t_config,
+            strategies,
             classifiers,
-            labels=[bd.binary_labels],
-            data=bd.voxels,
-            strategies=strategies,
-            predefined_split=predefined_split,
-            folds=1,
-            test_size=test_size,
-            partially=False,
-            dimension_reduction=True,
-            explain=True,
         )
         export = ExportData()
         export.create_and_write_datasheet(
             export_data,
-            f"STG-Results",
-            f"STG-{1}-Folds-{split}-Clf",
+            f"{stg.area}-Results",
+            f"{stg.area}-{t_config.folds}-Folds-{split}-Clf",
             transpose=True,
         )
 
@@ -256,23 +256,55 @@ def stg_binary_classification(test_size, classifiers, strategies, predefined_spl
 
     for bd in stg_image_binary_data:
         training = DataTraining()
-        export_data = training.classify_brain_data(
+        export_data = training.brain_data_classification(
+            bd,
+            t_config,
+            strategies,
             classifiers,
-            labels=[bd.binary_labels],
-            data=bd.voxels,
-            strategies=strategies,
-            predefined_split=predefined_split,
-            folds=1,
-            test_size=test_size,
-            partially=False,
-            dimension_reduction=True,
-            explain=True,
         )
+        export = ExportData()
+        export.create_and_write_datasheet(
+            export_data,
+            f"{stg.area}-Results",
+            f"{stg.area}-{t_config.folds}-Folds-{split}-Clf",
+            transpose=True,
+        )
+
+
+def stg_classification(classifiers, strategies, t_config: TrainingConfig):
+    config = BrainDataConfig()
+    stg = Brain(
+        area=config.STG,
+        data_path=config.STG_path,
+        load_labels=True,
+        load_int_labels=True,
+    )
+
+    # stg_subject_binary_data = stg.binary_data(config, stg.subject_labels_int)
+
+    stg.current_labels = stg.subject_labels_int
+
+    training = DataTraining()
+
+    export_data = training.brain_data_classification(
+        stg, t_config, strategies, classifiers
+    )
+
+    stg.current_labels = stg.image_labels_int
+    e_data = training.brain_data_classification(stg, t_config, strategies, classifiers)
+    export_data.extend(e_data)
+
+    split = None
+    if t_config.predefined_split:
+        split = "cr_split"
+    else:
+        split = "r_split"
+
     export = ExportData()
     export.create_and_write_datasheet(
         export_data,
-        f"STG-Results",
-        f"STG-{1}-Folds-{split}-Clf",
+        f"{stg.area}-Results",
+        f"{stg.area}-{t_config.folds}-Folds-{split}-Clf",
         transpose=True,
     )
 
@@ -308,11 +340,16 @@ def main():
         "LogisticRegression",
         "RandomForest",
     ]
-    strategies = ["remove-voxels"]
+    strategies = ["mean", "remove-voxels"]
     classifiers = ["SVM"]
     predefined_split = False
+    t_config = TrainingConfig()
+    t_config.folds = folds
+
+    # stg_binary_classification(classifiers, strategies, t_config)
+    stg_classification(classifiers, strategies, t_config)
     # classify_ifg(folds, test_size, classifiers, strategies, predefined_split, int_labels=False)
-    stg_binary_classification(test_size, classifiers, strategies, predefined_split)
+
     # classify_stg(folds, test_size, classifiers, strategies, predefined_split, int_labels=True)
 
     predefined_split = True
