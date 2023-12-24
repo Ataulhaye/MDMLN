@@ -224,6 +224,7 @@ class ExportData:
         return sheet_name
 
     def prepare_data_matrix(self, data: list[ExportEntity]):
+        data.sort(key=lambda x: x.sub_column_name)
         matrix = [["Strategy"], ["Classifier"]]
 
         for i, export_entity in enumerate(data):

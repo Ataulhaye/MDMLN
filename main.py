@@ -126,110 +126,55 @@ def visualize_nans():
     # VisualizeData.plot_data_bar(np.array(x), np.array(nans_column_wise))
 
 
-def classify_stg(
-    folds, test_size, classifiers, strategies, predefined_split, int_labels=False
-):
+def ifg_classification(classifiers, strategies, t_config: TrainingConfig):
     config = BrainDataConfig()
-    stg = Brain(
-        area=config.STG,
-        data_path=config.STG_path,
-        load_labels=True,
-        load_int_labels=int_labels,
-    )
-
-    data_labels = [stg.subject_labels, stg.image_labels]
-    if int_labels:
-        data_labels = [stg.subject_labels_int, stg.image_labels_int]
-
-    training = DataTraining()
-    export_data = training.classify_brain_data(
-        classifiers,
-        labels=data_labels,
-        data=stg.voxels,
-        strategies=strategies,
-        predefined_split=predefined_split,
-        folds=folds,
-        test_size=test_size,
-        partially=False,
-        dimension_reduction=True,
-    )
-
-    split = None
-    if predefined_split:
-        split = "cr_split"
-    else:
-        split = "r_split"
-
-    export = ExportData()
-    # export.create_and_write_CSV(export_data, "IFG-Results", "IFG")
-    # export.create_and_write_datasheet(export_data,f"STG-Results",f"STG-{folds}-Folds-{split}-Clf",transpose=False,)
-    export.create_and_write_datasheet(
-        export_data,
-        f"STG-Results",
-        f"STG-{folds}-Folds-{split}-Clf",
-        transpose=True,
-    )
-
-
-def classify_ifg(
-    folds, test_size, classifiers, strategies, predefined_split, int_labels=False
-):
-    config = BrainDataConfig()
-    ifg = Brain(
+    brain = Brain(
         area=config.IFG,
         data_path=config.IFG_path,
         load_labels=True,
-        load_int_labels=int_labels,
+        load_int_labels=True,
     )
-    data_labels = [ifg.subject_labels, ifg.image_labels]
-    if int_labels:
-        data_labels = [ifg.subject_labels_int, ifg.image_labels_int]
 
     training = DataTraining()
-    export_data = training.classify_brain_data(
-        classifiers,
-        labels=data_labels,
-        data=ifg.voxels,
-        strategies=strategies,
-        predefined_split=predefined_split,
-        folds=folds,
-        test_size=test_size,
+
+    brain.current_labels = brain.subject_labels_int
+    export_data = training.brain_data_classification(
+        brain, t_config, strategies, classifiers
     )
-    split = None
-    if predefined_split:
+
+    brain.current_labels = brain.image_labels_int
+    e_data = training.brain_data_classification(
+        brain, t_config, strategies, classifiers
+    )
+    export_data.extend(e_data)
+
+    split = "r_split"
+    if t_config.predefined_split:
         split = "cr_split"
-    else:
-        split = "r_split"
+
     export = ExportData()
-    # export.create_and_write_CSV(export_data, "IFG-Results", "IFG")
     export.create_and_write_datasheet(
         export_data,
-        f"IFG-Results",
-        f"IFG-{folds}-Folds-{split}-Clf",
+        f"{brain.area}-Results",
+        f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
         transpose=True,
-    )
-    export.create_and_write_datasheet(
-        export_data,
-        f"IFG-Results",
-        f"IFG-{folds}-Folds-{split}-Clf",
-        transpose=False,
     )
 
 
 def stg_binary_classification(classifiers, strategies, t_config: TrainingConfig):
     config = BrainDataConfig()
-    stg = Brain(
+    brain = Brain(
         area=config.STG,
         data_path=config.STG_path,
         load_labels=True,
         load_int_labels=True,
     )
-    split = None
+
+    split = "r_split"
     if t_config.predefined_split:
         split = "cr_split"
-    else:
-        split = "r_split"
-    stg_subject_binary_data = stg.binary_data(config, stg.subject_labels_int)
+
+    stg_subject_binary_data = brain.binary_data(config, brain.subject_labels_int)
 
     t_config.dimension_reduction = True
     t_config.explain = True
@@ -247,12 +192,12 @@ def stg_binary_classification(classifiers, strategies, t_config: TrainingConfig)
         export = ExportData()
         export.create_and_write_datasheet(
             export_data,
-            f"{stg.area}-Results",
-            f"{stg.area}-{t_config.folds}-Folds-{split}-Clf",
+            f"{brain.area}-Results",
+            f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
             transpose=True,
         )
 
-    stg_image_binary_data = stg.binary_data(config, stg.image_labels_int)
+    stg_image_binary_data = brain.binary_data(config, brain.image_labels_int)
 
     for bd in stg_image_binary_data:
         training = DataTraining()
@@ -265,46 +210,44 @@ def stg_binary_classification(classifiers, strategies, t_config: TrainingConfig)
         export = ExportData()
         export.create_and_write_datasheet(
             export_data,
-            f"{stg.area}-Results",
-            f"{stg.area}-{t_config.folds}-Folds-{split}-Clf",
+            f"{brain.area}-Results",
+            f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
             transpose=True,
         )
 
 
 def stg_classification(classifiers, strategies, t_config: TrainingConfig):
     config = BrainDataConfig()
-    stg = Brain(
+    brain = Brain(
         area=config.STG,
         data_path=config.STG_path,
         load_labels=True,
         load_int_labels=True,
     )
 
-    # stg_subject_binary_data = stg.binary_data(config, stg.subject_labels_int)
-
-    stg.current_labels = stg.subject_labels_int
+    brain.current_labels = brain.subject_labels_int
 
     training = DataTraining()
 
     export_data = training.brain_data_classification(
-        stg, t_config, strategies, classifiers
+        brain, t_config, strategies, classifiers
     )
 
-    stg.current_labels = stg.image_labels_int
-    e_data = training.brain_data_classification(stg, t_config, strategies, classifiers)
+    brain.current_labels = brain.image_labels_int
+    e_data = training.brain_data_classification(
+        brain, t_config, strategies, classifiers
+    )
     export_data.extend(e_data)
 
-    split = None
+    split = "r_split"
     if t_config.predefined_split:
         split = "cr_split"
-    else:
-        split = "r_split"
 
     export = ExportData()
     export.create_and_write_datasheet(
         export_data,
-        f"{stg.area}-Results",
-        f"{stg.area}-{t_config.folds}-Folds-{split}-Clf",
+        f"{brain.area}-Results",
+        f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
         transpose=True,
     )
 
@@ -347,10 +290,9 @@ def main():
     t_config.folds = folds
 
     # stg_binary_classification(classifiers, strategies, t_config)
-    stg_classification(classifiers, strategies, t_config)
-    # classify_ifg(folds, test_size, classifiers, strategies, predefined_split, int_labels=False)
-
-    # classify_stg(folds, test_size, classifiers, strategies, predefined_split, int_labels=True)
+    # stg_classification(classifiers, strategies, t_config)
+    t_config.dimension_reduction = True
+    ifg_classification(classifiers, strategies, t_config)
 
     predefined_split = True
     # classify_ifg(folds, test_size, classifiers, strategies, predefined_split)
