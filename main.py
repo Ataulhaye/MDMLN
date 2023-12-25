@@ -198,7 +198,6 @@ def stg_binary_classification(classifiers, strategies, t_config: TrainingConfig)
             f"{brain.area}-Results",
             f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
             notes=note,
-            notes=note,
             transpose=True,
         )
 
