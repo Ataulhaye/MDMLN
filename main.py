@@ -197,7 +197,7 @@ def stg_binary_classification(classifiers, strategies, t_config: TrainingConfig)
             export_data,
             f"{brain.area}-Results",
             f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
-            note=str(t_config),
+            notes=note,
             notes=note,
             transpose=True,
         )
@@ -218,7 +218,7 @@ def stg_binary_classification(classifiers, strategies, t_config: TrainingConfig)
             export_data,
             f"{brain.area}-Results",
             f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
-            note=note,
+            notes=note,
             transpose=True,
         )
 
@@ -256,7 +256,7 @@ def stg_classification(classifiers, strategies, t_config: TrainingConfig):
         export_data,
         f"{brain.area}-Results",
         f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
-        note=note,
+        notes=note,
         transpose=True,
     )
 
@@ -288,17 +288,22 @@ def main():
         "LogisticRegression",
         "RandomForest",
     ]
-    strategies = ["mean", "remove-voxels"]
+    strategies = ["mean", "remove-voxels", "median"]
     classifiers = ["SVM", "MLP", "LinearDiscriminant"]
     t_config = TrainingConfig()
     # t_config.folds = 1
-    t_config.explain = True
+    # t_config.explain = True
     # t_config.dimension_reduction = True
-    t_config.predefined_split = False
+    t_config.predefined_split = True
 
     # stg_binary_classification(classifiers, strategies, t_config)
     stg_classification(classifiers, strategies, t_config)
-    # ifg_classification(classifiers, strategies, t_config)
+    ifg_classification(classifiers, strategies, t_config)
+
+    t_config.predefined_split = False
+
+    stg_classification(classifiers, strategies, t_config)
+    ifg_classification(classifiers, strategies, t_config)
 
 
 if __name__ == "__main__":
