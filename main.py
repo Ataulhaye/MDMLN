@@ -194,9 +194,9 @@ def stg_binary_classification(classifiers, strategies, t_config: TrainingConfig)
         export = ExportData()
         note = export.create_note(t_config)
         export.create_and_write_datasheet(
-            export_data,
-            f"{brain.area}-Results",
-            f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+            data=export_data,
+            sheet_name=f"{brain.area}-Results",
+            title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
             notes=note,
             transpose=True,
         )
@@ -214,9 +214,9 @@ def stg_binary_classification(classifiers, strategies, t_config: TrainingConfig)
         export = ExportData()
         note = export.create_note(t_config)
         export.create_and_write_datasheet(
-            export_data,
-            f"{brain.area}-Results",
-            f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+            data=export_data,
+            sheet_name=f"{brain.area}-Results",
+            title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
             notes=note,
             transpose=True,
         )
@@ -252,9 +252,9 @@ def stg_classification(classifiers, strategies, t_config: TrainingConfig):
     export = ExportData()
     note = export.create_note(t_config)
     export.create_and_write_datasheet(
-        export_data,
-        f"{brain.area}-Results",
-        f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+        data=export_data,
+        sheet_name=f"{brain.area}-Results",
+        title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
         notes=note,
         transpose=True,
     )
@@ -288,6 +288,7 @@ def main():
         "RandomForest",
     ]
     strategies = ["mean", "remove-voxels", "median"]
+    strategies = ["mean"]
     classifiers = ["SVM", "MLP", "LinearDiscriminant"]
     t_config = TrainingConfig()
     # t_config.folds = 1
