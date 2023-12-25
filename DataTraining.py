@@ -104,12 +104,13 @@ class DataTraining:
             model.fit(set.X_train, set.y_train)
             scores.append(model.score(set.X_test, set.y_test))
 
-        if train_config.explain:
+        if train_config.explain and "binary" in brain.current_labels.name:
             self.explain_model_n(
                 model,
                 brain=brain,
                 tt_set=set,
                 scores=scores,
+                train_config=train_config,
             )
         # print(f"scores using {type(model).__name__} with {folds}-fold cross-validation:",score_array,)
         scores = np.array(scores)
@@ -117,7 +118,14 @@ class DataTraining:
         # print(f"{type(model).__name__}: %0.2f accuracy with a standard deviation of %0.2f"% (score_array.mean(), score_array.std()))
         return scores
 
-    def explain_model_n(self, model, brain: Brain, tt_set: TestTrainingSet, scores):
+    def explain_model_n(
+        self,
+        model,
+        brain: Brain,
+        tt_set: TestTrainingSet,
+        scores,
+        train_config: TrainingConfig,
+    ):
         # explain all the predictions in the test set
         # explainer = shap.KernelExplainer(model.predict_proba, x_train)
         explainer = shap.KernelExplainer(model.predict, tt_set.X_train)
@@ -129,18 +137,20 @@ class DataTraining:
             shap_values=shap_values,
             features=tt_set.X_test,
         )
-        name = f"{brain.current_labels.name}_{round(scores[0],2)}_force"
+        name = (
+            f"{brain.current_labels.name}_{round(scores[train_config.folds-1],2)}_force"
+        )
         graph_name = self.get_graph_file_name(name=name)
         plt.savefig(graph_name, dpi=700)
         plt.close()
 
-        name = f"{brain.current_labels.name}_{round(scores[0],2)}_decision"
+        name = f"{brain.current_labels.name}_{round(scores[train_config.folds-1],2)}_decision"
         graph_name = self.get_graph_file_name(name=name)
         shap.decision_plot(explainer.expected_value, shap_values, tt_set.X_test)
         plt.savefig(graph_name, dpi=700)
         plt.close()
 
-        name = f"{brain.current_labels.name}_{round(scores[0],2)}_summary"
+        name = f"{brain.current_labels.name}_{round(scores[train_config.folds-1],2)}_summary"
         graph_name = self.get_graph_file_name(name=name)
         shap.summary_plot(shap_values=shap_values, features=tt_set.X_test)
         plt.savefig(graph_name, dpi=700)

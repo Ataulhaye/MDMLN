@@ -41,4 +41,4 @@ class TrainingConfig:
         self.nan_classifiers = nan_classifiers
 
     def __repr__(self) -> str:
-        return f"folds:{self.folds}, test_size:{self.test_size}, predefined_split:{self.predefined_split} , dimension_reduction:{self.dimension_reduction}"
+        return f"Folds:{self.folds}, Test size:{self.test_size}, Conditional split:{self.predefined_split} , Dimension reduction:{self.dimension_reduction}"

@@ -20,7 +20,7 @@ class ExportData:
                 wr.writerow(ed)
 
     def create_and_write_datasheet(
-        self, data, sheet_name, title="results", transpose=False
+        self, data, sheet_name, notes, title="results", transpose=False
     ):
         # matrix = data
         matrix = self.prepare_data_matrix(data)
@@ -77,8 +77,20 @@ class ExportData:
 
         sheet_name = self.get_file_name(extension=".xlsx", sheet_name=sheet_name)
 
+        for note in notes:
+            ws.append(note)
         # Save File
         wb.save(sheet_name)
+
+    def create_note(self, t_config):
+        notes = []
+        notes.append([])
+        notes.append([])
+        notes.append([])
+        notes.append([])
+        notes.append([])
+        notes.append([str(t_config)])
+        return notes
 
     def fill_color(self, cell_positions, matrix, ws, setting: ExelSettings):
         i = 0
@@ -122,6 +134,8 @@ class ExportData:
             ws.merge_cells(start_row=rs, start_column=sc, end_row=re, end_column=ec)
             if x % 2 == 0:
                 x = x + 2
+            if re >= len(matrix):
+                break
 
     def set_first_column_font(
         self, cell_position, matrix, ws, col_widths, setting: ExelSettings

@@ -153,10 +153,12 @@ def ifg_classification(classifiers, strategies, t_config: TrainingConfig):
         split = "cr_split"
 
     export = ExportData()
+    note = export.create_note(t_config)
     export.create_and_write_datasheet(
-        export_data,
-        f"{brain.area}-Results",
-        f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+        data=export_data,
+        sheet_name=f"{brain.area}-Results",
+        title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+        notes=note,
         transpose=True,
     )
 
@@ -190,10 +192,13 @@ def stg_binary_classification(classifiers, strategies, t_config: TrainingConfig)
             classifiers,
         )
         export = ExportData()
+        note = export.create_note(t_config)
         export.create_and_write_datasheet(
             export_data,
             f"{brain.area}-Results",
             f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+            note=str(t_config),
+            notes=note,
             transpose=True,
         )
 
@@ -208,10 +213,12 @@ def stg_binary_classification(classifiers, strategies, t_config: TrainingConfig)
             classifiers,
         )
         export = ExportData()
+        note = export.create_note(t_config)
         export.create_and_write_datasheet(
             export_data,
             f"{brain.area}-Results",
             f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+            note=note,
             transpose=True,
         )
 
@@ -244,22 +251,20 @@ def stg_classification(classifiers, strategies, t_config: TrainingConfig):
         split = "cr_split"
 
     export = ExportData()
+    note = export.create_note(t_config)
     export.create_and_write_datasheet(
         export_data,
         f"{brain.area}-Results",
         f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+        note=note,
         transpose=True,
     )
 
 
 def main():
-    # test_pca()
     # analyse_nans()
     # visualize_nans()
     # classify_iris()
-
-    folds = 1
-    test_size = 0.2
     strategies = [
         None,
         "mean",
@@ -284,54 +289,16 @@ def main():
         "RandomForest",
     ]
     strategies = ["mean", "remove-voxels"]
-    classifiers = ["SVM"]
-    predefined_split = False
+    classifiers = ["SVM", "MLP", "LinearDiscriminant"]
     t_config = TrainingConfig()
-    t_config.folds = folds
+    # t_config.folds = 1
+    t_config.explain = True
+    # t_config.dimension_reduction = True
+    t_config.predefined_split = False
 
     # stg_binary_classification(classifiers, strategies, t_config)
-    # stg_classification(classifiers, strategies, t_config)
-    t_config.dimension_reduction = True
-    ifg_classification(classifiers, strategies, t_config)
-
-    predefined_split = True
-    # classify_ifg(folds, test_size, classifiers, strategies, predefined_split)
-    # classify_stg(folds, test_size, classifiers, strategies, predefined_split)
-
-
-def test_pca():
-    from sklearn.datasets import load_iris
-    from sklearn.decomposition import PCA
-    from sklearn.tree import DecisionTreeClassifier
-
-    # load data
-    iris = load_iris()
-
-    # initiate PCA and classifier
-    pca = PCA(n_components=2)
-    newdata_transformed = pca.transform(iris.data)
-    classifier = DecisionTreeClassifier()
-
-    # transform / fit
-
-    X_transformed = pca.fit_transform(iris.data)
-    classifier.fit(X_transformed, iris.target)
-
-    # predict "new" data
-    # (I'm faking it here by using the original data)
-
-    newdata = iris.data
-
-    # transform new data using already fitted pca
-    # (don't re-fit the pca)
-    newdata_transformed = pca.transform(newdata)
-
-    # predict labels using the trained classifier
-    score = classifier.score(newdata_transformed, iris.target)
-
-    pred_labels = classifier.predict(newdata_transformed)
-
-    print(pred_labels)
+    stg_classification(classifiers, strategies, t_config)
+    # ifg_classification(classifiers, strategies, t_config)
 
 
 if __name__ == "__main__":
