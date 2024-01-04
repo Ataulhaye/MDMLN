@@ -288,12 +288,11 @@ def main():
         "RandomForest",
     ]
     strategies = ["mean", "remove-voxels", "median"]
-    strategies = ["mean"]
     classifiers = ["SVM", "MLP", "LinearDiscriminant"]
     t_config = TrainingConfig()
     # t_config.folds = 1
     # t_config.explain = True
-    # t_config.dimension_reduction = True
+    t_config.dimension_reduction = True
     t_config.predefined_split = True
 
     # stg_binary_classification(classifiers, strategies, t_config)
