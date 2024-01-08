@@ -1,18 +1,14 @@
-# import the Torch package to save your day
-# transforms are used to preprocess the images, e.g. crop, rotate, normalize, etc
-# package we used to manipulate matrix
+import os
+
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-
-# package we used for image processing
 from matplotlib import pyplot as plt
 from torchvision import datasets, transforms
 
 from AutoEncoder import Autoencoder
 from Brain import Brain
-from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
 from DataTraining import DataTraining
 from ExportData import ExportData
@@ -22,17 +18,23 @@ from TrainingConfig import TrainingConfig
 # here, we save it to the folder called "mnist_data"
 # ToTensor() here is used to convert data type to tensor, so that can be used in network
 
-train_dataset = datasets.MNIST(
-    root="./mnist_data/", train=True, transform=transforms.ToTensor(), download=True
-)
-test_dataset = datasets.MNIST(
-    root="./mnist_data/", train=False, transform=transforms.ToTensor(), download=True
-)
 
-print(train_dataset)
-print(test_dataset)
+def load_data(data_dir="./mnist_data/"):
+    trainset = datasets.MNIST(
+        root=data_dir, train=True, transform=transforms.ToTensor(), download=True
+    )
+    testset = datasets.MNIST(
+        root=data_dir,
+        train=False,
+        transform=transforms.ToTensor(),
+        download=True,
+    )
+
+    return trainset, testset
+
+
 batchSize = 128
-
+train_dataset, test_dataset = load_data()
 # only after packed in DataLoader, can we feed the data into the neural network iteratively
 train_loader = torch.utils.data.DataLoader(
     dataset=train_dataset, batch_size=batchSize, shuffle=True
@@ -168,6 +170,7 @@ def mnist_classification(classifiers, strategies, t_config: TrainingConfig, X, y
     )
 
 
+"""
 t_loss = train_model(model=model, device=device, training_data=train_loader, epochs=80)
 plt.plot(t_loss)
 v_loss, X, y = test_model(
@@ -185,3 +188,4 @@ t_config.dimension_reduction = False
 t_config.predefined_split = False
 
 mnist_classification(classifiers, strategies, t_config, X, y)
+"""

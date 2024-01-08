@@ -1,9 +1,22 @@
+import os
+from functools import partial
+
+import numpy as np
 import scipy.stats as stats
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from matplotlib import pyplot as plt
+from ray import train, tune
+from ray.tune.schedulers import ASHAScheduler
 from sklearn import datasets, svm
 from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
+from torch.utils.data import random_split
+from torchvision import datasets, transforms
 
+from AutoEncoder import Autoencoder
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
@@ -12,6 +25,7 @@ from EvaluateTrainingModel import EvaluateTrainingModel
 from ExportData import ExportData
 from PlotData import VisualizeData
 from TrainingConfig import TrainingConfig
+from TrainUtlis import load_data, test_accuracy, train_and_validate_mnist_ray_tune
 
 
 def run_evaluation():
@@ -260,10 +274,66 @@ def stg_classification(classifiers, strategies, t_config: TrainingConfig):
     )
 
 
+def train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=2):
+    # data_dir = os.path.abspath("./data")
+    data_dir = os.path.abspath("./mnist_data/")
+    load_data(data_dir)
+    config = {
+        "input_dim": 784,
+        "hidden_dim1": tune.choice([2**i for i in range(10)]),
+        "hidden_dim2": tune.choice([2**i for i in range(10)]),
+        "hidden_dim3": tune.choice([2**i for i in range(10)]),
+        "hidden_dim4": tune.choice([2**i for i in range(10)]),
+        "embedding_dim": tune.choice([2**i for i in range(5)]),
+        "lr": tune.loguniform(1e-4, 1e-1),
+        "batch_size": tune.choice([2, 4, 8, 16, 32, 64, 128]),
+    }
+    scheduler = ASHAScheduler(
+        metric="loss",
+        mode="min",
+        max_t=max_num_epochs,
+        grace_period=1,
+        reduction_factor=2,
+    )
+    # result = tune.run(partial(train_mnist_ray_tune, data_dir=data_dir),resources_per_trial={"cpu": 2, "gpu": gpus_per_trial},config=config,num_samples=num_samples,scheduler=scheduler,)
+    result = tune.run(
+        partial(train_and_validate_mnist_ray_tune, data_dir=data_dir),
+        resources_per_trial={"cpu": 2, "gpu": gpus_per_trial},
+        config=config,
+        num_samples=num_samples,
+        scheduler=scheduler,
+    )
+
+    best_trial = result.get_best_trial("loss", "min", "last")
+    print(f"Best trial config: {best_trial.config}")
+    print(f"Best trial final validation loss: {best_trial.last_result['loss']}")
+    print(f"Best trial final validation accuracy: {best_trial.last_result['accuracy']}")
+
+    best_trained_model = Autoencoder(
+        best_trial.config["input_dim"],
+        best_trial.config["hidden_dim1"],
+        best_trial.config["hidden_dim2"],
+        best_trial.config["hidden_dim3"],
+        best_trial.config["hidden_dim4"],
+        best_trial.config["embedding_dim"],
+    )
+    device = "cpu"
+    if torch.cuda.is_available():
+        device = "cuda:0"
+        if gpus_per_trial > 1:
+            best_trained_model = nn.DataParallel(best_trained_model)
+    best_trained_model.to(device)
+
+    test_acc = test_accuracy(best_trained_model, device)
+    print("Best trial test set accuracy: {}".format(test_acc))
+
+
 def main():
     # analyse_nans()
     # visualize_nans()
     # classify_iris()
+    # You can change the number of GPUs per trial here:
+    train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=0)
     strategies = [
         None,
         "mean",
@@ -296,14 +366,16 @@ def main():
     t_config.predefined_split = True
 
     # stg_binary_classification(classifiers, strategies, t_config)
-    stg_classification(classifiers, strategies, t_config)
-    ifg_classification(classifiers, strategies, t_config)
+    # stg_classification(classifiers, strategies, t_config)
+    # ifg_classification(classifiers, strategies, t_config)
 
     t_config.predefined_split = False
 
-    stg_classification(classifiers, strategies, t_config)
-    ifg_classification(classifiers, strategies, t_config)
+    # stg_classification(classifiers, strategies, t_config)
+    # ifg_classification(classifiers, strategies, t_config)
 
 
 if __name__ == "__main__":
+    # Set-ExecutionPolicy Unrestricted -Scope Process
+    # ./activate.ps1
     main()
