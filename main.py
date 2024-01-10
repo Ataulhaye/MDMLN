@@ -278,25 +278,33 @@ def train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=1):
     # data_dir = os.path.abspath("./data")
     data_dir = os.path.abspath("./mnist_data/")
     load_data(data_dir)
+
+    # config = {
+    # "input_dim": 784,
+    # "hidden_dim1": tune.choice([2**i for i in range(10)]),
+    # "hidden_dim2": tune.choice([2**i for i in range(10)]),
+    # "hidden_dim3": tune.choice([2**i for i in range(10)]),
+    # "hidden_dim4": tune.choice([2**i for i in range(10)]),
+    # "embedding_dim": tune.choice([2**i for i in range(5)]),
+    # "lr": tune.loguniform(1e-4, 1e-1),
+    # "batch_size": tune.choice([2, 4, 8, 16, 32, 64, 128]),
+    # }
+
     config = {
         "input_dim": 784,
-        "hidden_dim1": tune.choice([2**i for i in range(10)]),
-        "hidden_dim2": tune.choice([2**i for i in range(10)]),
-        "hidden_dim3": tune.choice([2**i for i in range(10)]),
-        "hidden_dim4": tune.choice([2**i for i in range(10)]),
-        "embedding_dim": tune.choice([2**i for i in range(5)]),
+        "hidden_dim1": tune.choice([2**i for i in range(2)]),
+        "hidden_dim2": tune.choice([2**i for i in range(2)]),
+        "hidden_dim3": tune.choice([2**i for i in range(2)]),
+        "hidden_dim4": tune.choice([2**i for i in range(2)]),
+        "embedding_dim": tune.choice([2**i for i in range(2)]),
         "lr": tune.loguniform(1e-4, 1e-1),
-        "batch_size": tune.choice([2, 4, 8, 16, 32, 64, 128]),
+        "batch_size": tune.choice([64, 128]),
     }
     scheduler = ASHAScheduler(
-        # metric="loss",
-        # mode="min",
         max_t=max_num_epochs,
         grace_period=1,
         reduction_factor=2,
     )
-    # result = tune.run(partial(train_mnist_ray_tune, data_dir=data_dir),resources_per_trial={"cpu": 2, "gpu": gpus_per_trial},config=config,num_samples=num_samples,scheduler=scheduler,)
-    # result = tune.run(partial(train_and_validate_mnist_ray_tune, data_dir=data_dir),resources_per_trial={"cpu": 2, "gpu": gpus_per_trial},config=config,num_samples=num_samples,scheduler=scheduler,)
 
     tuner = tune.Tuner(
         tune.with_resources(
@@ -325,13 +333,6 @@ def train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=1):
         )
     )
 
-    # best_trial = result.get_best_trial("loss", "min", "last")
-    # print(f"Best trial config: {best_trial.config}")
-    # print(f"Best trial final validation loss: {best_trial.last_result['loss']}")
-    # print(f"Best trial final validation accuracy: {best_trial.last_result['accuracy']}")
-
-    # best_trained_model = Autoencoder(best_trial.config["input_dim"],best_trial.config["hidden_dim1"],best_trial.config["hidden_dim2"],best_trial.config["hidden_dim3"],best_trial.config["hidden_dim4"],best_trial.config["embedding_dim"],)
-
     best_trained_model = Autoencoder(
         best_result.config["input_dim"],
         best_result.config["hidden_dim1"],
@@ -348,13 +349,8 @@ def train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=1):
     best_trained_model.to(device)
 
     best_result = results.get_best_result("loss", "min")
-    # Best trial config: {'input_dim': 784, 'hidden_dim1': 64, 'hidden_dim2': 256, 'hidden_dim3': 16, 'hidden_dim4': 8, 'embedding_dim': 1, 'lr': 0.0006111085649326119, 'batch_size': 64}
-    # Best trial final validation loss: 0.04955726166434111
-    # Best trial final validation accuracy: 0.0
-    # FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\ataul\\AppData\\Local\\Temp\\checkpoint_tmp_dd995ca6ab9b46e2af1c2555a9d60983\\checkpoint.pt'
-    checkpoint_path = os.path.join(
-        best_result.checkpoint.to_directory(), "checkpoint.pt"
-    )
+
+    checkpoint_path = os.path.join(best_result.checkpoint.to_directory(), "model.pt")
 
     model_state, optimizer_state = torch.load(checkpoint_path)
     best_trained_model.load_state_dict(model_state)
@@ -368,7 +364,7 @@ def main():
     # visualize_nans()
     # classify_iris()
     # You can change the number of GPUs per trial here:
-    train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=1)
+    train_valid_mnist(num_samples=2, max_num_epochs=2, gpus_per_trial=1)
     strategies = [
         None,
         "mean",

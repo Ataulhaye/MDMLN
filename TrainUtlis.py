@@ -172,17 +172,6 @@ def train_and_validate_mnist_ray_tune(config, data_dir=None):
     loss_function = nn.MSELoss()
     optimizer = optim.Adam(net.parameters(), lr=config["lr"])
 
-    # checkpoint = session.get_checkpoint()
-
-    # if checkpoint:
-    # checkpoint_state = checkpoint.to_dict()
-    # start_epoch = checkpoint_state["epoch"]
-    # net.load_state_dict(checkpoint_state["net_state_dict"])
-    # optimizer.load_state_dict(checkpoint_state["optimizer_state_dict"])
-    # else:
-    # start_epoch = 0
-
-    # start_epoch = 0
     trainset, testset = load_data(data_dir)
 
     test_abs = int(len(trainset) * 0.8)
@@ -198,10 +187,11 @@ def train_and_validate_mnist_ray_tune(config, data_dir=None):
     )
 
     if train.get_checkpoint():
+        print("train.get_checkpoint()", train.get_checkpoint())
         loaded_checkpoint = train.get_checkpoint()
         with loaded_checkpoint.as_directory() as loaded_checkpoint_dir:
             model_state, optimizer_state = torch.load(
-                os.path.join(loaded_checkpoint_dir, "checkpoint.pt")
+                os.path.join(loaded_checkpoint_dir, "model.pt")
             )
             net.load_state_dict(model_state)
             optimizer.load_state_dict(optimizer_state)
@@ -251,36 +241,17 @@ def train_and_validate_mnist_ray_tune(config, data_dir=None):
                 val_loss += loss.cpu().numpy()
                 val_steps += 1
 
-        # checkpoint_data = {"epoch": epoch,"net_state_dict": net.state_dict(),"optimizer_state_dict": optimizer.state_dict(),}
-        # checkpoint = Checkpoint.from_dict(checkpoint_data)
-
-        # session.report({"loss": val_loss / val_steps, "accuracy": correct / total},checkpoint=checkpoint,)
         metrics = {"loss": val_loss / val_steps, "accuracy": correct / total}
 
-        # with tempfile.TemporaryDirectory() as temp_checkpoint_dir:
-        # print("tmp dir name", temp_checkpoint_dir)
-        # rank = train.get_context().get_world_rank()
-        # torch.save(
-        # (net.state_dict(), optimizer.state_dict()),
-        # os.path.join(temp_checkpoint_dir, f"model-rank={rank}.pt"),
-        # )
-        # checkpoint = Checkpoint.from_directory(temp_checkpoint_dir)
-
-        # train.report(metrics, checkpoint=checkpoint)
-
         with tempfile.TemporaryDirectory() as temp_checkpoint_dir:
-            checkpoint = None
-            should_checkpoint = epoch % config.get("checkpoint_freq", 1) == 0
-            # In standard DDP training, where the model is the same across all ranks,
-            # only the global rank 0 worker needs to save and report the checkpoint
-            if train.get_context().get_world_rank() == 0 and should_checkpoint:
-                torch.save(
-                    (net.state_dict(), optimizer.state_dict()),
-                    os.path.join(temp_checkpoint_dir, "model.pt"),
-                )
+            torch.save(
+                (net.state_dict(), optimizer.state_dict()),
+                os.path.join(temp_checkpoint_dir, "model.pt"),
+            )
+            print("Checkpoint Saved")
             checkpoint = Checkpoint.from_directory(temp_checkpoint_dir)
-
             train.report(metrics, checkpoint=checkpoint)
+            print("Checkpoint Reported")
 
     print("Finished Training")
 
