@@ -279,29 +279,29 @@ def train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=1):
     data_dir = os.path.abspath("./mnist_data/")
     load_data(data_dir)
 
-    # config = {
-    # "input_dim": 784,
-    # "hidden_dim1": tune.choice([2**i for i in range(10)]),
-    # "hidden_dim2": tune.choice([2**i for i in range(10)]),
-    # "hidden_dim3": tune.choice([2**i for i in range(10)]),
-    # "hidden_dim4": tune.choice([2**i for i in range(10)]),
-    # "embedding_dim": tune.choice([2**i for i in range(5)]),
-    # "lr": tune.loguniform(1e-4, 1e-1),
-    # "batch_size": tune.choice([2, 4, 8, 16, 32, 64, 128]),
-    # "epochs": 10,
-    # }
-
     config = {
         "input_dim": 784,
-        "hidden_dim1": tune.choice([2**i for i in range(2)]),
-        "hidden_dim2": tune.choice([2**i for i in range(2)]),
-        "hidden_dim3": tune.choice([2**i for i in range(2)]),
-        "hidden_dim4": tune.choice([2**i for i in range(2)]),
-        "embedding_dim": tune.choice([2**i for i in range(2)]),
+        "hidden_dim1": tune.choice([2**i for i in range(10)]),
+        "hidden_dim2": tune.choice([2**i for i in range(10)]),
+        "hidden_dim3": tune.choice([2**i for i in range(10)]),
+        "hidden_dim4": tune.choice([2**i for i in range(10)]),
+        "embedding_dim": tune.choice([2**i for i in range(5)]),
         "lr": tune.loguniform(1e-4, 1e-1),
-        "batch_size": tune.choice([64, 128]),
+        "batch_size": tune.choice([2, 4, 8, 16, 32, 64, 128]),
         "epochs": 10,
     }
+
+    # config = {
+    # "input_dim": 784,
+    # "hidden_dim1": tune.choice([2**i for i in range(2)]),
+    # "hidden_dim2": tune.choice([2**i for i in range(2)]),
+    # "hidden_dim3": tune.choice([2**i for i in range(2)]),
+    # "hidden_dim4": tune.choice([2**i for i in range(2)]),
+    # "embedding_dim": tune.choice([2**i for i in range(2)]),
+    # "lr": tune.loguniform(1e-4, 1e-1),
+    # "batch_size": tune.choice([64, 128]),
+    # "epochs": 10,
+    # }
     scheduler = ASHAScheduler(
         max_t=max_num_epochs,
         grace_period=1,
@@ -314,7 +314,7 @@ def train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=1):
                 partial(train_and_validate_mnist_ray_tune, data_dir=data_dir)
             ),
             # tune.with_parameters(train_and_validate_mnist_ray_tune),
-            resources={"cpu": 4, "gpu": gpus_per_trial},
+            resources={"cpu": 6, "gpu": gpus_per_trial},
         ),
         tune_config=tune.TuneConfig(
             metric="loss",
@@ -334,7 +334,8 @@ def train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=1):
             best_result.metrics["accuracy"]
         )
     )
-
+    print("Best model path", best_result.path)
+    # Best trial config: {'input_dim': 784, 'hidden_dim1': 128, 'hidden_dim2': 4, 'hidden_dim3': 16, 'hidden_dim4': 32, 'embedding_dim': 4, 'lr': 0.002424992195342828, 'batch_size': 64, 'epochs': 10}
     best_trained_model = Autoencoder(
         best_result.config["input_dim"],
         best_result.config["hidden_dim1"],
@@ -370,7 +371,7 @@ def main():
     # visualize_nans()
     # classify_iris()
     # You can change the number of GPUs per trial here:
-    train_valid_mnist(num_samples=3, max_num_epochs=2, gpus_per_trial=1)
+    train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=1)
     strategies = [
         None,
         "mean",
