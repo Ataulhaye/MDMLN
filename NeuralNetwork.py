@@ -79,7 +79,9 @@ def train_model(model, device, training_data, epochs=10):
     for epoch in range(epochs):
         epoc_accuracy = 0
         train_epoch_loss = 0.0
+        i = 0
         for data, labels in training_data:
+            i = i + 1
             # prepare input data
             data = data.to(device)
             inputs = torch.reshape(
@@ -92,9 +94,12 @@ def train_model(model, device, training_data, epochs=10):
             model_output = model(inputs)
 
             # calculating loss
-            loss = loss_function(model_output.decoding, inputs)
+            # loss = loss_function(model_output.decoding, inputs)
+            loss = loss_function(model_output, inputs)
             correct = torch.sum(
-                labels == torch.argmax(model_output.decoding.detach().cpu(), dim=1)
+                # labels == torch.argmax(model_output.decoding.detach().cpu(), dim=1)
+                labels
+                == torch.argmax(model_output.detach().cpu(), dim=1)
             ).item()
             epoc_accuracy += correct
             # calculate gradient of each parameter
@@ -109,9 +114,7 @@ def train_model(model, device, training_data, epochs=10):
     return train_loss
 
 
-def test_model(model, device, testing_data, batches=39):
-    # define loss and parameters
-    optimizer = optim.Adam(model.parameters())
+def test_model(model, device, testing_data, epochs=39):
     # MSE loss will calculate Mean Squared Error between the inputs
     loss_function = nn.MSELoss()
     validation_loss = []
@@ -119,9 +122,11 @@ def test_model(model, device, testing_data, batches=39):
     all_labels = []
     print("====Testing start====")
     model.eval()
-    for batch in range(batches):
+    for epoch in range(epochs):
+        i = 0
         valid_batch_loss = 0.0
         for data, labels in testing_data:
+            i = i + 1
             # prepare input data
             data = data.to(device)
             inputs = torch.reshape(
@@ -131,13 +136,13 @@ def test_model(model, device, testing_data, batches=39):
             model_output = model(inputs)
 
             # calculating loss
-            loss = loss_function(model_output.decoding, inputs)
-
+            # loss = loss_function(model_output.decoding, inputs)
+            loss = loss_function(model_output, inputs)
             valid_batch_loss += loss.item()
 
-            for i, emb in enumerate(model_output.encoding):
-                embeddings.append(emb.cpu().detach().numpy())
-                all_labels.append(labels[i].item())
+            # for i, emb in enumerate(model_output.encoding):
+            # embeddings.append(emb.cpu().detach().numpy())
+            # all_labels.append(labels[i].item())
         validation_loss.append(valid_batch_loss)
     print("====Testing finish====")
     return validation_loss, embeddings, all_labels
@@ -189,3 +194,9 @@ t_config.predefined_split = False
 
 mnist_classification(classifiers, strategies, t_config, X, y)
 """
+t_loss = train_model(model=model, device=device, training_data=train_loader, epochs=2)
+plt.plot(t_loss)
+v_loss, X, y = test_model(
+    model=model, device=device, testing_data=test_loader, epochs=2
+)
+plt.plot(v_loss)

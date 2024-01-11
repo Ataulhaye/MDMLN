@@ -7,6 +7,7 @@ import torch.optim as optim
 from ray import train, tune
 
 # from ray.air import Checkpoint, session
+from ray.air import session
 from ray.train import Checkpoint
 from torch.utils.data import random_split
 from torchvision import datasets, transforms
@@ -14,7 +15,7 @@ from torchvision import datasets, transforms
 from AutoEncoder import Autoencoder
 
 
-def train_and_validate_mnist(config, data_dir=None):
+def train_and_validate_mnist_Test_method(config, data_dir=None):
     #'input_dim': 784, 'hidden_dim1': 64, 'hidden_dim2': 128, 'hidden_dim3': 256, 'hidden_dim4': 256, 'embedding_dim': 8, 'lr': 0.0009231555955597683, 'batch_size': 2
     net = Autoencoder(784, 64, 128, 256, 256, 8)
     device = "cpu"
@@ -186,21 +187,29 @@ def train_and_validate_mnist_ray_tune(config, data_dir=None):
         val_subset, batch_size=int(config["batch_size"]), shuffle=True, num_workers=8
     )
 
-    if train.get_checkpoint():
-        print("train.get_checkpoint()", train.get_checkpoint())
-        loaded_checkpoint = train.get_checkpoint()
-        with loaded_checkpoint.as_directory() as loaded_checkpoint_dir:
-            model_state, optimizer_state = torch.load(
-                os.path.join(loaded_checkpoint_dir, "model.pt")
-            )
-            net.load_state_dict(model_state)
-            optimizer.load_state_dict(optimizer_state)
+    # this should work but how to get the path
+    # checkpoint_path = os.path.join(best_result.checkpoint.to_directory(), "model.pt")
+    # checkpoint = torch.load(checkpoint_path)
+
+    # problem is with this
+    checkpoint = train.get_checkpoint()
+    print("Train checkpoint", checkpoint)
+    if checkpoint:
+        with checkpoint.as_directory() as loaded_checkpoint_dir:
+            ck_dict = torch.load(os.path.join(loaded_checkpoint_dir, "model.pt"))
+            start_epoch = int(ck_dict["epoch"]) + 1
+            net.load_state_dict(ck_dict["model_state"])
+            optimizer.load_state_dict(ck_dict["optimizer_state"])
+    else:
+        start_epoch = 0
 
     train_loss = []
     valid_loss = []
 
     net.train()
-    for epoch in range(10):  # loop over the dataset multiple times
+    for epoch in range(
+        start_epoch, config["epochs"]
+    ):  # loop over the dataset multiple times
         running_loss = 0.0
         for i, data in enumerate(trainloader):
             # get the inputs; data is a list of [inputs, labels]
@@ -233,7 +242,8 @@ def train_and_validate_mnist_ray_tune(config, data_dir=None):
                 inputs, labels = inputs.to(device), labels.to(device)
                 inputs = torch.reshape(inputs, (-1, 784))
                 output = net(inputs)
-                _, predicted = torch.max(output, 1)
+                # _, predicted = torch.max(output, 1)
+                predicted = torch.argmax(output, dim=1)
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
 
@@ -244,8 +254,15 @@ def train_and_validate_mnist_ray_tune(config, data_dir=None):
         metrics = {"loss": val_loss / val_steps, "accuracy": correct / total}
 
         with tempfile.TemporaryDirectory() as temp_checkpoint_dir:
+            # torch.save((net.state_dict(), optimizer.state_dict()),os.path.join(temp_checkpoint_dir, "model.pt"),)
             torch.save(
-                (net.state_dict(), optimizer.state_dict()),
+                {
+                    "epoch": epoch,
+                    "model_state": net.state_dict(),
+                    "optimizer_state": optimizer.state_dict(),
+                    "loss": val_loss / val_steps,
+                    "accuracy": correct / total,
+                },
                 os.path.join(temp_checkpoint_dir, "model.pt"),
             )
             print("Checkpoint Saved")
@@ -271,7 +288,8 @@ def test_accuracy(net, device="cpu"):
             images, labels = images.to(device), labels.to(device)
             images = torch.reshape(images, (-1, 784))
             output = net(images)
-            _, predicted = torch.max(output, 1)
+            # _, predicted = torch.max(output, 1)
+            predicted = torch.argmax(output, dim=1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
     print("Best trial test set accuracy: {}".format(correct / total))
@@ -282,6 +300,7 @@ def load_data(data_dir="./mnist_data/"):
     trainset = datasets.MNIST(
         root=data_dir, train=True, transform=transforms.ToTensor(), download=True
     )
+
     testset = datasets.MNIST(
         root=data_dir,
         train=False,

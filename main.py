@@ -288,6 +288,7 @@ def train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=1):
     # "embedding_dim": tune.choice([2**i for i in range(5)]),
     # "lr": tune.loguniform(1e-4, 1e-1),
     # "batch_size": tune.choice([2, 4, 8, 16, 32, 64, 128]),
+    # "epochs": 10,
     # }
 
     config = {
@@ -299,6 +300,7 @@ def train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=1):
         "embedding_dim": tune.choice([2**i for i in range(2)]),
         "lr": tune.loguniform(1e-4, 1e-1),
         "batch_size": tune.choice([64, 128]),
+        "epochs": 10,
     }
     scheduler = ASHAScheduler(
         max_t=max_num_epochs,
@@ -352,8 +354,12 @@ def train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=1):
 
     checkpoint_path = os.path.join(best_result.checkpoint.to_directory(), "model.pt")
 
-    model_state, optimizer_state = torch.load(checkpoint_path)
-    best_trained_model.load_state_dict(model_state)
+    # model_state, optimizer_state = torch.load(checkpoint_path)
+    checkpoint = torch.load(checkpoint_path)
+    best_trained_model.load_state_dict(checkpoint["model_state"])
+    # optimizer.load_state_dict(checkpoint["optimizer_state"])
+    epoch = checkpoint["epoch"]
+    loss = checkpoint["loss"]
 
     test_acc = test_accuracy(best_trained_model, device)
     print("Best trial test set accuracy: {}".format(test_acc))
@@ -364,7 +370,7 @@ def main():
     # visualize_nans()
     # classify_iris()
     # You can change the number of GPUs per trial here:
-    train_valid_mnist(num_samples=2, max_num_epochs=2, gpus_per_trial=1)
+    train_valid_mnist(num_samples=3, max_num_epochs=2, gpus_per_trial=1)
     strategies = [
         None,
         "mean",
