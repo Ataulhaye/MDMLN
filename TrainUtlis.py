@@ -205,7 +205,7 @@ def train_and_validate_mnist_ray_tune(config, data_dir=None):
 
     train_loss = []
     valid_loss = []
-
+    train_steps = 0
     net.train()
     for epoch in range(
         start_epoch, config["epochs"]
@@ -227,14 +227,13 @@ def train_and_validate_mnist_ray_tune(config, data_dir=None):
 
             # print statistics
             running_loss += loss.item()
+            train_steps += 1
 
         train_loss.append(running_loss)
 
         # Validation loss
         val_loss = 0.0
         val_steps = 0
-        total = 0
-        correct = 0
         net.eval()
         for i, data in enumerate(valloader):
             with torch.no_grad():
@@ -242,16 +241,16 @@ def train_and_validate_mnist_ray_tune(config, data_dir=None):
                 inputs, labels = inputs.to(device), labels.to(device)
                 inputs = torch.reshape(inputs, (-1, 784))
                 output = net(inputs)
-                # _, predicted = torch.max(output, 1)
-                predicted = torch.argmax(output, dim=1)
-                total += labels.size(0)
-                correct += (predicted == labels).sum().item()
 
                 loss = loss_function(output, inputs)
                 val_loss += loss.cpu().numpy()
                 val_steps += 1
 
-        metrics = {"loss": val_loss / val_steps, "accuracy": correct / total}
+        metrics = {
+            "t_loss": running_loss / train_steps,
+            "v_loss": val_loss / val_steps,
+            "epoch": epoch,
+        }
 
         with tempfile.TemporaryDirectory() as temp_checkpoint_dir:
             # torch.save((net.state_dict(), optimizer.state_dict()),os.path.join(temp_checkpoint_dir, "model.pt"),)
@@ -260,8 +259,8 @@ def train_and_validate_mnist_ray_tune(config, data_dir=None):
                     "epoch": epoch,
                     "model_state": net.state_dict(),
                     "optimizer_state": optimizer.state_dict(),
-                    "loss": val_loss / val_steps,
-                    "accuracy": correct / total,
+                    "t_loss": running_loss / train_steps,
+                    "v_loss": val_loss / val_steps,
                 },
                 os.path.join(temp_checkpoint_dir, "model.pt"),
             )
@@ -279,8 +278,8 @@ def test_accuracy(net, device="cpu"):
     testloader = torch.utils.data.DataLoader(
         testset, batch_size=4, shuffle=False, num_workers=2
     )
-    correct = 0
-    total = 0
+    loss_function = nn.MSELoss()
+    acc_loss = 0.0
     net.eval()
     with torch.no_grad():
         for data in testloader:
@@ -288,12 +287,12 @@ def test_accuracy(net, device="cpu"):
             images, labels = images.to(device), labels.to(device)
             images = torch.reshape(images, (-1, 784))
             output = net(images)
-            # _, predicted = torch.max(output, 1)
-            predicted = torch.argmax(output, dim=1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
-    print("Best trial test set accuracy: {}".format(correct / total))
-    return correct / total
+            loss = loss_function(output, images)
+            acc_loss += loss.cpu().numpy()
+            tloss = loss.cpu().numpy()
+            t1loss = loss.item()
+    print("Best trial test set validation loss: {}".format(acc_loss))
+    return acc_loss
 
 
 def load_data(data_dir="./mnist_data/"):

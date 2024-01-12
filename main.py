@@ -1,3 +1,6 @@
+import ray
+
+ray.init(local_mode=True)
 import os
 from functools import partial
 
@@ -317,7 +320,7 @@ def train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=1):
             resources={"cpu": 6, "gpu": gpus_per_trial},
         ),
         tune_config=tune.TuneConfig(
-            metric="loss",
+            metric="v_loss",
             mode="min",
             scheduler=scheduler,
             num_samples=num_samples,
@@ -325,16 +328,18 @@ def train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=1):
         param_space=config,
     )
     results = tuner.fit()
-    best_result = results.get_best_result("loss", "min")
+    best_result = results.get_best_result("v_loss", "min")
 
     print("Best trial config: {}".format(best_result.config))
-    print("Best trial final validation loss: {}".format(best_result.metrics["loss"]))
-    print(
-        "Best trial final validation accuracy: {}".format(
-            best_result.metrics["accuracy"]
-        )
-    )
+    print("Best trial final validation loss: {}".format(best_result.metrics["v_loss"]))
+    print("Best trial final training loss: {}".format(best_result.metrics["t_loss"]))
+    print("Best trial epoch: {}".format(best_result.metrics["epoch"]))
     print("Best model path", best_result.path)
+
+    checkpoint_path = os.path.join(best_result.checkpoint.to_directory(), "model.pt")
+
+    checkpoint = torch.load(checkpoint_path)
+
     # Best trial config: {'input_dim': 784, 'hidden_dim1': 128, 'hidden_dim2': 4, 'hidden_dim3': 16, 'hidden_dim4': 32, 'embedding_dim': 4, 'lr': 0.002424992195342828, 'batch_size': 64, 'epochs': 10}
     best_trained_model = Autoencoder(
         best_result.config["input_dim"],
@@ -344,23 +349,15 @@ def train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=1):
         best_result.config["hidden_dim4"],
         best_result.config["embedding_dim"],
     )
+
+    best_trained_model.load_state_dict(checkpoint["model_state"])
+
     device = "cpu"
     if torch.cuda.is_available():
         device = "cuda:0"
         if gpus_per_trial > 1:
             best_trained_model = nn.DataParallel(best_trained_model)
     best_trained_model.to(device)
-
-    best_result = results.get_best_result("loss", "min")
-
-    checkpoint_path = os.path.join(best_result.checkpoint.to_directory(), "model.pt")
-
-    # model_state, optimizer_state = torch.load(checkpoint_path)
-    checkpoint = torch.load(checkpoint_path)
-    best_trained_model.load_state_dict(checkpoint["model_state"])
-    # optimizer.load_state_dict(checkpoint["optimizer_state"])
-    epoch = checkpoint["epoch"]
-    loss = checkpoint["loss"]
 
     test_acc = test_accuracy(best_trained_model, device)
     print("Best trial test set accuracy: {}".format(test_acc))
@@ -371,7 +368,7 @@ def main():
     # visualize_nans()
     # classify_iris()
     # You can change the number of GPUs per trial here:
-    train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=1)
+    train_valid_mnist(num_samples=2, max_num_epochs=1, gpus_per_trial=1)
     strategies = [
         None,
         "mean",
