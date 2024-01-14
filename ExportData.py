@@ -238,6 +238,10 @@ class ExportData:
         return sheet_name
 
     def prepare_data_matrix(self, data: list[ExportEntity]):
+        for scn in data:
+            if scn.sub_column_name is None:
+                scn.sub_column_name = "None"
+
         data.sort(key=lambda x: x.sub_column_name)
         matrix = [["Strategy"], ["Classifier"]]
 

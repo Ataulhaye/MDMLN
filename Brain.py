@@ -203,8 +203,6 @@ class Brain:
             return NotImplementedError
         elif strategy == None:
             return data_set
-        elif strategy == "Nothing":
-            return data_set
         else:
             imputer = SimpleImputer(missing_values=np.nan, strategy=strategy)
             # , keep_empty_features=True
