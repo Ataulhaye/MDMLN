@@ -263,13 +263,14 @@ class DataTraining:
         return np.array(x_test), np.array(x_train), np.array(y_test), np.array(y_train)
 
     def premeditate_random_train_test_split_n(
-        self, brain: Brain, train_config: TrainingConfig
+        self, brain: Brain, train_config: TrainingConfig, config: BrainDataConfig = None
     ):
         x_test, x_train, y_test, y_train = [], [], [], []
         train_size = 1.0 - train_config.test_size
         sample_start = 0
         sample_stop = 0
-        config = BrainDataConfig()
+        if config is None:
+            config = BrainDataConfig()
         for subset_size in config.patients:
             subset_samples = subset_size * config.conditions
             n_test = ceil(subset_size * train_config.test_size)

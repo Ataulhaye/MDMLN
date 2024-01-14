@@ -289,8 +289,8 @@ def test_accuracy(net, device="cpu"):
             output = net(images)
             loss = loss_function(output, images)
             acc_loss += loss.cpu().numpy()
-            tloss = loss.cpu().numpy()
-            t1loss = loss.item()
+            # tloss = loss.cpu().numpy()
+            # t1loss = loss.item()
     print("Best trial test set validation loss: {}".format(acc_loss))
     return acc_loss
 

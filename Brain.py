@@ -207,6 +207,7 @@ class Brain:
             return data_set
         else:
             imputer = SimpleImputer(missing_values=np.nan, strategy=strategy)
+            # , keep_empty_features=True
             imputer.fit(data_set.X_train)
             x_train = imputer.transform(data_set.X_train)
             data_set.X_train = x_train
