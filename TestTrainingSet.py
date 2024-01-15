@@ -22,15 +22,11 @@ class TestTrainingSet:
 class TestTrainingTensorDataset:
     def __init__(
         self,
-        X_train: TensorDataset = None,
-        X_test: TensorDataset = None,
-        y_train: TensorDataset = None,
-        y_test: TensorDataset = None,
+        train_set: TensorDataset = None,
+        test_set: TensorDataset = None,
     ):
-        self.X_train = X_train
-        self.X_test = X_test
-        self.y_train = y_train
-        self.y_test = y_test
+        self.train_set = train_set
+        self.test_set = test_set
 
     def __repr__(self) -> str:
-        return f"X_train:{self.X_train.tensors[0].shape}, X_test:{self.X_test.tensors[0].shape}, y_train:{self.y_train.tensors[0].shape} , y_test:{self.y_test.tensors[0].shape}"
+        return f"X_train:{self.train_set.tensors[0].shape}, X_test:{self.test_set.tensors[0].shape}, y_train:{self.train_set.tensors[1].shape} , y_test:{self.train_set.tensors[1].shape}"

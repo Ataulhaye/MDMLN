@@ -160,13 +160,13 @@ def train_and_validate_brain_voxels(config, tensor_set: TestTrainingTensorDatase
     optimizer = optim.Adam(model.parameters(), lr=config["lr"])
 
     trainloader = DataLoader(
-        tensor_set.X_train,
+        tensor_set.train_set,
         batch_size=int(config["batch_size"]),
         shuffle=True,
         num_workers=4,
     )
     valloader = DataLoader(
-        tensor_set.X_test,
+        tensor_set.test_set,
         batch_size=int(config["batch_size"]),
         shuffle=True,
         num_workers=4,
@@ -285,13 +285,7 @@ def tes():
     yT_train = torch.Tensor(modify_tt_set.y_train)
     yT_test = torch.Tensor(modify_tt_set.y_test)
 
-    XDT_train = TensorDataset(XT_train)
-    XDT_test = TensorDataset(XT_test)
-    yDT_train = TensorDataset(yT_train)
-    yDT_test = TensorDataset(yT_test)
+    tr_set = TensorDataset(XT_train, yT_train)
+    ts_set = TensorDataset(XT_test, yT_test)
 
-    tensor_set = TestTrainingTensorDataset(
-        X_train=XDT_train, X_test=XDT_test, y_train=yDT_train, y_test=yDT_test
-    )
-
-    return tensor_set
+    return TestTrainingTensorDataset(train_set=tr_set, test_set=ts_set)

@@ -482,10 +482,10 @@ def train_valid_voxels(num_samples=10, max_num_epochs=10, gpus_per_trial=1):
 
 
 def train_valid_voxels_test():
-    modify_tt_set = tes()
+    subset = tes()
 
     config = {
-        "input_dim": modify_tt_set.X_train.tensors[0].shape[1],
+        "input_dim": subset.train_set.tensors[0].shape[1],
         "hidden_dim1": 1250,
         "hidden_dim2": 750,
         "hidden_dim3": 500,
@@ -496,7 +496,7 @@ def train_valid_voxels_test():
         "epochs": 10,
     }
 
-    train_and_validate_brain_voxels(config, modify_tt_set)
+    train_and_validate_brain_voxels(config, subset)
 
 
 def main():
