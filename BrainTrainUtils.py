@@ -116,7 +116,7 @@ def train_and_validate_brain_voxels_ray(config, set: TestTrainingTensorDataset):
     print("Finished Training")
 
 
-def test_accuracy(net, testset, device="cpu"):
+def test_voxels_accuracy(net, testset, device="cpu"):
     testloader = DataLoader(testset, batch_size=4, shuffle=False, num_workers=2)
     loss_function = nn.MSELoss()
     acc_loss = 0.0
@@ -166,7 +166,7 @@ def train_and_validate_brain_voxels(config, tensor_set: TestTrainingTensorDatase
         num_workers=4,
     )
     valloader = DataLoader(
-        tensor_set.test_set,
+        tensor_set.val_set,
         batch_size=int(config["batch_size"]),
         shuffle=True,
         num_workers=4,
@@ -235,7 +235,7 @@ def train_and_validate_brain_voxels(config, tensor_set: TestTrainingTensorDatase
     print("Finished Training")
 
 
-def tes():
+def get_voxel_tensor_datasets():
     bd_config = BrainDataConfig()
     brain = Brain(
         area=bd_config.STG,
@@ -281,11 +281,12 @@ def tes():
         pickle.dump(modify_tt_set, output)
 
     XT_train = torch.Tensor(modify_tt_set.X_train)
-    XT_test = torch.Tensor(modify_tt_set.X_test)
+    XT_val = torch.Tensor(modify_tt_set.X_test)
     yT_train = torch.Tensor(modify_tt_set.y_train)
-    yT_test = torch.Tensor(modify_tt_set.y_test)
+    yT_val = torch.Tensor(modify_tt_set.y_test)
 
     tr_set = TensorDataset(XT_train, yT_train)
-    ts_set = TensorDataset(XT_test, yT_test)
+    vl_set = TensorDataset(XT_val, yT_val)
+    ts_set = TensorDataset(torch.Tensor(tt_set.X_test), torch.Tensor(tt_set.y_test))
 
-    return TestTrainingTensorDataset(train_set=tr_set, test_set=ts_set)
+    return TestTrainingTensorDataset(train_set=tr_set, val_set=vl_set, test_set=ts_set)

@@ -21,7 +21,8 @@ from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
 from BrainTrainUtils import (
     generate_model,
-    tes,
+    get_voxel_tensor_datasets,
+    test_voxels_accuracy,
     train_and_validate_brain_voxels,
     train_and_validate_brain_voxels_ray,
 )
@@ -482,10 +483,10 @@ def train_valid_voxels(num_samples=10, max_num_epochs=10, gpus_per_trial=1):
 
 
 def train_valid_voxels_test():
-    subset = tes()
+    voxel_sets = get_voxel_tensor_datasets()
 
     config = {
-        "input_dim": subset.train_set.tensors[0].shape[1],
+        "input_dim": voxel_sets.train_set.tensors[0].shape[1],
         "hidden_dim1": 1250,
         "hidden_dim2": 750,
         "hidden_dim3": 500,
@@ -496,7 +497,14 @@ def train_valid_voxels_test():
         "epochs": 10,
     }
 
-    train_and_validate_brain_voxels(config, subset)
+    train_and_validate_brain_voxels(config, voxel_sets)
+
+    best_trained_model = generate_model(config)
+
+    test_voxels_accuracy(
+        best_trained_model,
+        voxel_sets.test_set,
+    )
 
 
 def main():
@@ -532,10 +540,12 @@ def main():
     ]
     strategies = ["mean", "remove-voxels", "median"]
     classifiers = ["SVM", "MLP", "LinearDiscriminant"]
+    # strategies = [None, "mean"]
+    # classifiers = ["SVM"]
     t_config = TrainingConfig()
     # t_config.folds = 1
     # t_config.explain = True
-    t_config.dimension_reduction = True
+    t_config.dimension_reduction = False
     t_config.predefined_split = True
 
     # stg_binary_classification(classifiers, strategies, t_config)
