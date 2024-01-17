@@ -340,3 +340,44 @@ def get_voxel_tensor_datasets():
         pickle.dump(sets, output)
 
     return sets
+
+
+def get_tensor_datasets(
+    brain: Brain, train_config: TrainingConfig, tt_set: TestTrainingSet
+):
+    bd_config = BrainDataConfig()
+    # train_config.strategy = "mean"
+
+    modify_brain = Brain()
+    modify_brain.voxels = tt_set.X_train
+    current_labels = BrainDataLabel(
+        brain.current_labels.name, brain.current_labels.popmean, tt_set.y_train
+    )
+    modify_brain.current_labels = current_labels
+    modify_bd_config = BrainDataConfig()
+    modify_patients = []
+    for subset_size in bd_config.patients:
+        n_test = ceil(subset_size * train_config.test_size)
+        modify_patients.append(subset_size - n_test)
+    modify_bd_config.patients = modify_patients
+
+    modify_tt_set = DataTraining().premeditate_random_train_test_split_n(
+        modify_brain, train_config, modify_bd_config
+    )
+
+    XT_train = torch.Tensor(modify_tt_set.X_train)
+    XT_val = torch.Tensor(modify_tt_set.X_test)
+    yT_train = torch.Tensor(modify_tt_set.y_train)
+    yT_val = torch.Tensor(modify_tt_set.y_test)
+
+    tr_set = TensorDataset(XT_train, yT_train)
+    vl_set = TensorDataset(XT_val, yT_val)
+    ts_set = TensorDataset(torch.Tensor(tt_set.X_test), torch.Tensor(tt_set.y_test))
+
+    sets = TestTrainingTensorDataset(train_set=tr_set, val_set=vl_set, test_set=ts_set)
+
+    # file_name = f"{brain.area}_{train_config.strategy}_static_wholeSet.pickle"
+    # with open(file_name, "wb") as output:
+    # pickle.dump(sets, output)
+
+    return sets

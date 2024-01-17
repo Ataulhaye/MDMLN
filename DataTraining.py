@@ -21,6 +21,11 @@ from sklearn.tree import DecisionTreeClassifier
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
+from BrainTrainUtils import (
+    get_tensor_datasets,
+    test_voxels_accuracy,
+    train_and_validate_brain_voxels,
+)
 from EvaluateTrainingModel import EvaluateTrainingModel
 from ExportEntity import ExportEntity
 from TestTrainingSet import TestTrainingSet
@@ -80,35 +85,55 @@ class DataTraining:
     ):
         scores = []
         for i in range(train_config.folds):
-            set = None
+            train_test_set = None
             if train_config.predefined_split:
-                set = self.premeditate_random_train_test_split_n(brain, train_config)
+                train_test_set = self.premeditate_random_train_test_split_n(
+                    brain, train_config
+                )
             else:
-                set = self.random_train_test_split_n(brain, train_config.test_size)
-
-            brain.normalize_data_safely(strategy=train_config.strategy, data_set=set)
-
-            if train_config.dimension_reduction:
-                x_dim = set.X_train.shape[1]
-                pca = PCA(n_components=0.99, svd_solver="full")
-                pca.fit(set.X_train)
-                pca_x_train = pca.transform(set.X_train)
-                pca_x_test = pca.transform(set.X_test)
-                print("explained_variance_ratio: ", pca.explained_variance_ratio_.sum())
-                set.X_train = pca_x_train
-                set.X_test = pca_x_test
-                print(
-                    f"Data reduced from {x_dim} dimensions to {set.X_train.shape[1]} dimensions"
+                train_test_set = self.random_train_test_split_n(
+                    brain, train_config.test_size
                 )
 
-            model.fit(set.X_train, set.y_train)
-            scores.append(model.score(set.X_test, set.y_test))
+            brain.normalize_data_safely(
+                strategy=train_config.strategy, data_set=train_test_set
+            )
+
+            if train_config.use_autoencoder:
+                tensor_datasets = get_tensor_datasets(
+                    brain, train_config, train_test_set
+                )
+                # this set hat three datasets
+                autoencoder_model, train_encodings = train_and_validate_brain_voxels(
+                    train_config.best_autoencoder_config, tensor_datasets
+                )
+                test_encoding = test_voxels_accuracy(
+                    autoencoder_model, tensor_datasets.test_set
+                )
+
+                # tr_ts_set = #set it from encodingds
+
+            if train_config.dimension_reduction:
+                x_dim = train_test_set.X_train.shape[1]
+                pca = PCA(n_components=0.99, svd_solver="full")
+                pca.fit(train_test_set.X_train)
+                pca_x_train = pca.transform(train_test_set.X_train)
+                pca_x_test = pca.transform(train_test_set.X_test)
+                print("explained_variance_ratio: ", pca.explained_variance_ratio_.sum())
+                train_test_set.X_train = pca_x_train
+                train_test_set.X_test = pca_x_test
+                print(
+                    f"Data reduced from {x_dim} dimensions to {train_test_set.X_train.shape[1]} dimensions"
+                )
+
+            model.fit(train_test_set.X_train, train_test_set.y_train)
+            scores.append(model.score(train_test_set.X_test, train_test_set.y_test))
 
         if train_config.explain and "binary" in brain.current_labels.name:
             self.explain_model_n(
                 model,
                 brain=brain,
-                tt_set=set,
+                tt_set=train_test_set,
                 scores=scores,
                 train_config=train_config,
             )
