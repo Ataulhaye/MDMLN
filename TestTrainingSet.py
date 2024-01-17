@@ -1,4 +1,4 @@
-from numpy import dtype, ndarray
+from numpy import ndarray
 from torch.utils.data import TensorDataset
 
 

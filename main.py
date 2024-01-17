@@ -21,15 +21,17 @@ from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
 from BrainTrainUtils import (
     generate_model,
-    get_voxel_tensor_datasets,
     load_bestmodel_and_test,
-    test_voxels_accuracy,
-    train_and_validate_brain_voxels,
-    train_and_validate_brain_voxels_ray,
+    test_autoencode_braindata,
+    train_and_validate_autoencode_braindata,
 )
 from DataTraining import DataTraining
 from EvaluateTrainingModel import EvaluateTrainingModel
 from ExportData import ExportData
+from HyperParameterSearch import (
+    get_voxel_tensor_datasets,
+    train_and_validate_brain_voxels_ray,
+)
 from PlotData import VisualizeData
 from TrainingConfig import TrainingConfig
 from TrainUtlis import load_data, test_accuracy, train_and_validate_mnist_ray_tune
@@ -436,7 +438,7 @@ def train_valid_voxels(num_samples=30, max_num_epochs=10, gpus_per_trial=1):
 
     best_trained_model.load_state_dict(checkpoint["model_state"])
 
-    test_acc = test_voxels_accuracy(best_trained_model, device)
+    test_acc = test_autoencode_braindata(best_trained_model, device)
     print("Best trial test set accuracy: {}".format(test_acc))
 
 
@@ -455,11 +457,11 @@ def train_valid_voxels_test():
         "epochs": 10,
     }
 
-    train_and_validate_brain_voxels(config, voxel_sets)
+    train_and_validate_autoencode_braindata(config, voxel_sets)
 
     best_trained_model = generate_model(config)
 
-    test_voxels_accuracy(
+    test_autoencode_braindata(
         best_trained_model,
         voxel_sets.test_set,
     )
@@ -484,7 +486,7 @@ def main():
     # classify_iris()
     # You can change the number of GPUs per trial here:
     # test_load_model()
-    train_valid_voxels()
+    # train_valid_voxels()
     # train_valid_voxels_test()
     # train_valid_mnist(num_samples=2, max_num_epochs=1, gpus_per_trial=1)
     strategies = [
@@ -519,14 +521,14 @@ def main():
     # t_config.explain = True
     t_config.dimension_reduction = False
     t_config.predefined_split = True
-
+    t_config.use_autoencoder = True
     # stg_binary_classification(classifiers, strategies, t_config)
     # stg_classification(classifiers, strategies, t_config)
     # ifg_classification(classifiers, strategies, t_config)
 
     t_config.predefined_split = False
 
-    # stg_classification(classifiers, strategies, t_config)
+    stg_classification(classifiers, strategies, t_config)
     # ifg_classification(classifiers, strategies, t_config)
 
 

@@ -5,6 +5,7 @@ from math import ceil, floor
 import matplotlib.pyplot as plt
 import numpy as np
 import shap
+import torch
 from catboost import CatBoostClassifier
 from lightgbm import LGBMClassifier
 from sklearn import svm
@@ -17,18 +18,18 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
+from torch.utils.data import DataLoader, TensorDataset
 
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
 from BrainTrainUtils import (
-    get_tensor_datasets,
-    test_voxels_accuracy,
-    train_and_validate_brain_voxels,
+    test_autoencode_braindata,
+    train_and_validate_autoencode_braindata,
 )
 from EvaluateTrainingModel import EvaluateTrainingModel
 from ExportEntity import ExportEntity
-from TestTrainingSet import TestTrainingSet
+from TestTrainingSet import TestTrainingSet, TestTrainingTensorDataset
 from TrainingConfig import TrainingConfig
 
 
@@ -55,18 +56,27 @@ class DataTraining:
             )
 
             if train_config.use_autoencoder:
-                tensor_datasets = get_tensor_datasets(
+                tensor_datasets = self.get_tensor_datasets(
                     brain, train_config, train_test_set
                 )
                 # this set hat three datasets
-                autoencoder_model, train_encodings = train_and_validate_brain_voxels(
+                (
+                    autoencoder_model,
+                    train_encodings,
+                    train_labels,
+                ) = train_and_validate_autoencode_braindata(
                     train_config.best_autoencoder_config, tensor_datasets
                 )
-                test_encoding = test_voxels_accuracy(
+                test_encoding, test_labels = test_autoencode_braindata(
                     autoencoder_model, tensor_datasets.test_set
                 )
 
-                # tr_ts_set = #set it from encodingds
+                train_test_set = TestTrainingSet(
+                    X_train=train_encodings,
+                    X_test=test_encoding,
+                    y_train=train_labels,
+                    y_test=test_labels,
+                )
 
             if train_config.dimension_reduction:
                 x_dim = train_test_set.X_train.shape[1]
@@ -376,6 +386,51 @@ class DataTraining:
                 data_list.append(results)
 
         return data_list
+
+    def get_tensor_datasets(
+        self, brain: Brain, train_config: TrainingConfig, tt_set: TestTrainingSet
+    ):
+        bd_config = BrainDataConfig()
+
+        modify_brain = Brain()
+        modify_brain.voxels = tt_set.X_train
+        current_labels = BrainDataLabel(
+            brain.current_labels.name, brain.current_labels.popmean, tt_set.y_train
+        )
+        modify_brain.current_labels = current_labels
+        modify_bd_config = BrainDataConfig()
+        modify_patients = []
+        for subset_size in bd_config.patients:
+            n_test = ceil(subset_size * train_config.test_size)
+            modify_patients.append(subset_size - n_test)
+        modify_bd_config.patients = modify_patients
+
+        modify_tt_set = self.premeditate_random_train_test_split(
+            modify_brain, train_config, modify_bd_config
+        )
+
+        XT_train = torch.Tensor(modify_tt_set.X_train)
+        XT_val = torch.Tensor(modify_tt_set.X_test)
+        # yT_train = torch.Tensor(modify_tt_set.y_train)
+        # yT_val = torch.Tensor(modify_tt_set.y_test)
+        yT_train = torch.tensor(modify_tt_set.y_train, dtype=torch.int)
+        yT_val = torch.tensor(modify_tt_set.y_test, dtype=torch.int)
+
+        tr_set = TensorDataset(XT_train, yT_train)
+        vl_set = TensorDataset(XT_val, yT_val)
+        # ts_set = TensorDataset(torch.Tensor(tt_set.X_test), torch.Tensor(tt_set.y_test))
+        ts_set = TensorDataset(
+            torch.Tensor(tt_set.X_test), torch.tensor(tt_set.y_test, dtype=torch.int)
+        )
+        sets = TestTrainingTensorDataset(
+            train_set=tr_set, val_set=vl_set, test_set=ts_set
+        )
+
+        # file_name = f"{brain.area}_{train_config.strategy}_static_wholeSet.pickle"
+        # with open(file_name, "wb") as output:
+        # pickle.dump(sets, output)
+
+        return sets
 
 
 """
