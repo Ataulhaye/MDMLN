@@ -292,7 +292,7 @@ def get_voxel_tensor_datasets():
     train_config = TrainingConfig()
     train_config.strategy = "mean"
 
-    tt_set = DataTraining().premeditate_random_train_test_split_n(brain, train_config)
+    tt_set = DataTraining().premeditate_random_train_test_split(brain, train_config)
 
     brain.normalize_data_safely(strategy=train_config.strategy, data_set=tt_set)
 
@@ -316,7 +316,7 @@ def get_voxel_tensor_datasets():
         modify_patients.append(subset_size - n_test)
     modify_bd_config.patients = modify_patients
 
-    modify_tt_set = DataTraining().premeditate_random_train_test_split_n(
+    modify_tt_set = DataTraining().premeditate_random_train_test_split(
         modify_brain, train_config, modify_bd_config
     )
 
@@ -361,7 +361,7 @@ def get_tensor_datasets(
         modify_patients.append(subset_size - n_test)
     modify_bd_config.patients = modify_patients
 
-    modify_tt_set = DataTraining().premeditate_random_train_test_split_n(
+    modify_tt_set = DataTraining().premeditate_random_train_test_split(
         modify_brain, train_config, modify_bd_config
     )
 
