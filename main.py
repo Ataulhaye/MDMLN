@@ -455,6 +455,7 @@ def train_valid_voxels_test():
         "lr": 0.0009231555955597683,
         "batch_size": 8,
         "epochs": 10,
+        "brain_area": "STG_mean",
     }
 
     (

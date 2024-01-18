@@ -40,6 +40,7 @@ class TrainingConfig:
             "lr": 0.011294654972486311,
             "batch_size": 8,
             "epochs": 10,
+            "brain_area": "",
         },
     ):
         self.strategy = strategy

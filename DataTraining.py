@@ -59,7 +59,23 @@ class DataTraining:
                 tensor_datasets = self.get_tensor_datasets(
                     brain, train_config, train_test_set
                 )
-                # this set hat three datasets
+                # check the input dim config
+                # voxel_dim = tensor_datasets.train_set.tensors[0].shape[1]
+                # input_dim = train_config.best_autoencoder_config["input_dim"]
+                if (
+                    train_config.best_autoencoder_config["input_dim"]
+                    != tensor_datasets.train_set.tensors[0].shape[1]
+                ):
+                    print("Model config:", train_config.best_autoencoder_config)
+                    train_config.best_autoencoder_config[
+                        "input_dim"
+                    ] = tensor_datasets.train_set.tensors[0].shape[1]
+                    print("Changed model config:", train_config.best_autoencoder_config)
+
+                train_config.best_autoencoder_config[
+                    "brain_area"
+                ] = f"{brain.area}_{train_config.strategy}"
+
                 (
                     autoencoder_model,
                     train_encodings,

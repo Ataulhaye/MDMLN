@@ -11,6 +11,7 @@ from ray.train import Checkpoint
 from torch.utils.data import DataLoader, TensorDataset
 
 from AutoEncoder import Autoencoder
+from ExportData import ExportData
 from TestTrainingSet import TestTrainingTensorDataset
 
 
@@ -147,25 +148,25 @@ def train_and_validate_autoencode_braindata(
         "embedding_dim": config["embedding_dim"],
         "batch_size": config["batch_size"],
     }
-    with tempfile.TemporaryDirectory() as temp_checkpoint_dir:
-        torch.save(
-            {
-                "epoch": epoch,
-                "model_state": model.state_dict(),
-                "optimizer_state": optimizer.state_dict(),
-                "t_loss": running_loss / train_steps,
-                "v_loss": val_loss / val_steps,
-                "t_loss_list": train_loss,
-                "v_loss_list": valid_loss,
-                "train_steps": train_steps,
-                "val_steps": val_steps,
-                "config": model_config,
-                "train_set": tensor_set.train_set.tensors[0].shape,
-                "validation_set": tensor_set.val_set.tensors[0].shape,
-            },
-            os.path.join(temp_checkpoint_dir, "model.pt"),
-        )
-        print("Model Saved")
+    name = ExportData.get_file_name("_model.pt", config["brain_area"])
+    torch.save(
+        {
+            "epoch": epoch,
+            "model_state": model.state_dict(),
+            "optimizer_state": optimizer.state_dict(),
+            "t_loss": running_loss / train_steps,
+            "v_loss": val_loss / val_steps,
+            "t_loss_list": train_loss,
+            "v_loss_list": valid_loss,
+            "train_steps": train_steps,
+            "val_steps": val_steps,
+            "config": model_config,
+            "train_set": tensor_set.train_set.tensors[0].shape,
+            "validation_set": tensor_set.val_set.tensors[0].shape,
+        },
+        name,
+    )
+    print("Model Saved")
 
     print("Finished Training")
     print("Training loss", train_loss)
