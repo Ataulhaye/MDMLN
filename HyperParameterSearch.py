@@ -241,12 +241,14 @@ def get_voxel_tensor_datasets():
 
     XT_train = torch.Tensor(modify_tt_set.X_train)
     XT_val = torch.Tensor(modify_tt_set.X_test)
-    yT_train = torch.Tensor(modify_tt_set.y_train)
-    yT_val = torch.Tensor(modify_tt_set.y_test)
+    yT_train = torch.tensor(modify_tt_set.y_train, dtype=torch.int)
+    yT_val = torch.tensor(modify_tt_set.y_test, dtype=torch.int)
 
     tr_set = TensorDataset(XT_train, yT_train)
     vl_set = TensorDataset(XT_val, yT_val)
-    ts_set = TensorDataset(torch.Tensor(tt_set.X_test), torch.Tensor(tt_set.y_test))
+    ts_set = TensorDataset(
+        torch.Tensor(tt_set.X_test), torch.tensor(tt_set.y_test, dtype=torch.int)
+    )
 
     sets = TestTrainingTensorDataset(train_set=tr_set, val_set=vl_set, test_set=ts_set)
 

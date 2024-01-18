@@ -457,11 +457,13 @@ def train_valid_voxels_test():
         "epochs": 10,
     }
 
-    train_and_validate_autoencode_braindata(config, voxel_sets)
+    (
+        best_trained_model,
+        train_encodings,
+        train_labels,
+    ) = train_and_validate_autoencode_braindata(config, voxel_sets)
 
-    best_trained_model = generate_model(config)
-
-    test_autoencode_braindata(
+    test_encodings, test_labels = test_autoencode_braindata(
         best_trained_model,
         voxel_sets.test_set,
     )
