@@ -36,15 +36,15 @@ def test_autoencode_braindata(net, testset: TensorDataset, device="cpu"):
             output = net(voxels)
             encodings = net.encoder(voxels)
             for encoding in encodings:
-                test_encodings.append(encoding)
+                test_encodings.append(encoding.cpu().tolist())
             for label in labels:
-                test_labels.append(label)
+                test_labels.append(label.item())
             loss = loss_function(output, voxels)
             acc_loss += loss.item()
     print("Counter:", cnt)
     print("testset:", testset.tensors[0].shape)
     print("Best trial test set validation loss: {}".format(acc_loss))
-    return acc_loss, test_encodings, test_labels
+    return test_encodings, test_labels
 
 
 def generate_model(config):
@@ -104,7 +104,7 @@ def train_and_validate_autoencode_braindata(
             output = model(voxels)
             encodings = model.encoder(voxels)
             for encoding in encodings:
-                train_encodings.append(encoding.tolist())
+                train_encodings.append(encoding.cpu().tolist())
             for label in labels:
                 train_labels.append(label.item())
             loss = loss_function(output, voxels)
@@ -128,7 +128,7 @@ def train_and_validate_autoencode_braindata(
 
                 encodings = model.encoder(voxels)
                 for encoding in encodings:
-                    train_encodings.append(encoding.tolist())
+                    train_encodings.append(encoding.cpu().tolist())
                 for label in labels:
                     train_labels.append(label.item())
 
@@ -137,11 +137,6 @@ def train_and_validate_autoencode_braindata(
                 val_steps += 1
             valid_loss.append(val_loss)
 
-    metrics = {
-        "t_loss": running_loss / train_steps,
-        "v_loss": val_loss / val_steps,
-        "epoch": epoch,
-    }
     model_config = {
         "lr": config["lr"],
         "input_dim": config["input_dim"],
@@ -170,12 +165,13 @@ def train_and_validate_autoencode_braindata(
             },
             os.path.join(temp_checkpoint_dir, "model.pt"),
         )
-        print("Checkpoint Saved")
-        checkpoint = Checkpoint.from_directory(temp_checkpoint_dir)
-        train.report(metrics, checkpoint=checkpoint)
-        print("Checkpoint Reported")
+        print("Model Saved")
 
     print("Finished Training")
+    print("Training loss", train_loss)
+    # plt.plot(train_loss)
+    # plt.savefig("test", dpi=700)
+    # plt.close()
     return (model, train_encodings, train_labels)
 
 
