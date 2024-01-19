@@ -517,6 +517,7 @@ def main():
     ]
     strategies = ["mean", "remove-voxels", "median"]
     classifiers = ["SVM", "MLP", "LinearDiscriminant"]
+    classifiers = ["LinearDiscriminant"]
     # strategies = [None, "mean"]
     # classifiers = ["SVM"]
     t_config = TrainingConfig()

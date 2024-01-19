@@ -88,11 +88,12 @@ class DataTraining:
                 )
 
                 train_test_set = TestTrainingSet(
-                    X_train=train_encodings,
-                    X_test=test_encoding,
-                    y_train=train_labels,
-                    y_test=test_labels,
+                    X_train=np.array(train_encodings),
+                    X_test=np.array(test_encoding),
+                    y_train=np.array(train_labels),
+                    y_test=np.array(test_labels),
                 )
+                # ToDo after exams: USE TSNE to diffrenciate the classes and save the picture at every iteration
 
             if train_config.dimension_reduction:
                 x_dim = train_test_set.X_train.shape[1]
@@ -106,8 +107,11 @@ class DataTraining:
                 print(
                     f"Data reduced from {x_dim} dimensions to {train_test_set.X_train.shape[1]} dimensions"
                 )
-
-            model.fit(train_test_set.X_train, train_test_set.y_train)
+            try:
+                model.fit(train_test_set.X_train, train_test_set.y_train)
+            except (Exception, ValueError, RuntimeError, TypeError, NameError) as err:
+                # The issue is that in this case every sample returned by encoder is same, and linear dicriminant return the illigal error
+                print("Error!", err)
             scores.append(model.score(train_test_set.X_test, train_test_set.y_test))
 
         if train_config.explain and "binary" in brain.current_labels.name:
