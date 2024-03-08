@@ -62,5 +62,5 @@ class Autoencoder(nn.Module):
     def forward(self, x):
         encoding = self.encoder(x)
         decoding = self.decoder(encoding)
-        return decoding
+        return encoding, decoding
         # return Codings(encoding, decoding)

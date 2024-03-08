@@ -1,9 +1,6 @@
 import os
-import pickle
 from functools import partial
-from math import ceil
 
-import numpy as np
 import scipy.stats as stats
 import torch
 import torch.nn as nn
@@ -30,7 +27,9 @@ from EvaluateTrainingModel import EvaluateTrainingModel
 from ExportData import ExportData
 from HyperParameterSearch import (
     get_voxel_tensor_datasets,
+    get_voxel_tensor_datasetsN,
     train_and_validate_brain_voxels_ray,
+    train_and_validate_brain_voxels_rayN,
 )
 from PlotData import VisualizeData
 from TrainingConfig import TrainingConfig
@@ -372,7 +371,9 @@ def train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=1):
     print("Best trial test set accuracy: {}".format(test_acc))
 
 
-def train_valid_voxels(num_samples=30, max_num_epochs=10, gpus_per_trial=1):
+def hyper_parameter_search_braindata(
+    num_samples=30, max_num_epochs=10, gpus_per_trial=1
+):
     import ray
 
     ray.init(local_mode=True)
@@ -421,6 +422,82 @@ def train_valid_voxels(num_samples=30, max_num_epochs=10, gpus_per_trial=1):
     print("Best trial final training loss: {}".format(best_result.metrics["t_loss"]))
     print("Best trial epoch: {}".format(best_result.metrics["epoch"]))
     print("Best model path", best_result.path)
+
+    device = "cpu"
+    if torch.cuda.is_available():
+        device = "cuda:0"
+
+    checkpoint_path = os.path.join(best_result.checkpoint.to_directory(), "model.pt")
+
+    checkpoint = torch.load(checkpoint_path, map_location=device)
+
+    best_trained_model = generate_model(best_result.config)
+
+    if device == "cuda:0" and gpus_per_trial > 1:
+        best_trained_model = nn.DataParallel(best_trained_model)
+    best_trained_model.to(device)
+
+    best_trained_model.load_state_dict(checkpoint["model_state"])
+
+    test_acc = test_autoencode_braindata(best_trained_model, device)
+    print("Best trial test set accuracy: {}".format(test_acc))
+
+
+def hyper_parameter_search_braindataN(
+    num_samples=20, max_num_epochs=10, gpus_per_trial=1
+):
+    import ray
+
+    ray.init(local_mode=True)
+
+    voxel_sets = get_voxel_tensor_datasetsN()
+
+    config = {
+        "input_dim": voxel_sets.train_set.tensors[0].shape[1],
+        "hidden_dim1": tune.choice([2**i for i in range(13)]),
+        "hidden_dim2": tune.choice([2**i for i in range(13)]),
+        "embedding_dim": tune.choice([2**i for i in range(5)]),
+        "lr": tune.loguniform(1e-4, 1e-1),
+        "batch_size": tune.choice([2, 4, 8, 16, 32, 64, 128]),
+        "epochs": 10,
+    }
+    # scheduler = ASHAScheduler(max_t=max_num_epochs,grace_period=1,reduction_factor=2,)
+    scheduler = ASHAScheduler(
+        max_t=max_num_epochs,
+        grace_period=1,
+        reduction_factor=2,
+    )
+    tuner = tune.Tuner(
+        tune.with_resources(
+            tune.with_parameters(
+                partial(train_and_validate_brain_voxels_rayN, tensor_set=voxel_sets)
+            ),
+            # tune.with_parameters(train_and_validate_mnist_ray_tune),
+            resources={"cpu": 6, "gpu": gpus_per_trial},
+        ),
+        tune_config=tune.TuneConfig(
+            metric="train_loss",
+            mode="min",
+            scheduler=scheduler,
+            num_samples=num_samples,
+        ),
+        param_space=config,
+    )
+    # ray.put()
+    results = tuner.fit()
+    best_result = results.get_best_result("train_loss", "min")
+
+    print("Best trial config: {}".format(best_result.config))
+    print(
+        "Best trial final training loss: {}".format(best_result.metrics["train_loss"])
+    )
+    print("Best trial epoch: {}".format(best_result.metrics["epoch"]))
+    print("Best model path", best_result.path)
+
+    # Best trial config: {'input_dim': 7238, 'hidden_dim1': 4096, 'hidden_dim2': 32, 'embedding_dim': 16, 'lr': 0.00010151037934002151, 'batch_size': 2, 'epochs': 10}
+    # Best trial final training loss: 8.329863358785708
+    # Best trial epoch: 9
+    # Best model path C:/Users/ataul/ray_results/tune_with_parameters_2024-03-06_23-29-16/tune_with_parameters_f77ef_00017_17_batch_size=2,embedding_dim=16,hidden_dim1=4096,hidden_dim2=32,lr=0.0001_2024-03-06_23-43-31
 
     device = "cpu"
     if torch.cuda.is_available():
@@ -492,6 +569,7 @@ def main():
     # train_valid_voxels()
     # train_valid_voxels_test()
     # train_valid_mnist(num_samples=2, max_num_epochs=1, gpus_per_trial=1)
+    # hyper_parameter_search_braindataN()
     strategies = [
         None,
         "mean",
@@ -532,6 +610,7 @@ def main():
 
     t_config.predefined_split = False
 
+    # stg_classification(classifiers, strategies, t_config)# was using to create the results for stg
     stg_classification(classifiers, strategies, t_config)
     # ifg_classification(classifiers, strategies, t_config)
 

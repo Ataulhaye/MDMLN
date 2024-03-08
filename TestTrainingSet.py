@@ -31,4 +31,6 @@ class TestTrainingTensorDataset:
         self.val_set = val_set
 
     def __repr__(self) -> str:
-        return f"X_train:{self.train_set.tensors[0].shape}, X_test:{self.test_set.tensors[0].shape}, X_val:{self.val_set.tensors[0].shape}, y_train:{self.train_set.tensors[1].shape} , y_test:{self.train_set.tensors[1].shape}, y_val:{self.val_set.tensors[1].shape}"
+        return f"X_train:{self.train_set.tensors[0].shape}, X_test:{self.test_set.tensors[0].shape}, y_train:{self.train_set.tensors[1].shape} , y_test:{self.train_set.tensors[1].shape}"
+
+    # return f"X_train:{self.train_set.tensors[0].shape}, X_test:{self.test_set.tensors[0].shape}, X_val:{self.val_set.tensors[0].shape or None}, y_train:{self.train_set.tensors[1].shape} , y_test:{self.train_set.tensors[1].shape}, y_val:{self.val_set.tensors[1].shape or None}"

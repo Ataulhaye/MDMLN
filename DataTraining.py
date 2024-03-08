@@ -25,7 +25,9 @@ from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
 from BrainTrainUtils import (
     test_autoencode_braindata,
+    test_autoencoder_braindataN,
     train_and_validate_autoencode_braindata,
+    train_autoencoder_braindataN,
 )
 from EvaluateTrainingModel import EvaluateTrainingModel
 from ExportEntity import ExportEntity
@@ -51,14 +53,16 @@ class DataTraining:
                     brain, train_config.test_size
                 )
 
-            brain.normalize_data_safely(
-                strategy=train_config.strategy, data_set=train_test_set
-            )
-
-            if train_config.use_autoencoder:
-                tensor_datasets = self.get_tensor_datasets(
-                    brain, train_config, train_test_set
+                train_test_set = brain.normalize_data_safely(
+                    strategy=train_config.strategy, data_set=train_test_set
                 )
+
+            # if train_config.use_autoencoder:
+            # tensor_datasets = self.get_tensor_datasets(
+            # brain, train_config, train_test_set
+            # )
+            if train_config.use_autoencoder:
+                tensor_datasets = self.to_tensor_datasets(train_test_set)
                 # check the input dim config
                 # voxel_dim = tensor_datasets.train_set.tensors[0].shape[1]
                 # input_dim = train_config.best_autoencoder_config["input_dim"]
@@ -67,23 +71,26 @@ class DataTraining:
                     != tensor_datasets.train_set.tensors[0].shape[1]
                 ):
                     print("Model config:", train_config.best_autoencoder_config)
-                    train_config.best_autoencoder_config[
-                        "input_dim"
-                    ] = tensor_datasets.train_set.tensors[0].shape[1]
+                    train_config.best_autoencoder_config["input_dim"] = (
+                        tensor_datasets.train_set.tensors[0].shape[1]
+                    )
                     print("Changed model config:", train_config.best_autoencoder_config)
 
-                train_config.best_autoencoder_config[
-                    "brain_area"
-                ] = f"{brain.area}_{train_config.strategy}"
+                train_config.best_autoencoder_config["brain_area"] = (
+                    f"{brain.area}_{train_config.strategy}"
+                )
 
+                # (autoencoder_model,train_encodings,train_labels,) = train_and_validate_autoencode_braindata(train_config.best_autoencoder_config, tensor_datasets)
                 (
                     autoencoder_model,
                     train_encodings,
                     train_labels,
-                ) = train_and_validate_autoencode_braindata(
+                ) = train_autoencoder_braindataN(
                     train_config.best_autoencoder_config, tensor_datasets
                 )
-                test_encoding, test_labels = test_autoencode_braindata(
+                # train_autoencoder_braindata
+                # test_encoding, test_labels = test_autoencode_braindata(autoencoder_model, tensor_datasets.test_set)
+                loss, test_encoding, test_labels = test_autoencoder_braindataN(
                     autoencoder_model, tensor_datasets.test_set
                 )
 
@@ -445,6 +452,23 @@ class DataTraining:
         sets = TestTrainingTensorDataset(
             train_set=tr_set, val_set=vl_set, test_set=ts_set
         )
+
+        # file_name = f"{brain.area}_{train_config.strategy}_static_wholeSet.pickle"
+        # with open(file_name, "wb") as output:
+        # pickle.dump(sets, output)
+
+        return sets
+
+    def to_tensor_datasets(self, tt_set: TestTrainingSet):
+
+        tr_set = TensorDataset(
+            torch.Tensor(tt_set.X_train), torch.tensor(tt_set.y_train, dtype=torch.int)
+        )
+
+        ts_set = TensorDataset(
+            torch.Tensor(tt_set.X_test), torch.tensor(tt_set.y_test, dtype=torch.int)
+        )
+        sets = TestTrainingTensorDataset(train_set=tr_set, test_set=ts_set)
 
         # file_name = f"{brain.area}_{train_config.strategy}_static_wholeSet.pickle"
         # with open(file_name, "wb") as output:
