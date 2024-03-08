@@ -444,7 +444,7 @@ def hyper_parameter_search_braindata(
 
 
 def hyper_parameter_search_braindataN(
-    num_samples=20, max_num_epochs=10, gpus_per_trial=1
+    num_samples=30, max_num_epochs=10, gpus_per_trial=1
 ):
     import ray
 
@@ -494,10 +494,10 @@ def hyper_parameter_search_braindataN(
     print("Best trial epoch: {}".format(best_result.metrics["epoch"]))
     print("Best model path", best_result.path)
 
-    # Best trial config: {'input_dim': 7238, 'hidden_dim1': 4096, 'hidden_dim2': 32, 'embedding_dim': 16, 'lr': 0.00010151037934002151, 'batch_size': 2, 'epochs': 10}
-    # Best trial final training loss: 8.329863358785708
+    # Best trial config: {'input_dim': 7238, 'hidden_dim1': 2048, 'hidden_dim2': 4, 'embedding_dim': 4, 'lr': 0.00045032047502940035, 'batch_size': 128, 'epochs': 10}
+    # Best trial final training loss: 0.06587027634183566
     # Best trial epoch: 9
-    # Best model path C:/Users/ataul/ray_results/tune_with_parameters_2024-03-06_23-29-16/tune_with_parameters_f77ef_00017_17_batch_size=2,embedding_dim=16,hidden_dim1=4096,hidden_dim2=32,lr=0.0001_2024-03-06_23-43-31
+    # Best model path C:/Users/ataul/ray_results/tune_with_parameters_2024-03-08_12-54-38/tune_with_parameters_a3e07_00009_9_batch_size=128,embedding_dim=4,hidden_dim1=2048,hidden_dim2=4,lr=0.0005_2024-03-08_13-05-02
 
     device = "cpu"
     if torch.cuda.is_available():
@@ -569,7 +569,7 @@ def main():
     # train_valid_voxels()
     # train_valid_voxels_test()
     # train_valid_mnist(num_samples=2, max_num_epochs=1, gpus_per_trial=1)
-    # hyper_parameter_search_braindataN()
+    hyper_parameter_search_braindataN()
     strategies = [
         None,
         "mean",
@@ -595,7 +595,7 @@ def main():
     ]
     strategies = ["mean", "remove-voxels", "median"]
     classifiers = ["SVM", "MLP", "LinearDiscriminant"]
-    classifiers = ["LinearDiscriminant"]
+    # classifiers = ["LinearDiscriminant"]
     # strategies = [None, "mean"]
     # classifiers = ["SVM"]
     t_config = TrainingConfig()
@@ -608,10 +608,10 @@ def main():
     # stg_classification(classifiers, strategies, t_config)
     # ifg_classification(classifiers, strategies, t_config)
 
-    t_config.predefined_split = False
+    # t_config.predefined_split = False
 
     # stg_classification(classifiers, strategies, t_config)# was using to create the results for stg
-    stg_classification(classifiers, strategies, t_config)
+    # stg_classification(classifiers, strategies, t_config)
     # ifg_classification(classifiers, strategies, t_config)
 
 
