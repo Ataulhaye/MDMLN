@@ -32,14 +32,16 @@ class TrainingConfig:
         use_autoencoder=False,
         # best_autoencoder_config={"input_dim": 7238,"hidden_dim1": 128,"hidden_dim2": 4,"hidden_dim3": 1,"hidden_dim4": 1,"embedding_dim": 2,"lr": 0.011294654972486311,"batch_size": 8,"epochs": 1,"brain_area": "",},
         #'input_dim': 7238, 'hidden_dim1': 4096, 'hidden_dim2': 32, 'embedding_dim': 16, 'lr': 0.00010151037934002151, 'batch_size': 2, 'epochs': 10
+        # Best trial config: {'input_dim': 7238, 'hidden_dim1': 1024, 'hidden_dim2': 4, 'embedding_dim': 8, 'lr': 0.014956047271301212, 'batch_size': 16, 'epochs': 10}
+        # old Best trial config: {'input_dim': 7238, 'hidden_dim1': 4096, 'hidden_dim2': 32, 'embedding_dim': 16, 'lr': 0.00010151037934002151, 'batch_size': 2, 'epochs': 10}
         best_autoencoder_config={
             "input_dim": 7238,
-            "hidden_dim1": 2048,
-            "hidden_dim2": 4,
+            "hidden_dim1": 32,
+            "hidden_dim2": 512,
             "hidden_dim3": 1,
             "hidden_dim4": 1,
-            "embedding_dim": 4,
-            "lr": 0.00045032047502940035,
+            "embedding_dim": 2,
+            "lr": 0.07539378759292441,
             "batch_size": 128,
             "epochs": 10,
             "brain_area": "",

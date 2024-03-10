@@ -151,7 +151,9 @@ def train_and_validate_brain_voxels_rayN(config, tensor_set: TestTrainingTensorD
     model.train()
     for epoch in range(config["epochs"]):  # loop over the dataset multiple times
         running_loss = 0.0
+        train_steps = 0
         for i, data in enumerate(trainloader):
+
             inputs = data[0].to(device)
             # zero the parameter gradients
             optimizer.zero_grad()
@@ -164,10 +166,13 @@ def train_and_validate_brain_voxels_rayN(config, tensor_set: TestTrainingTensorD
 
             # print statistics
             running_loss += loss.item()
+            train_steps += 1
 
+        # train_loss_list.append(running_loss / train_steps)
         train_loss_list.append(running_loss / len(tensor_set.train_set))
 
         metrics = {
+            # "train_loss": running_loss / train_steps,
             "train_loss": running_loss / len(tensor_set.train_set),
             "loss_list": train_loss_list,
             "epoch": epoch,
@@ -186,6 +191,7 @@ def train_and_validate_brain_voxels_rayN(config, tensor_set: TestTrainingTensorD
                     "epoch": epoch,
                     "model_state": model.state_dict(),
                     "optimizer_state": optimizer.state_dict(),
+                    # "train_loss": running_loss / train_steps,
                     "train_loss": running_loss / len(tensor_set.train_set),
                     "t_loss_list": train_loss_list,
                     "config": model_config,
@@ -377,7 +383,8 @@ def get_voxel_tensor_datasetsN():
     bd_config = BrainDataConfig()
     brain = Brain(
         area=bd_config.STG,
-        data_path=bd_config.STG_path,
+        # data_path=bd_config.STG_path,
+        data_path="C://Users//ataul//source//Uni//BachelorThesis//poc//left_STG_MTG_AALlable_ROI.rex.mat",
         load_labels=True,
         load_int_labels=True,
     )

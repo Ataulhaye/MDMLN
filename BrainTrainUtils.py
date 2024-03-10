@@ -69,7 +69,7 @@ def test_autoencoder_braindataN(net, testset: TensorDataset, device="cpu"):
     test_labels = testset.tensors[1].numpy()
 
     print("testset:", testset.tensors[0].shape)
-    print("Best trial test set validation loss: {}".format(acc_loss / len(testset)))
+    print("Test set loss: {}".format(acc_loss / len(testset)))
     return acc_loss, test_encodings, test_labels
 
 

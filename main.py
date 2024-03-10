@@ -5,6 +5,7 @@ import scipy.stats as stats
 import torch
 import torch.nn as nn
 from ray import tune
+from ray.train import CheckpointConfig, RunConfig
 from ray.tune.schedulers import ASHAScheduler
 from sklearn import datasets, svm
 from sklearn.model_selection import cross_val_score, train_test_split
@@ -444,79 +445,121 @@ def hyper_parameter_search_braindata(
 
 
 def hyper_parameter_search_braindataN(
-    num_samples=30, max_num_epochs=10, gpus_per_trial=1
+    num_samples=20, max_num_epochs=10, gpus_per_trial=1
 ):
     import ray
 
     ray.init(local_mode=True)
 
-    voxel_sets = get_voxel_tensor_datasetsN()
+    for i in range(10):
 
-    config = {
-        "input_dim": voxel_sets.train_set.tensors[0].shape[1],
-        "hidden_dim1": tune.choice([2**i for i in range(13)]),
-        "hidden_dim2": tune.choice([2**i for i in range(13)]),
-        "embedding_dim": tune.choice([2**i for i in range(5)]),
-        "lr": tune.loguniform(1e-4, 1e-1),
-        "batch_size": tune.choice([2, 4, 8, 16, 32, 64, 128]),
-        "epochs": 10,
-    }
-    # scheduler = ASHAScheduler(max_t=max_num_epochs,grace_period=1,reduction_factor=2,)
-    scheduler = ASHAScheduler(
-        max_t=max_num_epochs,
-        grace_period=1,
-        reduction_factor=2,
-    )
-    tuner = tune.Tuner(
-        tune.with_resources(
-            tune.with_parameters(
-                partial(train_and_validate_brain_voxels_rayN, tensor_set=voxel_sets)
+        voxel_sets = get_voxel_tensor_datasetsN()
+
+        config = {
+            "input_dim": voxel_sets.train_set.tensors[0].shape[1],
+            "hidden_dim1": tune.choice([2**i for i in range(13)]),
+            "hidden_dim2": tune.choice([2**i for i in range(13)]),
+            "embedding_dim": tune.choice([2**i for i in range(5)]),
+            "lr": tune.loguniform(1e-4, 1e-1),
+            "batch_size": tune.choice([2, 4, 8, 16, 32, 64, 128]),
+            "epochs": 10,
+        }
+        # scheduler = ASHAScheduler(max_t=max_num_epochs,grace_period=1,reduction_factor=2,)
+        scheduler = ASHAScheduler(
+            max_t=max_num_epochs,
+            grace_period=1,
+            reduction_factor=2,
+        )
+        # run_config = RunConfig(
+        # checkpoint_config=CheckpointConfig(
+        # num_to_keep=5,
+        # *Best* checkpoints are determined by these params:
+        # checkpoint_score_attribute="train_loss",
+        # checkpoint_score_order="min",
+        # ),
+        # This will store checkpoints on S3.
+        # storage_path="s3://remote-bucket/location",
+        # )
+        tuner = tune.Tuner(
+            tune.with_resources(
+                tune.with_parameters(
+                    partial(train_and_validate_brain_voxels_rayN, tensor_set=voxel_sets)
+                ),
+                # tune.with_parameters(train_and_validate_mnist_ray_tune),
+                resources={"cpu": 6, "gpu": gpus_per_trial},
             ),
-            # tune.with_parameters(train_and_validate_mnist_ray_tune),
-            resources={"cpu": 6, "gpu": gpus_per_trial},
-        ),
-        tune_config=tune.TuneConfig(
-            metric="train_loss",
-            mode="min",
-            scheduler=scheduler,
-            num_samples=num_samples,
-        ),
-        param_space=config,
-    )
-    # ray.put()
-    results = tuner.fit()
-    best_result = results.get_best_result("train_loss", "min")
+            tune_config=tune.TuneConfig(
+                metric="train_loss",
+                mode="min",
+                scheduler=scheduler,
+                num_samples=num_samples,
+            ),
+            param_space=config,
+            # run_config=run_config,
+        )
 
-    print("Best trial config: {}".format(best_result.config))
-    print(
-        "Best trial final training loss: {}".format(best_result.metrics["train_loss"])
-    )
-    print("Best trial epoch: {}".format(best_result.metrics["epoch"]))
-    print("Best model path", best_result.path)
+        # ray.put()
+        results = tuner.fit()
+        best_result = results.get_best_result("train_loss", "min")
 
-    # Best trial config: {'input_dim': 7238, 'hidden_dim1': 2048, 'hidden_dim2': 4, 'embedding_dim': 4, 'lr': 0.00045032047502940035, 'batch_size': 128, 'epochs': 10}
-    # Best trial final training loss: 0.06587027634183566
+        print("Best trial config: {}".format(best_result.config))
+        print(
+            "Best trial final training loss: {}".format(
+                best_result.metrics["train_loss"]
+            )
+        )
+        print("Best trial epoch: {}".format(best_result.metrics["epoch"]))
+        print("Best model path", best_result.path)
+
+    # old working
+    # Best trial config: {'input_dim': 7238, 'hidden_dim1': 4096, 'hidden_dim2': 32, 'embedding_dim': 16, 'lr': 0.00010151037934002151, 'batch_size': 2, 'epochs': 10}
+    # Best trial final training loss: 8.329863358785708
     # Best trial epoch: 9
-    # Best model path C:/Users/ataul/ray_results/tune_with_parameters_2024-03-08_12-54-38/tune_with_parameters_a3e07_00009_9_batch_size=128,embedding_dim=4,hidden_dim1=2048,hidden_dim2=4,lr=0.0005_2024-03-08_13-05-02
 
-    device = "cpu"
-    if torch.cuda.is_available():
-        device = "cuda:0"
+    # Best trial config: {'input_dim': 7238, 'hidden_dim1': 1024, 'hidden_dim2': 4, 'embedding_dim': 8, 'lr': 0.014956047271301212, 'batch_size': 16, 'epochs': 10}
+    # Best trial final training loss: 8.754223763942719
+    # Best trial epoch: 9
+    # Best model path C:/Users/ataul/ray_results/tune_with_parameters_2024-03-08_15-04-53/tune_with_parameters_d6407_00019_19_batch_size=16,embedding_dim=8,hidden_dim1=1024,hidden_dim2=4,lr=0.0150_2024-03-08_15-15-45
 
-    checkpoint_path = os.path.join(best_result.checkpoint.to_directory(), "model.pt")
+    # stg conditional split true
+    # Best trial config: {'input_dim': 7238, 'hidden_dim1': 1024, 'hidden_dim2': 4, 'embedding_dim': 8, 'lr': 0.044289327567219795, 'batch_size': 128, 'epochs': 10}
+    # Best trial final training loss: 0.06911449631055196
+    # Best trial epoch: 9
+    # Best model path C:/Users/ataul/ray_results/tune_with_parameters_2024-03-09_08-47-42/tune_with_parameters_4fc24_00011_11_batch_size=128,embedding_dim=8,hidden_dim1=1024,hidden_dim2=4,lr=0.0443_2024-03-09_08-54-40
 
-    checkpoint = torch.load(checkpoint_path, map_location=device)
+    # Best trial config: {'input_dim': 7238, 'hidden_dim1': 4, 'hidden_dim2': 8, 'embedding_dim': 16, 'lr': 0.0023489378170185485, 'batch_size': 128, 'epochs': 10}
+    # Best trial final training loss: 0.07310594369967778
+    # Best trial epoch: 9
+    # Best model path C:/Users/ataul/ray_results/tune_with_parameters_2024-03-09_11-11-16/tune_with_parameters_5dca3_00019_19_batch_size=128,embedding_dim=16,hidden_dim1=4,hidden_dim2=8,lr=0.0023_2024-03-09_11-30-54
 
-    best_trained_model = generate_model(best_result.config)
+    # Best trial config: {'input_dim': 7238, 'hidden_dim1': 32, 'hidden_dim2': 512, 'embedding_dim': 2, 'lr': 0.07539378759292441, 'batch_size': 128, 'epochs': 10}
+    # Best trial final training loss: 0.068205493191878
+    # Best trial epoch: 9
+    # Best model path C:/Users/ataul/ray_results/tune_with_parameters_2024-03-09_11-32-33/tune_with_parameters_57198_00017_17_batch_size=128,embedding_dim=2,hidden_dim1=32,hidden_dim2=512,lr=0.0754_2024-03-09_16-36-00
 
-    if device == "cuda:0" and gpus_per_trial > 1:
-        best_trained_model = nn.DataParallel(best_trained_model)
-    best_trained_model.to(device)
+    # Best trial config: {'input_dim': 7238, 'hidden_dim1': 2048, 'hidden_dim2': 8, 'embedding_dim': 4, 'lr': 0.0338333786482933, 'batch_size': 128, 'epochs': 10}
+    # Best trial final training loss: 0.06885300576686859
+    # Best trial epoch: 9
+    # Best model path C:/Users/ataul/ray_results/tune_with_parameters_2024-03-09_18-28-57/tune_with_parameters_82698_00003_3_batch_size=128,embedding_dim=4,hidden_dim1=2048,hidden_dim2=8,lr=0.0338_2024-03-09_19-05-33
 
-    best_trained_model.load_state_dict(checkpoint["model_state"])
+    # device = "cpu"
+    # if torch.cuda.is_available():
+    # device = "cuda:0"
 
-    test_acc = test_autoencode_braindata(best_trained_model, device)
-    print("Best trial test set accuracy: {}".format(test_acc))
+    # checkpoint_path = os.path.join(best_result.checkpoint.to_directory(), "model.pt")
+
+    # checkpoint = torch.load(checkpoint_path, map_location=device)
+
+    # best_trained_model = generate_model(best_result.config)
+
+    # if device == "cuda:0" and gpus_per_trial > 1:
+    # best_trained_model = nn.DataParallel(best_trained_model)
+    # best_trained_model.to(device)
+
+    # best_trained_model.load_state_dict(checkpoint["model_state"])
+
+    # test_acc = test_autoencode_braindata(best_trained_model, device)
+    # print("Best trial test set accuracy: {}".format(test_acc))
 
 
 def train_valid_voxels_test():
@@ -569,7 +612,9 @@ def main():
     # train_valid_voxels()
     # train_valid_voxels_test()
     # train_valid_mnist(num_samples=2, max_num_epochs=1, gpus_per_trial=1)
-    hyper_parameter_search_braindataN()
+
+    # hyper_parameter_search_braindataN()
+
     strategies = [
         None,
         "mean",
@@ -595,23 +640,24 @@ def main():
     ]
     strategies = ["mean", "remove-voxels", "median"]
     classifiers = ["SVM", "MLP", "LinearDiscriminant"]
-    # classifiers = ["LinearDiscriminant"]
-    # strategies = [None, "mean"]
+    classifiers = ["MLP", "LinearDiscriminant"]
+    #classifiers = ["LinearDiscriminant"]
+    #strategies = ["mean"]
     # classifiers = ["SVM"]
     t_config = TrainingConfig()
     # t_config.folds = 1
     # t_config.explain = True
     t_config.dimension_reduction = False
-    t_config.predefined_split = True
     t_config.use_autoencoder = True
     # stg_binary_classification(classifiers, strategies, t_config)
     # stg_classification(classifiers, strategies, t_config)
     # ifg_classification(classifiers, strategies, t_config)
 
     # t_config.predefined_split = False
-
     # stg_classification(classifiers, strategies, t_config)# was using to create the results for stg
-    # stg_classification(classifiers, strategies, t_config)
+    # t_config.best_autoencoder_config["epochs "] = 1
+    # t_config.folds = 2
+    stg_classification(classifiers, strategies, t_config)
     # ifg_classification(classifiers, strategies, t_config)
 
 

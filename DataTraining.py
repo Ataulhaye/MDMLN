@@ -18,17 +18,12 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import TensorDataset
 
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
-from BrainTrainUtils import (
-    test_autoencode_braindata,
-    test_autoencoder_braindataN,
-    train_and_validate_autoencode_braindata,
-    train_autoencoder_braindataN,
-)
+from BrainTrainUtils import test_autoencoder_braindataN, train_autoencoder_braindataN
 from EvaluateTrainingModel import EvaluateTrainingModel
 from ExportEntity import ExportEntity
 from TestTrainingSet import TestTrainingSet, TestTrainingTensorDataset
@@ -44,6 +39,7 @@ class DataTraining:
         scores = []
         for i in range(train_config.folds):
             train_test_set = None
+
             if train_config.predefined_split:
                 train_test_set = self.premeditate_random_train_test_split(
                     brain, train_config
@@ -53,87 +49,99 @@ class DataTraining:
                     brain, train_config.test_size
                 )
 
-                train_test_set = brain.normalize_data_safely(
-                    strategy=train_config.strategy, data_set=train_test_set
-                )
+            train_test_set = brain.normalize_data_safely(
+                strategy=train_config.strategy, data_set=train_test_set
+            )
+
+            if train_config.dimension_reduction:
+                train_test_set = self.apply_PCA(train_test_set)
 
             # if train_config.use_autoencoder:
             # tensor_datasets = self.get_tensor_datasets(
             # brain, train_config, train_test_set
             # )
             if train_config.use_autoencoder:
-                tensor_datasets = self.to_tensor_datasets(train_test_set)
-                # check the input dim config
-                # voxel_dim = tensor_datasets.train_set.tensors[0].shape[1]
-                # input_dim = train_config.best_autoencoder_config["input_dim"]
-                if (
-                    train_config.best_autoencoder_config["input_dim"]
-                    != tensor_datasets.train_set.tensors[0].shape[1]
-                ):
-                    print("Model config:", train_config.best_autoencoder_config)
-                    train_config.best_autoencoder_config["input_dim"] = (
-                        tensor_datasets.train_set.tensors[0].shape[1]
-                    )
-                    print("Changed model config:", train_config.best_autoencoder_config)
-
-                train_config.best_autoencoder_config["brain_area"] = (
-                    f"{brain.area}_{train_config.strategy}"
-                )
-
-                # (autoencoder_model,train_encodings,train_labels,) = train_and_validate_autoencode_braindata(train_config.best_autoencoder_config, tensor_datasets)
-                (
-                    autoencoder_model,
-                    train_encodings,
-                    train_labels,
-                ) = train_autoencoder_braindataN(
-                    train_config.best_autoencoder_config, tensor_datasets
-                )
-                # train_autoencoder_braindata
-                # test_encoding, test_labels = test_autoencode_braindata(autoencoder_model, tensor_datasets.test_set)
-                loss, test_encoding, test_labels = test_autoencoder_braindataN(
-                    autoencoder_model, tensor_datasets.test_set
-                )
-
-                train_test_set = TestTrainingSet(
-                    X_train=np.array(train_encodings),
-                    X_test=np.array(test_encoding),
-                    y_train=np.array(train_labels),
-                    y_test=np.array(test_labels),
+                train_test_set = self.apply_autoencoder(
+                    brain, train_config, train_test_set
                 )
                 # ToDo after exams: USE TSNE to diffrenciate the classes and save the picture at every iteration
 
-            if train_config.dimension_reduction:
-                x_dim = train_test_set.X_train.shape[1]
-                pca = PCA(n_components=0.99, svd_solver="full")
-                pca.fit(train_test_set.X_train)
-                pca_x_train = pca.transform(train_test_set.X_train)
-                pca_x_test = pca.transform(train_test_set.X_test)
-                print("explained_variance_ratio: ", pca.explained_variance_ratio_.sum())
-                train_test_set.X_train = pca_x_train
-                train_test_set.X_test = pca_x_test
-                print(
-                    f"Data reduced from {x_dim} dimensions to {train_test_set.X_train.shape[1]} dimensions"
-                )
             try:
+                print("Starting fitting of the model.")
                 model.fit(train_test_set.X_train, train_test_set.y_train)
+                print("Finished the fitting of the model.")
+                score = model.score(train_test_set.X_test, train_test_set.y_test)
+                print("Score", score)
+                scores.append(score)
             except (Exception, ValueError, RuntimeError, TypeError, NameError) as err:
                 # The issue is that in this case every sample returned by encoder is same, and linear dicriminant return the illigal error
                 print("Error!", err)
-            scores.append(model.score(train_test_set.X_test, train_test_set.y_test))
 
-        if train_config.explain and "binary" in brain.current_labels.name:
-            self.explain_model(
-                model,
-                brain=brain,
-                tt_set=train_test_set,
-                scores=scores,
-                train_config=train_config,
-            )
+            if train_config.explain and "binary" in brain.current_labels.name:
+                self.explain_model(
+                    model,
+                    brain=brain,
+                    tt_set=train_test_set,
+                    scores=scores,
+                    train_config=train_config,
+                )
         # print(f"scores using {type(model).__name__} with {folds}-fold cross-validation:",score_array,)
         scores = np.array(scores)
 
         # print(f"{type(model).__name__}: %0.2f accuracy with a standard deviation of %0.2f"% (score_array.mean(), score_array.std()))
         return scores
+
+    def apply_autoencoder(self, brain, train_config, train_test_set):
+        tensor_datasets = self.to_tensor_datasets(train_test_set)
+        # check the input dim config
+        # voxel_dim = tensor_datasets.train_set.tensors[0].shape[1]
+        # input_dim = train_config.best_autoencoder_config["input_dim"]
+        if (
+            train_config.best_autoencoder_config["input_dim"]
+            != tensor_datasets.train_set.tensors[0].shape[1]
+        ):
+            print("Model config:", train_config.best_autoencoder_config)
+            train_config.best_autoencoder_config["input_dim"] = (
+                tensor_datasets.train_set.tensors[0].shape[1]
+            )
+            print("Changed model config:", train_config.best_autoencoder_config)
+        train_config.best_autoencoder_config["brain_area"] = (
+            f"{brain.area}_{train_config.strategy}"
+        )
+        # (autoencoder_model,train_encodings,train_labels,) = train_and_validate_autoencode_braindata(train_config.best_autoencoder_config, tensor_datasets)
+        (
+            autoencoder_model,
+            train_encodings,
+            train_labels,
+        ) = train_autoencoder_braindataN(
+            train_config.best_autoencoder_config, tensor_datasets
+        )
+        # train_autoencoder_braindata
+        # test_encoding, test_labels = test_autoencode_braindata(autoencoder_model, tensor_datasets.test_set)
+        loss, test_encoding, test_labels = test_autoencoder_braindataN(
+            autoencoder_model, tensor_datasets.test_set
+        )
+        train_test_set = TestTrainingSet(
+            X_train=train_encodings,
+            X_test=test_encoding,
+            y_train=train_labels,
+            y_test=test_labels,
+        )
+        return train_test_set
+
+    def apply_PCA(self, train_test_set):
+        x_dim = train_test_set.X_train.shape[1]
+        pca = PCA(n_components=0.99, svd_solver="full")
+        pca.fit(train_test_set.X_train)
+        pca_x_train = pca.transform(train_test_set.X_train)
+        pca_x_test = pca.transform(train_test_set.X_test)
+        print("explained_variance_ratio: ", pca.explained_variance_ratio_.sum())
+        train_test_set.X_train = pca_x_train
+        train_test_set.X_test = pca_x_test
+        print(
+            f"Data reduced from {x_dim} dimensions to {train_test_set.X_train.shape[1]} dimensions"
+        )
+        return train_test_set
 
     def explain_model(
         self,
