@@ -265,8 +265,6 @@ def train_autoencoder_braindataN(config, tensor_set: TestTrainingTensorDataset):
         "input_dim": config["input_dim"],
         "hidden_dim1": config["hidden_dim1"],
         "hidden_dim2": config["hidden_dim2"],
-        "hidden_dim3": config["hidden_dim3"],
-        "hidden_dim4": config["hidden_dim4"],
         "embedding_dim": config["embedding_dim"],
         "batch_size": config["batch_size"],
     }

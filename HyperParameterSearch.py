@@ -382,9 +382,11 @@ def get_voxel_tensor_datasets():
 def get_voxel_tensor_datasetsN():
     bd_config = BrainDataConfig()
     brain = Brain(
-        area=bd_config.STG,
+        # area=bd_config.STG,
+        area=bd_config.IFG,
         # data_path=bd_config.STG_path,
-        data_path="C://Users//ataul//source//Uni//BachelorThesis//poc//left_STG_MTG_AALlable_ROI.rex.mat",
+        data_path="C://Users//ataul//source//Uni//BachelorThesis//poc//ROI_aal_wfupick_left44_45.rex.mat",
+        # data_path="C://Users//ataul//source//Uni//BachelorThesis//poc//left_STG_MTG_AALlable_ROI.rex.mat",
         load_labels=True,
         load_int_labels=True,
     )

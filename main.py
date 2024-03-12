@@ -451,7 +451,7 @@ def hyper_parameter_search_braindataN(
 
     ray.init(local_mode=True)
 
-    for i in range(10):
+    for i in range(6):
 
         voxel_sets = get_voxel_tensor_datasetsN()
 
@@ -510,6 +510,20 @@ def hyper_parameter_search_braindataN(
         )
         print("Best trial epoch: {}".format(best_result.metrics["epoch"]))
         print("Best model path", best_result.path)
+
+        file_name = ExportData.get_file_name(".txt", "BestTrainConfig")
+        file_path = f"C://Users//ataul//source//Uni//BachelorThesis//poc//{file_name}"
+        with open(file_path, "w") as text_file:
+            text_file.write("Best trial config: {}\n".format(best_result.config))
+            text_file.write(
+                "Best trial final training loss: {}\n".format(
+                    best_result.metrics["train_loss"]
+                )
+            )
+            text_file.write(
+                "Best trial epoch: {}\n".format(best_result.metrics["epoch"])
+            )
+            text_file.write("Best model path {}".format(best_result.path))
 
     # old working
     # Best trial config: {'input_dim': 7238, 'hidden_dim1': 4096, 'hidden_dim2': 32, 'embedding_dim': 16, 'lr': 0.00010151037934002151, 'batch_size': 2, 'epochs': 10}
@@ -639,11 +653,11 @@ def main():
         "RandomForest",
     ]
     strategies = ["mean", "remove-voxels", "median"]
-    classifiers = ["SVM", "MLP", "LinearDiscriminant"]
-    classifiers = ["MLP", "LinearDiscriminant"]
-    #classifiers = ["LinearDiscriminant"]
-    #strategies = ["mean"]
-    # classifiers = ["SVM"]
+    # classifiers = ["SVM", "MLP", "LinearDiscriminant"]
+    # classifiers = ["MLP", "LinearDiscriminant"]
+    # classifiers = ["LinearDiscriminant"]
+    # strategies = ["mean"]
+    classifiers = ["LGBM"]
     t_config = TrainingConfig()
     # t_config.folds = 1
     # t_config.explain = True
@@ -657,8 +671,32 @@ def main():
     # stg_classification(classifiers, strategies, t_config)# was using to create the results for stg
     # t_config.best_autoencoder_config["epochs "] = 1
     # t_config.folds = 2
-    stg_classification(classifiers, strategies, t_config)
-    # ifg_classification(classifiers, strategies, t_config)
+    ###############################
+    # = best_autoencoder_config_STG
+    t_config.best_autoencoder_config = {
+        "input_dim": 7238,
+        "hidden_dim1": 32,
+        "hidden_dim2": 512,
+        "embedding_dim": 2,
+        "lr": 0.07539378759292441,
+        "batch_size": 128,
+        "epochs": 10,
+        "brain_area": "",
+    }
+    # stg_classification(classifiers, strategies, t_config)
+    #####################################
+    # best_autoencoder_config_IFG =
+    t_config.best_autoencoder_config = {
+        "input_dim": 523,
+        "hidden_dim1": 8,
+        "hidden_dim2": 1,
+        "embedding_dim": 4,
+        "lr": 0.023394330747395223,
+        "batch_size": 128,
+        "epochs": 10,
+        "brain_area": "",
+    }
+    ifg_classification(classifiers, strategies, t_config)
 
 
 if __name__ == "__main__":
