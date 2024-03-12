@@ -175,6 +175,7 @@ def ifg_classification(classifiers, strategies, t_config: TrainingConfig):
     if t_config.predefined_split:
         split = "cr_split"
 
+    t_config.brain_area = brain.area
     export = ExportData()
     note = export.create_note(t_config)
     export.create_and_write_datasheet(
@@ -214,6 +215,7 @@ def stg_binary_classification(classifiers, strategies, t_config: TrainingConfig)
             strategies,
             classifiers,
         )
+        t_config.brain_area = brain.area
         export = ExportData()
         note = export.create_note(t_config)
         export.create_and_write_datasheet(
@@ -234,6 +236,7 @@ def stg_binary_classification(classifiers, strategies, t_config: TrainingConfig)
             strategies,
             classifiers,
         )
+        t_config.brain_area = brain.area
         export = ExportData()
         note = export.create_note(t_config)
         export.create_and_write_datasheet(
@@ -272,6 +275,7 @@ def stg_classification(classifiers, strategies, t_config: TrainingConfig):
     if t_config.predefined_split:
         split = "cr_split"
 
+    t_config.brain_area = brain.area
     export = ExportData()
     note = export.create_note(t_config)
     export.create_and_write_datasheet(
