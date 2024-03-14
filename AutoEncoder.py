@@ -6,7 +6,7 @@ from torchvision import datasets, transforms
 
 
 # Building the encoder
-class AutoencoderN(nn.Module):
+class Autoencoder(nn.Module):
     def __init__(
         self,
         input_dim,

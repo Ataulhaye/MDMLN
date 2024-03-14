@@ -12,12 +12,12 @@ from ray.train import Checkpoint
 from torch.utils.data import random_split
 from torchvision import datasets, transforms
 
-from AutoEncoderN import AutoencoderN
+from AutoEncoder import Autoencoder
 
 
 def train_and_validate_mnist_Test_method(config, data_dir=None):
     #'input_dim': 784, 'hidden_dim1': 64, 'hidden_dim2': 128, 'hidden_dim3': 256, 'hidden_dim4': 256, 'embedding_dim': 8, 'lr': 0.0009231555955597683, 'batch_size': 2
-    net = AutoencoderN(784, 64, 128, 256, 256, 8)
+    net = Autoencoder(784, 64, 128, 256, 256, 8)
     device = "cpu"
     if torch.cuda.is_available():
         device = "cuda:0"
@@ -151,7 +151,7 @@ def train_and_validate_mnist_Test_method(config, data_dir=None):
 def train_and_validate_mnist_ray_tune(config, data_dir=None):
     print("Config:Tes", config)
     # net = Autoencoder(config["input_dim"],config["hidden_dim1"],config["hidden_dim2"],config["hidden_dim3"],config["hidden_dim4"],config["embedding_dim"],)
-    net = AutoencoderN(
+    net = Autoencoder(
         config["input_dim"],
         config["hidden_dim1"],
         config["hidden_dim2"],

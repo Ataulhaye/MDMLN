@@ -28,7 +28,7 @@ from torch.utils.data import TensorDataset
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
-from BrainTrainUtils import test_autoencoder_braindataN, train_autoencoder_braindataN
+from BrainTrainUtils import test_autoencoder_braindata, train_autoencoder_braindata
 from EvaluateTrainingModel import EvaluateTrainingModel
 from ExportData import ExportData
 from ExportEntity import ExportEntity
@@ -120,10 +120,10 @@ class DataTraining:
             autoencoder_model,
             train_encodings,
             train_labels,
-        ) = train_autoencoder_braindataN(
+        ) = train_autoencoder_braindata(
             train_config.best_autoencoder_config, tensor_datasets
         )
-        loss, test_encoding, test_labels = test_autoencoder_braindataN(
+        loss, test_encoding, test_labels = test_autoencoder_braindata(
             autoencoder_model, tensor_datasets.test_set
         )
         train_test_set = TestTrainingSet(

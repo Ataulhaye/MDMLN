@@ -13,7 +13,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from torchvision import datasets
 
-from AutoEncoderN import AutoencoderN
+from AutoEncoder import Autoencoder
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
@@ -22,8 +22,8 @@ from DataTraining import DataTraining
 from EvaluateTrainingModel import EvaluateTrainingModel
 from ExportData import ExportData
 from HyperParameterSearch import (
-    get_voxel_tensor_datasetsN,
-    train_and_validate_brain_voxels_rayN,
+    get_voxel_tensor_datasets,
+    train_and_validate_brain_voxels_ray,
 )
 from PlotData import VisualizeData
 from TrainingConfig import TrainingConfig
@@ -333,7 +333,7 @@ def train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=1):
     checkpoint = torch.load(checkpoint_path)
 
     # Best trial config: {'input_dim': 784, 'hidden_dim1': 128, 'hidden_dim2': 4, 'hidden_dim3': 16, 'hidden_dim4': 32, 'embedding_dim': 4, 'lr': 0.002424992195342828, 'batch_size': 64, 'epochs': 10}
-    best_trained_model = AutoencoderN(
+    best_trained_model = Autoencoder(
         best_result.config["input_dim"],
         best_result.config["hidden_dim1"],
         best_result.config["hidden_dim2"],
@@ -353,16 +353,19 @@ def train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=1):
     print("Best trial test set accuracy: {}".format(test_acc))
 
 
-def hyper_parameter_search_braindataN(
-    num_samples=20, max_num_epochs=10, gpus_per_trial=1
+def hyper_parameter_search_braindata(
+    area,
+    num_samples=25,
+    max_num_epochs=15,
+    gpus_per_trial=1,
 ):
     import ray
 
     ray.init(local_mode=True)
 
-    for i in range(6):
+    for i in range(7):
 
-        voxel_sets = get_voxel_tensor_datasetsN()
+        voxel_sets = get_voxel_tensor_datasets(area)
 
         config = {
             "input_dim": voxel_sets.train_set.tensors[0].shape[1],
@@ -370,8 +373,8 @@ def hyper_parameter_search_braindataN(
             "hidden_dim2": tune.choice([2**i for i in range(13)]),
             "embedding_dim": tune.choice([2**i for i in range(5)]),
             "lr": tune.loguniform(1e-4, 1e-1),
-            "batch_size": tune.choice([2, 4, 8, 16, 32, 64, 128]),
-            "epochs": 10,
+            "batch_size": tune.choice([2, 4, 8, 16, 32, 64, 128, 256]),
+            "epochs": 15,
         }
         # scheduler = ASHAScheduler(max_t=max_num_epochs,grace_period=1,reduction_factor=2,)
         scheduler = ASHAScheduler(
@@ -392,7 +395,7 @@ def hyper_parameter_search_braindataN(
         tuner = tune.Tuner(
             tune.with_resources(
                 tune.with_parameters(
-                    partial(train_and_validate_brain_voxels_rayN, tensor_set=voxel_sets)
+                    partial(train_and_validate_brain_voxels_ray, tensor_set=voxel_sets)
                 ),
                 # tune.with_parameters(train_and_validate_mnist_ray_tune),
                 resources={"cpu": 6, "gpu": gpus_per_trial},
@@ -420,9 +423,10 @@ def hyper_parameter_search_braindataN(
         print("Best trial epoch: {}".format(best_result.metrics["epoch"]))
         print("Best model path", best_result.path)
 
-        file_name = ExportData.get_file_name(".txt", "BestTrainConfig")
+        file_name = ExportData.get_file_name(".txt", f"BestTrainConfig-{area}")
         file_path = f"C://Users//ataul//source//Uni//BachelorThesis//poc//{file_name}"
         with open(file_path, "w") as text_file:
+            text_file.write("----------------------------------------\n")
             text_file.write("Best trial config: {}\n".format(best_result.config))
             text_file.write(
                 "Best trial final training loss: {}\n".format(
@@ -432,7 +436,8 @@ def hyper_parameter_search_braindataN(
             text_file.write(
                 "Best trial epoch: {}\n".format(best_result.metrics["epoch"])
             )
-            text_file.write("Best model path {}".format(best_result.path))
+            text_file.write("Best model path {}\n".format(best_result.path))
+            text_file.write("----------------------------------------\n")
 
     # old working
     # Best trial config: {'input_dim': 7238, 'hidden_dim1': 4096, 'hidden_dim2': 32, 'embedding_dim': 16, 'lr': 0.00010151037934002151, 'batch_size': 2, 'epochs': 10}
@@ -507,8 +512,9 @@ def main():
     # train_valid_voxels()
     # train_valid_voxels_test()
     # train_valid_mnist(num_samples=2, max_num_epochs=1, gpus_per_trial=1)
-
-    # hyper_parameter_search_braindataN()
+    area = "STG"
+    # area = "IFG"
+    hyper_parameter_search_braindata(area)
 
     strategies = [
         None,
@@ -566,7 +572,7 @@ def main():
     }
     # t_config.best_autoencoder_config["epochs"] = 1
     # t_config.folds = 2
-    stg_classification(classifiers, strategies, t_config)
+    # stg_classification(classifiers, strategies, t_config)
     #####################################
     # best_autoencoder_config_IFG
     t_config.best_autoencoder_config = {

@@ -10,7 +10,7 @@ from ray import train
 from ray.train import Checkpoint
 from torch.utils.data import DataLoader, TensorDataset
 
-from AutoEncoderN import AutoencoderN
+from AutoEncoder import Autoencoder
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
@@ -19,8 +19,8 @@ from TestTrainingSet import TestTrainingSet, TestTrainingTensorDataset
 from TrainingConfig import TrainingConfig
 
 
-def train_and_validate_brain_voxels_rayN(config, tensor_set: TestTrainingTensorDataset):
-    model = generate_modelN(config)
+def train_and_validate_brain_voxels_ray(config, tensor_set: TestTrainingTensorDataset):
+    model = generate_model(config)
     print("Training Config", config)
 
     device = "cpu"
@@ -100,7 +100,7 @@ def train_and_validate_brain_voxels_rayN(config, tensor_set: TestTrainingTensorD
     print("Finished Training")
 
 
-def test_voxels_accuracyN(net, testset: TensorDataset, device="cpu"):
+def test_voxels_accuracy(net, testset: TensorDataset, device="cpu"):
     device = "cpu"
     if torch.cuda.is_available():
         device = "cuda:0"
@@ -129,8 +129,8 @@ def test_voxels_accuracyN(net, testset: TensorDataset, device="cpu"):
     return acc_loss, test_encodings, test_labels
 
 
-def generate_modelN(config):
-    model = AutoencoderN(
+def generate_model(config):
+    model = Autoencoder(
         config["input_dim"],
         config["hidden_dim1"],
         config["hidden_dim2"],
@@ -144,7 +144,7 @@ def load_bestmodel_and_test(model_path, device, gpus_per_trial):
 
     checkpoint = torch.load(checkpoint_path, map_location=device)
 
-    best_trained_model = generate_modelN(checkpoint["config"])
+    best_trained_model = generate_model(checkpoint["config"])
 
     if device == "cuda:0" and gpus_per_trial > 1:
         best_trained_model = nn.DataParallel(best_trained_model)
@@ -156,18 +156,25 @@ def load_bestmodel_and_test(model_path, device, gpus_per_trial):
     static_dataset = None
     with open(file_name, "rb") as data:
         static_dataset = pickle.load(data)
-    test_acc = test_voxels_accuracyN(best_trained_model, device)
+    test_acc = test_voxels_accuracy(best_trained_model, device)
     print("Best trial test set accuracy: {}".format(test_acc))
 
 
-def get_voxel_tensor_datasetsN():
+def get_voxel_tensor_datasets(brain_area):
     bd_config = BrainDataConfig()
+    data_path = ""
+    area = ""
+    if "IFG" in brain_area:
+        data_path = "C://Users//ataul//source//Uni//BachelorThesis//poc//ROI_aal_wfupick_left44_45.rex.mat"
+        area = bd_config.IFG
+    else:
+        data_path = "C://Users//ataul//source//Uni//BachelorThesis//poc//left_STG_MTG_AALlable_ROI.rex.mat"
+        area = bd_config.STG
+
     brain = Brain(
-        # area=bd_config.STG,
-        area=bd_config.IFG,
+        area=area,
         # data_path=bd_config.STG_path,
-        data_path="C://Users//ataul//source//Uni//BachelorThesis//poc//ROI_aal_wfupick_left44_45.rex.mat",
-        # data_path="C://Users//ataul//source//Uni//BachelorThesis//poc//left_STG_MTG_AALlable_ROI.rex.mat",
+        data_path=data_path,
         load_labels=True,
         load_int_labels=True,
     )

@@ -5,12 +5,12 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 
-from AutoEncoderN import AutoencoderN
+from AutoEncoder import Autoencoder
 from ExportData import ExportData
 from TestTrainingSet import TestTrainingTensorDataset
 
 
-def test_autoencoder_braindataN(net, testset: TensorDataset, device="cpu"):
+def test_autoencoder_braindata(net, testset: TensorDataset, device="cpu"):
     device = "cpu"
     if torch.cuda.is_available():
         device = "cuda:0"
@@ -39,8 +39,8 @@ def test_autoencoder_braindataN(net, testset: TensorDataset, device="cpu"):
     return acc_loss, test_encodings, test_labels
 
 
-def generate_modelN(config):
-    model = AutoencoderN(
+def generate_model(config):
+    model = Autoencoder(
         config["input_dim"],
         config["hidden_dim1"],
         config["hidden_dim2"],
@@ -49,9 +49,9 @@ def generate_modelN(config):
     return model
 
 
-def train_autoencoder_braindataN(config, tensor_set: TestTrainingTensorDataset):
+def train_autoencoder_braindata(config, tensor_set: TestTrainingTensorDataset):
     # model = generate_model(config)
-    model = generate_modelN(config)
+    model = generate_model(config)
     print("Training Config", config)
 
     device = "cpu"
@@ -140,7 +140,7 @@ def load_bestmodel_and_test(model_path, device, gpus_per_trial):
 
     checkpoint = torch.load(checkpoint_path, map_location=device)
 
-    best_trained_model = generate_modelN(checkpoint["config"])
+    best_trained_model = generate_model(checkpoint["config"])
 
     if device == "cuda:0" and gpus_per_trial > 1:
         best_trained_model = nn.DataParallel(best_trained_model)
@@ -152,5 +152,5 @@ def load_bestmodel_and_test(model_path, device, gpus_per_trial):
     static_dataset = None
     with open(file_name, "rb") as data:
         static_dataset = pickle.load(data)
-    test_acc = test_autoencoder_braindataN(best_trained_model, device)
+    test_acc = test_autoencoder_braindata(best_trained_model, device)
     print("Best trial test set accuracy: {}".format(test_acc))
