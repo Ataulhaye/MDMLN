@@ -658,23 +658,23 @@ def main():
     ]
     strategies = ["mean", "remove-voxels", "median"]
     # classifiers = ["SVM", "MLP", "LinearDiscriminant"]
-    # classifiers = ["MLP", "LinearDiscriminant"]
+    classifiers = ["MLP", "LinearDiscriminant", "LGBM"]
     # classifiers = ["LinearDiscriminant"]
     # strategies = ["mean"]
-    classifiers = ["LGBM"]
+    # classifiers = ["LGBM"]
     t_config = TrainingConfig()
     # t_config.folds = 1
     # t_config.explain = True
     t_config.dimension_reduction = False
     t_config.use_autoencoder = True
+    t_config.tsne = True
     # stg_binary_classification(classifiers, strategies, t_config)
     # stg_classification(classifiers, strategies, t_config)
     # ifg_classification(classifiers, strategies, t_config)
 
     # t_config.predefined_split = False
     # stg_classification(classifiers, strategies, t_config)# was using to create the results for stg
-    # t_config.best_autoencoder_config["epochs "] = 1
-    # t_config.folds = 2
+
     ###############################
     # = best_autoencoder_config_STG
     t_config.best_autoencoder_config = {
@@ -687,7 +687,9 @@ def main():
         "epochs": 10,
         "brain_area": "",
     }
-    # stg_classification(classifiers, strategies, t_config)
+    # t_config.best_autoencoder_config["epochs"] = 1
+    # t_config.folds = 2
+    stg_classification(classifiers, strategies, t_config)
     #####################################
     # best_autoencoder_config_IFG =
     t_config.best_autoencoder_config = {
@@ -700,7 +702,7 @@ def main():
         "epochs": 10,
         "brain_area": "",
     }
-    ifg_classification(classifiers, strategies, t_config)
+    # ifg_classification(classifiers, strategies, t_config)
 
 
 if __name__ == "__main__":

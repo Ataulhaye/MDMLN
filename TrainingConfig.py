@@ -31,6 +31,7 @@ class TrainingConfig:
         nan_classifiers=["DecisionTree", "HistGradientBoosting", "LGBM", "CatBoost"],
         use_autoencoder=False,
         brain_area="",
+        tsne=False,
         # best_autoencoder_config={"input_dim": 7238,"hidden_dim1": 128,"hidden_dim2": 4,"hidden_dim3": 1,"hidden_dim4": 1,"embedding_dim": 2,"lr": 0.011294654972486311,"batch_size": 8,"epochs": 1,"brain_area": "",},
         #'input_dim': 7238, 'hidden_dim1': 4096, 'hidden_dim2': 32, 'embedding_dim': 16, 'lr': 0.00010151037934002151, 'batch_size': 2, 'epochs': 10
         # Best trial config: {'input_dim': 7238, 'hidden_dim1': 1024, 'hidden_dim2': 4, 'embedding_dim': 8, 'lr': 0.014956047271301212, 'batch_size': 16, 'epochs': 10}
@@ -78,6 +79,7 @@ class TrainingConfig:
         self.use_autoencoder = use_autoencoder
         self.best_autoencoder_config = best_autoencoder_config
         self.brain_area = brain_area
+        self.tsne = tsne
 
     def __repr__(self) -> str:
         return f"Folds:{self.folds}, Test size:{self.test_size}, Conditional split:{self.predefined_split} , Dimension reduction:{self.dimension_reduction}, use_autoencoder:{self.use_autoencoder}, brain_area:{self.use_autoencoder}"

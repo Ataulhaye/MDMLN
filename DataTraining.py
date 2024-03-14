@@ -3,7 +3,11 @@ from datetime import datetime
 from math import ceil, floor
 
 import matplotlib.pyplot as plt
+
+plt.switch_backend("agg")
 import numpy as np
+import pandas as pd
+import seaborn as sns
 import shap
 import torch
 from catboost import CatBoostClassifier
@@ -13,6 +17,7 @@ from sklearn.decomposition import PCA
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.manifold import TSNE
 from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
@@ -25,6 +30,7 @@ from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
 from BrainTrainUtils import test_autoencoder_braindataN, train_autoencoder_braindataN
 from EvaluateTrainingModel import EvaluateTrainingModel
+from ExportData import ExportData
 from ExportEntity import ExportEntity
 from TestTrainingSet import TestTrainingSet, TestTrainingTensorDataset
 from TrainingConfig import TrainingConfig
@@ -65,6 +71,8 @@ class DataTraining:
                     brain, train_config, train_test_set
                 )
                 # ToDo after exams: USE TSNE to diffrenciate the classes and save the picture at every iteration
+            if train_config.use_autoencoder and train_config.tsne:
+                self.t_sne(train_test_set, brain, train_config, i, type(model).__name__)
 
             try:
                 print("Starting fitting of the model.")
@@ -142,6 +150,85 @@ class DataTraining:
             f"Data reduced from {x_dim} dimensions to {train_test_set.X_train.shape[1]} dimensions"
         )
         return train_test_set
+
+    def t_sne(
+        self,
+        train_test_set: TestTrainingSet,
+        brain: Brain,
+        train_config: TrainingConfig,
+        fold: int,
+        model_name: str,
+    ):
+        time_start = time.time()
+        components = train_test_set.X_train.shape[1]  # it is two dimensional
+        tsne = TSNE(n_components=components, perplexity=100)
+        # tsne.fit(train_test_set.X_train)
+        # tsne_results = tsne.fit_transform(train_test_set.X_test)
+        tsne_results = tsne.fit_transform(train_test_set.X_train)
+        print("t-SNE done! Time elapsed: {} seconds".format(time.time() - time_start))
+
+        df_tsne = pd.DataFrame(tsne_results, columns=["TSNE1", "TSNE2"])
+        # Add labels
+        # df_tsne["labels"] = train_test_set.y_train
+        df_tsne["labels"] = train_test_set.y_train
+
+        print(df_tsne)
+        scatter_plot = sns.scatterplot(
+            data=df_tsne,
+            x="TSNE1",
+            y="TSNE2",
+            hue="labels",
+            palette="bright",
+            legend="full",
+        )
+        fig = scatter_plot.get_figure()
+        name = f"{brain.area}_{brain.current_labels.name[:-4]}_{train_config.strategy}-{fold}th_fold-{model_name}"
+        graph_name = ExportData.get_file_name(".png", name)
+        plt.title(f"Using t-SNE {name}")
+        fig.savefig(graph_name, dpi=1200)
+        plt.close()
+        print("Finshed")
+
+    def testMethod(
+        self,
+        train_test_set: TestTrainingSet,
+        brain: Brain,
+        train_config: TrainingConfig,
+        fold: int,
+        model_name: str,
+    ):
+        time_start = time.time()
+        components = train_test_set.X_train.shape[1]
+        tsne = TSNE(n_components=components, verbose=1, perplexity=40, n_iter=300)
+        tsne_results = tsne.fit_transform(train_test_set.X_train)
+        print("t-SNE done! Time elapsed: {} seconds".format(time.time() - time_start))
+
+        columns = []
+        for i in range(components):
+            columns.append(f"TSNE{i+1}")
+        df_tsne = pd.DataFrame(tsne_results, columns=columns)
+        # Add labels
+        df_tsne["labels"] = train_test_set.y_train
+
+        print(df_tsne)
+        if components > 2:
+            pass
+        else:
+            scatter_plot = sns.scatterplot(
+                data=df_tsne,
+                x="TSNE1",
+                y="TSNE2",
+                hue="labels",
+                palette="bright",
+                legend="full",
+            )
+            fig = scatter_plot.get_figure()
+            name = f"{brain.area}_{brain.current_labels.name[:-4]}_{train_config.strategy}-{fold}th_fold-{model_name}"
+            graph_name = ExportData.get_file_name(".png", name)
+            plt.title(f"Using t-SNE {name}")
+            fig.savefig(graph_name, dpi=1200)
+            plt.close()
+        print("Finshed")
 
     def explain_model(
         self,
