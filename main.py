@@ -13,23 +13,16 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from torchvision import datasets
 
-from AutoEncoder import Autoencoder
+from AutoEncoderN import AutoencoderN
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
-from BrainTrainUtils import (
-    generate_model,
-    load_bestmodel_and_test,
-    test_autoencode_braindata,
-    train_and_validate_autoencode_braindata,
-)
+from BrainTrainUtils import load_bestmodel_and_test
 from DataTraining import DataTraining
 from EvaluateTrainingModel import EvaluateTrainingModel
 from ExportData import ExportData
 from HyperParameterSearch import (
-    get_voxel_tensor_datasets,
     get_voxel_tensor_datasetsN,
-    train_and_validate_brain_voxels_ray,
     train_and_validate_brain_voxels_rayN,
 )
 from PlotData import VisualizeData
@@ -299,25 +292,11 @@ def train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=1):
         "input_dim": 784,
         "hidden_dim1": tune.choice([2**i for i in range(10)]),
         "hidden_dim2": tune.choice([2**i for i in range(10)]),
-        "hidden_dim3": tune.choice([2**i for i in range(10)]),
-        "hidden_dim4": tune.choice([2**i for i in range(10)]),
         "embedding_dim": tune.choice([2**i for i in range(5)]),
         "lr": tune.loguniform(1e-4, 1e-1),
         "batch_size": tune.choice([2, 4, 8, 16, 32, 64, 128]),
         "epochs": 10,
     }
-
-    # config = {
-    # "input_dim": 784,
-    # "hidden_dim1": tune.choice([2**i for i in range(2)]),
-    # "hidden_dim2": tune.choice([2**i for i in range(2)]),
-    # "hidden_dim3": tune.choice([2**i for i in range(2)]),
-    # "hidden_dim4": tune.choice([2**i for i in range(2)]),
-    # "embedding_dim": tune.choice([2**i for i in range(2)]),
-    # "lr": tune.loguniform(1e-4, 1e-1),
-    # "batch_size": tune.choice([64, 128]),
-    # "epochs": 10,
-    # }
     scheduler = ASHAScheduler(
         max_t=max_num_epochs,
         grace_period=1,
@@ -354,12 +333,10 @@ def train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=1):
     checkpoint = torch.load(checkpoint_path)
 
     # Best trial config: {'input_dim': 784, 'hidden_dim1': 128, 'hidden_dim2': 4, 'hidden_dim3': 16, 'hidden_dim4': 32, 'embedding_dim': 4, 'lr': 0.002424992195342828, 'batch_size': 64, 'epochs': 10}
-    best_trained_model = Autoencoder(
+    best_trained_model = AutoencoderN(
         best_result.config["input_dim"],
         best_result.config["hidden_dim1"],
         best_result.config["hidden_dim2"],
-        best_result.config["hidden_dim3"],
-        best_result.config["hidden_dim4"],
         best_result.config["embedding_dim"],
     )
 
@@ -373,78 +350,6 @@ def train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=1):
     best_trained_model.to(device)
 
     test_acc = test_accuracy(best_trained_model, device)
-    print("Best trial test set accuracy: {}".format(test_acc))
-
-
-def hyper_parameter_search_braindata(
-    num_samples=30, max_num_epochs=10, gpus_per_trial=1
-):
-    import ray
-
-    ray.init(local_mode=True)
-
-    voxel_sets = get_voxel_tensor_datasets()
-
-    config = {
-        "input_dim": voxel_sets.train_set.tensors[0].shape[1],
-        "hidden_dim1": tune.choice([2**i for i in range(13)]),
-        "hidden_dim2": tune.choice([2**i for i in range(13)]),
-        "hidden_dim3": tune.choice([2**i for i in range(13)]),
-        "hidden_dim4": tune.choice([2**i for i in range(13)]),
-        "embedding_dim": tune.choice([2**i for i in range(5)]),
-        "lr": tune.loguniform(1e-4, 1e-1),
-        "batch_size": tune.choice([2, 4, 8, 16, 32, 64, 128]),
-        "epochs": 10,
-    }
-    # scheduler = ASHAScheduler(max_t=max_num_epochs,grace_period=1,reduction_factor=2,)
-    scheduler = ASHAScheduler(
-        max_t=max_num_epochs,
-        grace_period=1,
-        reduction_factor=2,
-    )
-    tuner = tune.Tuner(
-        tune.with_resources(
-            tune.with_parameters(
-                partial(train_and_validate_brain_voxels_ray, tensor_set=voxel_sets)
-            ),
-            # tune.with_parameters(train_and_validate_mnist_ray_tune),
-            resources={"cpu": 6, "gpu": gpus_per_trial},
-        ),
-        tune_config=tune.TuneConfig(
-            metric="v_loss",
-            mode="min",
-            scheduler=scheduler,
-            num_samples=num_samples,
-        ),
-        param_space=config,
-    )
-    # ray.put()
-    results = tuner.fit()
-    best_result = results.get_best_result("v_loss", "min")
-
-    print("Best trial config: {}".format(best_result.config))
-    print("Best trial final validation loss: {}".format(best_result.metrics["v_loss"]))
-    print("Best trial final training loss: {}".format(best_result.metrics["t_loss"]))
-    print("Best trial epoch: {}".format(best_result.metrics["epoch"]))
-    print("Best model path", best_result.path)
-
-    device = "cpu"
-    if torch.cuda.is_available():
-        device = "cuda:0"
-
-    checkpoint_path = os.path.join(best_result.checkpoint.to_directory(), "model.pt")
-
-    checkpoint = torch.load(checkpoint_path, map_location=device)
-
-    best_trained_model = generate_model(best_result.config)
-
-    if device == "cuda:0" and gpus_per_trial > 1:
-        best_trained_model = nn.DataParallel(best_trained_model)
-    best_trained_model.to(device)
-
-    best_trained_model.load_state_dict(checkpoint["model_state"])
-
-    test_acc = test_autoencode_braindata(best_trained_model, device)
     print("Best trial test set accuracy: {}".format(test_acc))
 
 
@@ -580,34 +485,6 @@ def hyper_parameter_search_braindataN(
     # print("Best trial test set accuracy: {}".format(test_acc))
 
 
-def train_valid_voxels_test():
-    voxel_sets = get_voxel_tensor_datasets()
-
-    config = {
-        "input_dim": voxel_sets.train_set.tensors[0].shape[1],
-        "hidden_dim1": 1250,
-        "hidden_dim2": 750,
-        "hidden_dim3": 500,
-        "hidden_dim4": 250,
-        "embedding_dim": 8,
-        "lr": 0.0009231555955597683,
-        "batch_size": 8,
-        "epochs": 10,
-        "brain_area": "STG_mean",
-    }
-
-    (
-        best_trained_model,
-        train_encodings,
-        train_labels,
-    ) = train_and_validate_autoencode_braindata(config, voxel_sets)
-
-    test_encodings, test_labels = test_autoencode_braindata(
-        best_trained_model,
-        voxel_sets.test_set,
-    )
-
-
 def test_load_model():
     device = "cpu"
     if torch.cuda.is_available():
@@ -691,7 +568,7 @@ def main():
     # t_config.folds = 2
     stg_classification(classifiers, strategies, t_config)
     #####################################
-    # best_autoencoder_config_IFG =
+    # best_autoencoder_config_IFG
     t_config.best_autoencoder_config = {
         "input_dim": 523,
         "hidden_dim1": 8,
@@ -706,10 +583,4 @@ def main():
 
 
 if __name__ == "__main__":
-    # Set-ExecutionPolicy Unrestricted -Scope Process
-    # ./activate.ps1
-    # Best trial config: {'input_dim': 784, 'hidden_dim1': 64, 'hidden_dim2': 128, 'hidden_dim3': 256, 'hidden_dim4': 256, 'embedding_dim': 8, 'lr': 0.0009231555955597683, 'batch_size': 2}
-    # Best trial final validation loss: 0.02403166469299079
-    # Best trial final validation accuracy: 0.0
-
     main()

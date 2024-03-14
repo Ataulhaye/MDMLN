@@ -62,15 +62,11 @@ class DataTraining:
             if train_config.dimension_reduction:
                 train_test_set = self.apply_PCA(train_test_set)
 
-            # if train_config.use_autoencoder:
-            # tensor_datasets = self.get_tensor_datasets(
-            # brain, train_config, train_test_set
-            # )
             if train_config.use_autoencoder:
                 train_test_set = self.apply_autoencoder(
                     brain, train_config, train_test_set
                 )
-                # ToDo after exams: USE TSNE to diffrenciate the classes and save the picture at every iteration
+
             if train_config.use_autoencoder and train_config.tsne:
                 self.t_sne(train_test_set, brain, train_config, i, type(model).__name__)
 
@@ -82,7 +78,6 @@ class DataTraining:
                 print("Score", score)
                 scores.append(score)
             except (Exception, ValueError, RuntimeError, TypeError, NameError) as err:
-                # The issue is that in this case every sample returned by encoder is same, and linear dicriminant return the illigal error
                 print("Error!", err)
 
             if train_config.explain and "binary" in brain.current_labels.name:
@@ -99,7 +94,12 @@ class DataTraining:
         # print(f"{type(model).__name__}: %0.2f accuracy with a standard deviation of %0.2f"% (score_array.mean(), score_array.std()))
         return scores
 
-    def apply_autoencoder(self, brain, train_config, train_test_set):
+    def apply_autoencoder(
+        self,
+        brain: Brain,
+        train_config: TrainingConfig,
+        train_test_set: TestTrainingSet,
+    ):
         tensor_datasets = self.to_tensor_datasets(train_test_set)
         # check the input dim config
         # voxel_dim = tensor_datasets.train_set.tensors[0].shape[1]
@@ -116,7 +116,6 @@ class DataTraining:
         train_config.best_autoencoder_config["brain_area"] = (
             f"{brain.area}_{train_config.strategy}"
         )
-        # (autoencoder_model,train_encodings,train_labels,) = train_and_validate_autoencode_braindata(train_config.best_autoencoder_config, tensor_datasets)
         (
             autoencoder_model,
             train_encodings,
@@ -124,8 +123,6 @@ class DataTraining:
         ) = train_autoencoder_braindataN(
             train_config.best_autoencoder_config, tensor_datasets
         )
-        # train_autoencoder_braindata
-        # test_encoding, test_labels = test_autoencode_braindata(autoencoder_model, tensor_datasets.test_set)
         loss, test_encoding, test_labels = test_autoencoder_braindataN(
             autoencoder_model, tensor_datasets.test_set
         )
@@ -137,7 +134,7 @@ class DataTraining:
         )
         return train_test_set
 
-    def apply_PCA(self, train_test_set):
+    def apply_PCA(self, train_test_set: TestTrainingSet):
         x_dim = train_test_set.X_train.shape[1]
         pca = PCA(n_components=0.99, svd_solver="full")
         pca.fit(train_test_set.X_train)
@@ -187,47 +184,6 @@ class DataTraining:
         plt.title(f"Using t-SNE {name}")
         fig.savefig(graph_name, dpi=1200)
         plt.close()
-        print("Finshed")
-
-    def testMethod(
-        self,
-        train_test_set: TestTrainingSet,
-        brain: Brain,
-        train_config: TrainingConfig,
-        fold: int,
-        model_name: str,
-    ):
-        time_start = time.time()
-        components = train_test_set.X_train.shape[1]
-        tsne = TSNE(n_components=components, verbose=1, perplexity=40, n_iter=300)
-        tsne_results = tsne.fit_transform(train_test_set.X_train)
-        print("t-SNE done! Time elapsed: {} seconds".format(time.time() - time_start))
-
-        columns = []
-        for i in range(components):
-            columns.append(f"TSNE{i+1}")
-        df_tsne = pd.DataFrame(tsne_results, columns=columns)
-        # Add labels
-        df_tsne["labels"] = train_test_set.y_train
-
-        print(df_tsne)
-        if components > 2:
-            pass
-        else:
-            scatter_plot = sns.scatterplot(
-                data=df_tsne,
-                x="TSNE1",
-                y="TSNE2",
-                hue="labels",
-                palette="bright",
-                legend="full",
-            )
-            fig = scatter_plot.get_figure()
-            name = f"{brain.area}_{brain.current_labels.name[:-4]}_{train_config.strategy}-{fold}th_fold-{model_name}"
-            graph_name = ExportData.get_file_name(".png", name)
-            plt.title(f"Using t-SNE {name}")
-            fig.savefig(graph_name, dpi=1200)
-            plt.close()
         print("Finshed")
 
     def explain_model(

@@ -12,12 +12,12 @@ from ray.train import Checkpoint
 from torch.utils.data import random_split
 from torchvision import datasets, transforms
 
-from AutoEncoder import Autoencoder
+from AutoEncoderN import AutoencoderN
 
 
 def train_and_validate_mnist_Test_method(config, data_dir=None):
     #'input_dim': 784, 'hidden_dim1': 64, 'hidden_dim2': 128, 'hidden_dim3': 256, 'hidden_dim4': 256, 'embedding_dim': 8, 'lr': 0.0009231555955597683, 'batch_size': 2
-    net = Autoencoder(784, 64, 128, 256, 256, 8)
+    net = AutoencoderN(784, 64, 128, 256, 256, 8)
     device = "cpu"
     if torch.cuda.is_available():
         device = "cuda:0"
@@ -151,12 +151,10 @@ def train_and_validate_mnist_Test_method(config, data_dir=None):
 def train_and_validate_mnist_ray_tune(config, data_dir=None):
     print("Config:Tes", config)
     # net = Autoencoder(config["input_dim"],config["hidden_dim1"],config["hidden_dim2"],config["hidden_dim3"],config["hidden_dim4"],config["embedding_dim"],)
-    net = Autoencoder(
+    net = AutoencoderN(
         config["input_dim"],
         config["hidden_dim1"],
         config["hidden_dim2"],
-        config["hidden_dim3"],
-        config["hidden_dim4"],
         config["embedding_dim"],
     )
     # Best trial config: {'input_dim': 784, 'hidden_dim1': 64, 'hidden_dim2': 256, 'hidden_dim3': 16, 'hidden_dim4': 8, 'embedding_dim': 1, 'lr': 0.0006111085649326119, 'batch_size': 64}
@@ -314,8 +312,6 @@ config = {
     "input_dim": 784,
     "hidden_dim1": tune.choice([2**i for i in range(10)]),
     "hidden_dim2": tune.choice([2**i for i in range(10)]),
-    "hidden_dim3": tune.choice([2**i for i in range(10)]),
-    "hidden_dim4": tune.choice([2**i for i in range(10)]),
     "embedding_dim": tune.choice([2**i for i in range(5)]),
     "lr": tune.loguniform(1e-4, 1e-1),
     "batch_size": tune.choice([2, 4, 8, 16, 32, 64, 128]),
