@@ -32,10 +32,6 @@ class TrainingConfig:
         use_autoencoder=False,
         brain_area="",
         tsne=False,
-        # best_autoencoder_config={"input_dim": 7238,"hidden_dim1": 128,"hidden_dim2": 4,"hidden_dim3": 1,"hidden_dim4": 1,"embedding_dim": 2,"lr": 0.011294654972486311,"batch_size": 8,"epochs": 1,"brain_area": "",},
-        #'input_dim': 7238, 'hidden_dim1': 4096, 'hidden_dim2': 32, 'embedding_dim': 16, 'lr': 0.00010151037934002151, 'batch_size': 2, 'epochs': 10
-        # Best trial config: {'input_dim': 7238, 'hidden_dim1': 1024, 'hidden_dim2': 4, 'embedding_dim': 8, 'lr': 0.014956047271301212, 'batch_size': 16, 'epochs': 10}
-        # old Best trial config: {'input_dim': 7238, 'hidden_dim1': 4096, 'hidden_dim2': 32, 'embedding_dim': 16, 'lr': 0.00010151037934002151, 'batch_size': 2, 'epochs': 10}
         best_autoencoder_config_STG={
             "input_dim": 7238,
             "hidden_dim1": 32,
@@ -44,17 +40,24 @@ class TrainingConfig:
             "lr": 0.07539378759292441,
             "batch_size": 128,
             "epochs": 10,
-            "brain_area": "",
+            "brain_area": "STG",
         },
+        # ----------------------------------------
+        # -------------IFG-----------------------
+        # Best trial config: {'input_dim': 523, 'hidden_dim1': 1024, 'hidden_dim2': 8, 'embedding_dim': 2, 'lr': 0.0016028928095361706, 'batch_size': 384, 'epochs': 25}
+        # Best trial final training loss: 0.01012803427875042
+        # Best trial epoch: 24
+        # Best model path C:/Users/ataul/ray_results/tune_with_parameters_2024-03-16_17-40-53/tune_with_parameters_f4bd1_00011_11_embedding_dim=2,hidden_dim1=1024,hidden_dim2=8,lr=0.0016_2024-03-16_18-09-11
+        # ----------------------------------------
         best_autoencoder_config_IFG={
             "input_dim": 523,
-            "hidden_dim1": 8,
-            "hidden_dim2": 1,
-            "embedding_dim": 4,
-            "lr": 0.023394330747395223,
-            "batch_size": 128,
-            "epochs": 10,
-            "brain_area": "",
+            "hidden_dim1": 1024,
+            "hidden_dim2": 8,
+            "embedding_dim": 2,
+            "lr": 0.0016028928095361706,
+            "batch_size": 384,
+            "epochs": 25,
+            "brain_area": "IFG",
         },
         best_autoencoder_config={
             "input_dim": 523,

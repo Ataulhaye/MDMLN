@@ -356,14 +356,14 @@ def train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=1):
 def hyper_parameter_search_braindata(
     area,
     num_samples=25,
-    max_num_epochs=15,
+    max_num_epochs=30,
     gpus_per_trial=1,
 ):
     import ray
 
     ray.init(local_mode=True)
 
-    for i in range(7):
+    for i in range(5):
 
         voxel_sets = get_voxel_tensor_datasets(area)
 
@@ -373,8 +373,10 @@ def hyper_parameter_search_braindata(
             "hidden_dim2": tune.choice([2**i for i in range(13)]),
             "embedding_dim": tune.choice([2**i for i in range(5)]),
             "lr": tune.loguniform(1e-4, 1e-1),
-            "batch_size": tune.choice([2, 4, 8, 16, 32, 64, 128, 256]),
-            "epochs": 15,
+            # "batch_size": tune.choice([128, 256, 512]),
+            # "batch_size": 384,
+            "batch_size": voxel_sets.train_set.tensors[0].shape[0],
+            "epochs": 30,
         }
         # scheduler = ASHAScheduler(max_t=max_num_epochs,grace_period=1,reduction_factor=2,)
         scheduler = ASHAScheduler(
@@ -398,7 +400,7 @@ def hyper_parameter_search_braindata(
                     partial(train_and_validate_brain_voxels_ray, tensor_set=voxel_sets)
                 ),
                 # tune.with_parameters(train_and_validate_mnist_ray_tune),
-                resources={"cpu": 6, "gpu": gpus_per_trial},
+                resources={"cpu": 10, "gpu": gpus_per_trial},
             ),
             tune_config=tune.TuneConfig(
                 metric="train_loss",
@@ -438,37 +440,6 @@ def hyper_parameter_search_braindata(
             )
             text_file.write("Best model path {}\n".format(best_result.path))
             text_file.write("----------------------------------------\n")
-
-    # old working
-    # Best trial config: {'input_dim': 7238, 'hidden_dim1': 4096, 'hidden_dim2': 32, 'embedding_dim': 16, 'lr': 0.00010151037934002151, 'batch_size': 2, 'epochs': 10}
-    # Best trial final training loss: 8.329863358785708
-    # Best trial epoch: 9
-
-    # Best trial config: {'input_dim': 7238, 'hidden_dim1': 1024, 'hidden_dim2': 4, 'embedding_dim': 8, 'lr': 0.014956047271301212, 'batch_size': 16, 'epochs': 10}
-    # Best trial final training loss: 8.754223763942719
-    # Best trial epoch: 9
-    # Best model path C:/Users/ataul/ray_results/tune_with_parameters_2024-03-08_15-04-53/tune_with_parameters_d6407_00019_19_batch_size=16,embedding_dim=8,hidden_dim1=1024,hidden_dim2=4,lr=0.0150_2024-03-08_15-15-45
-
-    # stg conditional split true
-    # Best trial config: {'input_dim': 7238, 'hidden_dim1': 1024, 'hidden_dim2': 4, 'embedding_dim': 8, 'lr': 0.044289327567219795, 'batch_size': 128, 'epochs': 10}
-    # Best trial final training loss: 0.06911449631055196
-    # Best trial epoch: 9
-    # Best model path C:/Users/ataul/ray_results/tune_with_parameters_2024-03-09_08-47-42/tune_with_parameters_4fc24_00011_11_batch_size=128,embedding_dim=8,hidden_dim1=1024,hidden_dim2=4,lr=0.0443_2024-03-09_08-54-40
-
-    # Best trial config: {'input_dim': 7238, 'hidden_dim1': 4, 'hidden_dim2': 8, 'embedding_dim': 16, 'lr': 0.0023489378170185485, 'batch_size': 128, 'epochs': 10}
-    # Best trial final training loss: 0.07310594369967778
-    # Best trial epoch: 9
-    # Best model path C:/Users/ataul/ray_results/tune_with_parameters_2024-03-09_11-11-16/tune_with_parameters_5dca3_00019_19_batch_size=128,embedding_dim=16,hidden_dim1=4,hidden_dim2=8,lr=0.0023_2024-03-09_11-30-54
-
-    # Best trial config: {'input_dim': 7238, 'hidden_dim1': 32, 'hidden_dim2': 512, 'embedding_dim': 2, 'lr': 0.07539378759292441, 'batch_size': 128, 'epochs': 10}
-    # Best trial final training loss: 0.068205493191878
-    # Best trial epoch: 9
-    # Best model path C:/Users/ataul/ray_results/tune_with_parameters_2024-03-09_11-32-33/tune_with_parameters_57198_00017_17_batch_size=128,embedding_dim=2,hidden_dim1=32,hidden_dim2=512,lr=0.0754_2024-03-09_16-36-00
-
-    # Best trial config: {'input_dim': 7238, 'hidden_dim1': 2048, 'hidden_dim2': 8, 'embedding_dim': 4, 'lr': 0.0338333786482933, 'batch_size': 128, 'epochs': 10}
-    # Best trial final training loss: 0.06885300576686859
-    # Best trial epoch: 9
-    # Best model path C:/Users/ataul/ray_results/tune_with_parameters_2024-03-09_18-28-57/tune_with_parameters_82698_00003_3_batch_size=128,embedding_dim=4,hidden_dim1=2048,hidden_dim2=8,lr=0.0338_2024-03-09_19-05-33
 
     # device = "cpu"
     # if torch.cuda.is_available():
@@ -514,7 +485,7 @@ def main():
     # train_valid_mnist(num_samples=2, max_num_epochs=1, gpus_per_trial=1)
     area = "STG"
     # area = "IFG"
-    hyper_parameter_search_braindata(area)
+    # hyper_parameter_search_braindata(area)
 
     strategies = [
         None,
@@ -541,7 +512,7 @@ def main():
     ]
     strategies = ["mean", "remove-voxels", "median"]
     # classifiers = ["SVM", "MLP", "LinearDiscriminant"]
-    classifiers = ["MLP", "LinearDiscriminant", "LGBM"]
+    classifiers = ["SVM", "MLP", "LinearDiscriminant", "LGBM"]
     # classifiers = ["LinearDiscriminant"]
     # strategies = ["mean"]
     # classifiers = ["LGBM"]
@@ -562,29 +533,30 @@ def main():
     # = best_autoencoder_config_STG
     t_config.best_autoencoder_config = {
         "input_dim": 7238,
-        "hidden_dim1": 32,
+        "hidden_dim1": 4096,
         "hidden_dim2": 512,
         "embedding_dim": 2,
-        "lr": 0.07539378759292441,
-        "batch_size": 128,
-        "epochs": 10,
-        "brain_area": "",
+        "lr": 0.00024641847887259374,
+        "batch_size": 384,
+        "epochs": 25,
+        "brain_area": "STG",
     }
     # t_config.best_autoencoder_config["epochs"] = 1
     # t_config.folds = 2
-    # stg_classification(classifiers, strategies, t_config)
+    stg_classification(classifiers, strategies, t_config)
     #####################################
     # best_autoencoder_config_IFG
     t_config.best_autoencoder_config = {
         "input_dim": 523,
-        "hidden_dim1": 8,
-        "hidden_dim2": 1,
-        "embedding_dim": 4,
-        "lr": 0.023394330747395223,
-        "batch_size": 128,
-        "epochs": 10,
-        "brain_area": "",
+        "hidden_dim1": 1024,
+        "hidden_dim2": 8,
+        "embedding_dim": 2,
+        "lr": 0.0016028928095361706,
+        "batch_size": 384,
+        "epochs": 25,
+        "brain_area": "IFG",
     }
+
     # ifg_classification(classifiers, strategies, t_config)
 
 
