@@ -32,6 +32,8 @@ class TrainingConfig:
         use_autoencoder=False,
         brain_area="",
         tsne=False,
+        has_fix_components=False,
+        pca_fix_components=75,
         best_autoencoder_config_STG={
             "input_dim": 7238,
             "hidden_dim1": 32,
@@ -83,6 +85,8 @@ class TrainingConfig:
         self.best_autoencoder_config = best_autoencoder_config
         self.brain_area = brain_area
         self.tsne = tsne
+        self.has_fix_components = has_fix_components
+        self.pca_fix_components = pca_fix_components
 
     def __repr__(self) -> str:
         return f"Folds:{self.folds}, Test size:{self.test_size}, Conditional split:{self.predefined_split} , Dimension reduction:{self.dimension_reduction}, use_autoencoder:{self.use_autoencoder}, brain_area:{self.brain_area}"

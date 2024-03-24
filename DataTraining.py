@@ -60,7 +60,7 @@ class DataTraining:
             )
 
             if train_config.dimension_reduction:
-                train_test_set = self.apply_PCA(train_test_set)
+                train_test_set = self.apply_PCA(train_test_set, train_config)
 
             if train_config.use_autoencoder:
                 train_test_set = self.apply_autoencoder(
@@ -134,9 +134,11 @@ class DataTraining:
         )
         return train_test_set
 
-    def apply_PCA(self, train_test_set: TestTrainingSet):
+    def apply_PCA(self, train_test_set: TestTrainingSet, train_config: TrainingConfig):
         x_dim = train_test_set.X_train.shape[1]
         pca = PCA(n_components=0.99, svd_solver="full")
+        if train_config.has_fix_components:
+            pca = PCA(n_components=train_config.pca_fix_components)
         pca.fit(train_test_set.X_train)
         pca_x_train = pca.transform(train_test_set.X_train)
         pca_x_test = pca.transform(train_test_set.X_test)

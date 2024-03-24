@@ -135,10 +135,33 @@ def train_autoencoder_braindata(config, tensor_set: TestTrainingTensorDataset):
     return (model, train_encodings, train_labels)
 
 
-def load_bestmodel_and_test(model_path, device, gpus_per_trial):
-    checkpoint_path = model_path + "/model.pt"
+def load_bestmodel_and_test(brain_area, model_path, device, gpus_per_trial):
+
+    checkpoint_path = None
+    if "model.pt" in model_path:
+        checkpoint_path = model_path
+    else:
+        checkpoint_path = model_path + "/model.pt"
 
     checkpoint = torch.load(checkpoint_path, map_location=device)
+
+    from matplotlib import pyplot as plt
+
+    name = f"{brain_area}_Autoencoder_TrainLoss"
+    graph_name = ExportData.get_file_name(".png", name)
+    try:
+        plt.plot(checkpoint["train_loss_list"], label="train_loss")
+    except KeyError as err:
+        print(err)
+    finally:
+        plt.plot(checkpoint["t_loss_list"], label="train_loss")
+    #
+    plt.title(f"{name}")
+    plt.title(f"{brain_area}_Autoencoder_Training_Loss")
+    plt.xlabel("Epochs")
+    plt.ylabel("Train_loss")
+    plt.legend()
+    plt.savefig(graph_name, dpi=1200)
 
     best_trained_model = generate_model(checkpoint["config"])
 

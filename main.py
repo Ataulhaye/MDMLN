@@ -465,13 +465,13 @@ def test_load_model():
     device = "cpu"
     if torch.cuda.is_available():
         device = "cuda:0"
-    model_path = "C:/Users/ataul/ray_results/tune_with_parameters_2024-01-16_22-26-31/tune_with_parameters_eab5b_00003_3_batch_size=128,embedding_dim=1,hidden_dim1=2048,hidden_dim2=64,hidden_dim3=8,hidden_dim4=256,lr_2024-01-16_22-35-11/checkpoint_000000"
-    # Best trial config: {'input_dim': 7238, 'hidden_dim1': 128, 'hidden_dim2': 4, 'hidden_dim3': 1, 'hidden_dim4': 1, 'embedding_dim': 2, 'lr': 0.011294654972486311, 'batch_size': 8, 'epochs': 10}
-    # Best trial final validation loss: 8.376050038771195
-    # Best trial final training loss: 0.8509599321766903
-    # Best trial epoch: 9
-    # Best model path C:/Users/ataul/ray_results/tune_with_parameters_2024-01-16_22-56-57/tune_with_parameters_2b093_00025_25_batch_size=8,embedding_dim=2,hidden_dim1=128,hidden_dim2=4,hidden_dim3=1,hidden_dim4=1,lr=0.01_2024-01-16_23-22-49
-    load_bestmodel_and_test(model_path, device, gpus_per_trial=1)
+    path = r"C:\Users\ataul\ray_results\Best-IFG\tune_with_parameters_2024-03-16_17-40-53\tune_with_parameters_f4bd1_00011_11_embedding_dim=2,hidden_dim1=1024,hidden_dim2=8,lr=0.0016_2024-03-16_18-09-11\checkpoint_000024"
+    # path = r"C:\Users\ataul\source\Uni\BachelorThesis\poc\STG_BestModel_With_TSNE\STG_mean_18-03-2024_09-57-37_209122_model.pt"
+    # path = r"C:\Users\ataul\source\Uni\BachelorThesis\poc\STG_BestModel_With_TSNE\STG_mean_18-03-2024_14-02-01_780484_model.pt"
+    model_path = path.replace(os.sep, "/")
+    # brain_area = "IFG"
+    brain_area = "STG"
+    load_bestmodel_and_test(brain_area, model_path, device, gpus_per_trial=1)
 
 
 def main():
@@ -519,9 +519,10 @@ def main():
     t_config = TrainingConfig()
     # t_config.folds = 1
     # t_config.explain = True
-    t_config.dimension_reduction = False
-    t_config.use_autoencoder = True
-    t_config.tsne = True
+    t_config.dimension_reduction = True
+    t_config.has_fix_components = True
+    # t_config.use_autoencoder = True
+    # t_config.tsne = True
     # stg_binary_classification(classifiers, strategies, t_config)
     # stg_classification(classifiers, strategies, t_config)
     # ifg_classification(classifiers, strategies, t_config)
@@ -557,8 +558,14 @@ def main():
         "brain_area": "IFG",
     }
 
-    # ifg_classification(classifiers, strategies, t_config)
+    ifg_classification(classifiers, strategies, t_config)
 
 
 if __name__ == "__main__":
+    # Set-ExecutionPolicy Unrestricted -Scope Process
+    # Location:
+    # C:\Users\ataul\source\Uni\BachelorThesis\poc>
+    # venv\Scripts\activate
+    # deactivate
+    # ./activate.ps1 #this may not needed
     main()
