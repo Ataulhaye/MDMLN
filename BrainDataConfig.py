@@ -1,3 +1,6 @@
+from pathlib import Path
+
+
 class BrainDataConfig:
     def __init__(self):
         self.conditions = 4
@@ -66,8 +69,11 @@ class BrainDataConfig:
 
         self.binary_popmean = 0.5
 
-        self.STG_path = "./left_STG_MTG_AALlable_ROI.rex.mat"
+        self.STG_path = Path("left_STG_MTG_AALlable_ROI.rex.mat").absolute().resolve()
         self.STG = "STG"
 
-        self.IFG_path = "./ROI_aal_wfupick_left44_45.rex.mat"
+        self.IFG_path = Path("ROI_aal_wfupick_left44_45.rex.mat").absolute().resolve()
         self.IFG = "IFG"
+
+        self.all_lobes_path = Path("AAL_all_lobes_ROI.rex.mat").absolute().resolve()
+        self.all_lobes = "all_lobes"

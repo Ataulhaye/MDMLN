@@ -21,9 +21,15 @@ class Brain:
         load_labels=False,
         load_int_labels=False,
         current_labels: BrainDataLabel = None,
+        mask: str = None,
+        niimg: str = None,
     ):
         self.area = area
         self.current_labels = current_labels
+        if niimg is not None:
+            self.niimg = niimg
+        if mask is not None:
+            self.mask = mask
         # self.binary_labels = None
         if data_path is not None:
             data = scipy.io.loadmat(data_path)
