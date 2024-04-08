@@ -3,6 +3,13 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+#ignore some specific folder/files
+/nilearn_cache
+*.xml
+*.iml
+*.ipynb
+
+
 # C extensions
 *.so
 
