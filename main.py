@@ -241,6 +241,45 @@ def stg_binary_classification(classifiers, strategies, t_config: TrainingConfig)
         )
 
 
+def stg_image_subject_classification(classifiers, strategies, t_config: TrainingConfig):
+    config = BrainDataConfig()
+    brain = Brain(
+        area=config.STG,
+        data_path=config.STG_path,
+        load_labels=True,
+        load_int_labels=True,
+    )
+
+    brain.current_labels = brain.subject_labels
+    split = "r_split"
+    if t_config.predefined_split:
+        split = "cr_split"
+
+    stg_subject_binary_data = brain.modify_fmri_data(brain)
+
+    t_config.dimension_reduction = True
+    t_config.analyze_binary_subjects = True
+
+    for bd in stg_subject_binary_data:
+        training = DataTraining()
+        export_data = training.brain_data_classification(
+            bd,
+            t_config,
+            strategies,
+            classifiers,
+        )
+        t_config.brain_area = brain.area
+        export = ExportData()
+        note = export.create_note(t_config)
+        export.create_and_write_datasheet(
+            data=export_data,
+            sheet_name=f"{brain.area}-Results",
+            title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+            notes=note,
+            transpose=True,
+        )
+
+
 def stg_classification(classifiers, strategies, t_config: TrainingConfig):
     config = BrainDataConfig()
     brain = Brain(
@@ -524,6 +563,7 @@ def main():
     # t_config.use_autoencoder = True
     # t_config.tsne = True
     # stg_binary_classification(classifiers, strategies, t_config)
+    stg_image_subject_classification(classifiers, strategies, t_config)
     # stg_classification(classifiers, strategies, t_config)
     # ifg_classification(classifiers, strategies, t_config)
 

@@ -31,6 +31,12 @@ class BrainDataConfig:
         self.concrete_related_int = 2
         self.concrete_unrelated_int = 3
 
+        # image label occurring place
+        self.AR_position = 0
+        self.AU_position = 1
+        self.CR_position = 2
+        self.CU_position = 3
+
         # this order has to be maintained
         self.patients = [
             self.neurotypical_patients,
@@ -69,11 +75,17 @@ class BrainDataConfig:
 
         self.binary_popmean = 0.5
 
-        self.STG_path = Path("left_STG_MTG_AALlable_ROI.rex.mat").absolute().resolve()
+        self.STG_path = (
+            Path("fmri_data/left_STG_MTG_AALlable_ROI.rex.mat").absolute().resolve()
+        )
         self.STG = "STG"
 
-        self.IFG_path = Path("ROI_aal_wfupick_left44_45.rex.mat").absolute().resolve()
+        self.IFG_path = (
+            Path("fmri_data/ROI_aal_wfupick_left44_45.rex.mat").absolute().resolve()
+        )
         self.IFG = "IFG"
 
-        self.all_lobes_path = Path("AAL_all_lobes_ROI.rex.mat").absolute().resolve()
+        self.all_lobes_path = (
+            Path("fmri_data/AAL_all_lobes_ROI.rex.mat").absolute().resolve()
+        )
         self.all_lobes = "all_lobes"

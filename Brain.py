@@ -1,12 +1,8 @@
 import itertools
 
 import numpy as np
-import pandas as pd
 import scipy
-from sklearn import datasets
 from sklearn.impute import KNNImputer, SimpleImputer
-from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
 
 from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
@@ -304,6 +300,138 @@ class Brain:
             brain_data.append(brain)
 
         return brain_data
+
+    def modify_fmri_data(self, brain):
+        config = BrainDataConfig()
+        brain_data: list[Brain] = []
+
+        combinations = list(itertools.combinations(config.image_labels, 2))
+        combinations.append(("ARCU", "ARCU"))
+        # combinations.insert(0, ("ARCU", "ARCU"))
+
+        for combination in combinations:
+            trail_pos1 = self.get_image_label_position(config, combination[0])
+            trail_pos2 = self.get_image_label_position(config, combination[1])
+
+            self.validate_voxel_trail_position(config, combination[0], trail_pos1)
+            self.validate_voxel_trail_position(config, combination[1], trail_pos2)
+
+            voxels = self.image_based_concatenation(
+                self.voxels, combination, trail_pos1, trail_pos2
+            )
+            labels = self.image_based_concatenation(
+                self.current_labels.labels, combination, trail_pos1, trail_pos2
+            )
+
+            brain = Brain()
+            brain.area = self.area
+            brain.voxels = voxels
+            name = f"{self.current_labels.name}-{combination[0]}_{combination[1]}"
+
+            if combination[1] == "ARCU":
+                name = f"{self.current_labels.name}-{combination[0]}"
+
+            popmean = self.current_labels.popmean
+            brain.current_labels = BrainDataLabel(name, popmean, labels)
+
+            brain_data.append(brain)
+        # this should return the listof tuples of brain and the config
+        return brain_data
+
+    def image_based_concatenation(
+        self, data: np.ndarray, combination: tuple, trail_pos1: int, trail_pos2: int
+    ):
+        concatenated = []
+        if trail_pos1 is None and trail_pos2 is None:
+            trail_pos1 = 0
+            trail_pos2 = 1
+            trail_pos3 = 2
+            trail_pos4 = 3
+            i = 0
+            while i < data.shape[0]:
+                index1 = i + trail_pos1
+                print("index1", index1)
+                index2 = i + trail_pos2
+                print("index2", index2)
+                index3 = i + trail_pos3
+                print("index3", index3)
+                index4 = i + trail_pos4
+                print("index4", index4)
+                if data.ndim == 1:
+                    concatenated.append(data[index1])
+                    if data[index1] != data[index2] != data[index3] != data[index4]:
+                        raise Exception(
+                            "These label must be same, Data label calculation is wrong"
+                        )
+                else:
+                    chunk = np.concatenate(
+                        (data[index1], data[index2], data[index3], data[index4])
+                    )
+                    concatenated.append(chunk)
+                i = i + 4
+        else:
+            i = 0
+            while i < data.shape[0]:
+                index1 = i + trail_pos1
+                print("index1", index1)
+                index2 = i + trail_pos2
+                print("index2", index2)
+                if data.ndim == 1:
+                    concatenated.append(data[index1])
+                    if data[index1] != data[index2]:
+                        raise Exception(
+                            "These label must be same, Data label calculation is wrong"
+                        )
+                else:
+                    chunk = np.concatenate((data[index1], data[index2]))
+                    concatenated.append(chunk)
+                i = i + 4
+
+        return np.array(concatenated)
+
+    def get_image_label_position(self, config: BrainDataConfig, label):
+        match label:
+            case config.abstract_related:
+                position = config.AR_position
+            case config.abstract_unrelated:
+                position = config.AU_position
+            case config.concrete_related:
+                position = config.CR_position
+            case config.concrete_unrelated:
+                position = config.CU_position
+            case "ARCU":
+                position = None
+        return position
+
+    def validate_voxel_trail_position(
+        self, config: BrainDataConfig, combination, position
+    ):
+        match combination:
+            case config.abstract_related:
+                if position != 0:
+                    raise Exception(
+                        "Voxel trail positions are not calculated coorectly"
+                    )
+            case config.abstract_unrelated:
+                if position != 1:
+                    raise Exception(
+                        "Voxel trail positions are not calculated coorectly"
+                    )
+            case config.concrete_related:
+                if position != 2:
+                    raise Exception(
+                        "Voxel trail positions are not calculated coorectly"
+                    )
+            case config.concrete_unrelated:
+                if position != 3:
+                    raise Exception(
+                        "Voxel trail positions are not calculated coorectly"
+                    )
+            case "ARCU":
+                if position != None:
+                    raise Exception(
+                        "Voxel trail positions are not calculated coorectly"
+                    )
 
     def image_binary_data(self, data, config: BrainDataConfig, combination):
         chunks = []
