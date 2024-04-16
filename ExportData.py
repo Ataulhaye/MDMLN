@@ -20,7 +20,13 @@ class ExportData:
                 wr.writerow(ed)
 
     def create_and_write_datasheet(
-        self, data, sheet_name, notes, title="results", transpose=False
+        self,
+        data,
+        sheet_name,
+        notes,
+        title="results",
+        transpose=False,
+        single_label=False,
     ):
         # matrix = data
         matrix = self.prepare_data_matrix(data)
@@ -55,9 +61,12 @@ class ExportData:
 
         self.set_first_column_font(cell_positions, matrix, ws, col_widths, sett)
 
-        self.merge_strategy_cells(transpose, matrix, ws)
-
-        self.fill_color(cell_positions, matrix, ws, sett)
+        if not single_label:
+            self.merge_strategy_cells(transpose, matrix, ws)
+        increment = 2
+        if single_label:
+            increment = 1
+        self.fill_color(cell_positions, matrix, ws, sett, increment)
 
         # step incrment x to 2 to ..
         # ws.merge_cells(start_row=x, start_column=1, end_row=x, end_column=1)
@@ -92,7 +101,7 @@ class ExportData:
         notes.append([str(t_config)])
         return notes
 
-    def fill_color(self, cell_positions, matrix, ws, setting: ExelSettings):
+    def fill_color(self, cell_positions, matrix, ws, setting: ExelSettings, increment):
         i = 0
         for row in matrix:
             j = 0
@@ -111,8 +120,8 @@ class ExportData:
                         fill_type=setting.cell_fill_type,
                     )
                 j = j + 1
-            if i > 0 and i % 2 == 0:
-                i = i + 2
+            if i > 0 and i % increment == 0:
+                i = i + increment
             i = i + 1
             if len(matrix) <= i:
                 break
@@ -271,9 +280,9 @@ class ExportData:
             else:
                 insert_row = [None] * (col_index + 1)
                 insert_row[0] = export_entity.row_name
-                insert_row[
-                    col_index
-                ] = f"{export_entity.result[0]} {export_entity.result[1]}"
+                insert_row[col_index] = (
+                    f"{export_entity.result[0]} {export_entity.result[1]}"
+                )
 
                 matrix.append(insert_row)
 

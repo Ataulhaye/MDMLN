@@ -257,8 +257,9 @@ def stg_image_subject_classification(classifiers, strategies, t_config: Training
 
     stg_subject_binary_data = brain.modify_fmri_data(brain)
 
-    t_config.dimension_reduction = True
     t_config.analyze_binary_subjects = True
+
+    all_data = []
 
     for bd in stg_subject_binary_data:
         training = DataTraining()
@@ -268,16 +269,18 @@ def stg_image_subject_classification(classifiers, strategies, t_config: Training
             strategies,
             classifiers,
         )
-        t_config.brain_area = brain.area
-        export = ExportData()
-        note = export.create_note(t_config)
-        export.create_and_write_datasheet(
-            data=export_data,
-            sheet_name=f"{brain.area}-Results",
-            title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
-            notes=note,
-            transpose=True,
-        )
+        all_data.extend(export_data)
+    t_config.brain_area = brain.area
+    export = ExportData()
+    note = export.create_note(t_config)
+    export.create_and_write_datasheet(
+        data=all_data,
+        sheet_name=f"{brain.area}-Results",
+        title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+        notes=note,
+        transpose=True,
+        single_label=True,
+    )
 
 
 def stg_classification(classifiers, strategies, t_config: TrainingConfig):
@@ -554,12 +557,12 @@ def main():
     classifiers = ["SVM", "MLP", "LinearDiscriminant", "LGBM"]
     # classifiers = ["LinearDiscriminant"]
     # strategies = ["mean"]
-    # classifiers = ["LGBM"]
+    # classifiers = ["SVM"]
     t_config = TrainingConfig()
     # t_config.folds = 1
     # t_config.explain = True
     t_config.dimension_reduction = True
-    t_config.has_fix_components = True
+    # t_config.has_fix_components = True
     # t_config.use_autoencoder = True
     # t_config.tsne = True
     # stg_binary_classification(classifiers, strategies, t_config)
@@ -584,7 +587,7 @@ def main():
     }
     # t_config.best_autoencoder_config["epochs"] = 1
     # t_config.folds = 2
-    stg_classification(classifiers, strategies, t_config)
+    # stg_classification(classifiers, strategies, t_config)
     #####################################
     # best_autoencoder_config_IFG
     t_config.best_autoencoder_config = {
@@ -598,7 +601,7 @@ def main():
         "brain_area": "IFG",
     }
 
-    ifg_classification(classifiers, strategies, t_config)
+    # ifg_classification(classifiers, strategies, t_config)
 
 
 # Matlab stuff
