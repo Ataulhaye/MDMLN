@@ -31,6 +31,7 @@ class TrainingConfig:
         nan_classifiers=["DecisionTree", "HistGradientBoosting", "LGBM", "CatBoost"],
         use_autoencoder=False,
         analyze_binary_subjects=False,
+        analyze_binary_trails=False,
         brain_area="",
         tsne=False,
         has_fix_components=False,
@@ -88,7 +89,8 @@ class TrainingConfig:
         self.tsne = tsne
         self.has_fix_components = has_fix_components
         self.pca_fix_components = pca_fix_components
-        self.analyze_binary_subjects = analyze_binary_subjects
+        self.analyze_concatenated_trails = analyze_binary_subjects
+        self.analyze_binary_trails = analyze_binary_trails
 
     def __repr__(self) -> str:
-        return f"Folds:{self.folds}, Test size:{self.test_size}, Conditional split:{self.predefined_split} , Dimension reduction:{self.dimension_reduction}, use_autoencoder:{self.use_autoencoder}, brain_area:{self.brain_area}, binary_subjects:{self.analyze_binary_subjects}"
+        return f"Folds:{self.folds}, Test size:{self.test_size}, Conditional split:{self.predefined_split} , Dimension reduction:{self.dimension_reduction}, use_autoencoder:{self.use_autoencoder}, brain_area:{self.brain_area}, concatenated_trails:{self.analyze_concatenated_trails}, binary_trails:{self.analyze_binary_trails}"

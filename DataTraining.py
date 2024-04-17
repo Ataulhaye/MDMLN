@@ -48,9 +48,12 @@ class DataTraining:
 
             if train_config.predefined_split:
                 data_config: BrainDataConfig = None
-                if train_config.analyze_binary_subjects:
+                if train_config.analyze_concatenated_trails:
                     data_config = BrainDataConfig()
                     data_config.conditions = 1
+                if train_config.analyze_binary_trails:
+                    data_config = BrainDataConfig()
+                    data_config.conditions = 2
                 train_test_set = self.premeditate_random_train_test_split(
                     brain, train_config, data_config
                 )

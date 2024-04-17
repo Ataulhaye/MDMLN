@@ -301,13 +301,11 @@ class Brain:
 
         return brain_data
 
-    def modify_fmri_data(self, brain):
+    def binary_fmri_data_trails(self, brain):
         config = BrainDataConfig()
         brain_data: list[Brain] = []
 
         combinations = list(itertools.combinations(config.image_labels, 2))
-        combinations.append(("ARCU", "ARCU"))
-        # combinations.insert(0, ("ARCU", "ARCU"))
 
         for combination in combinations:
             trail_pos1 = self.get_image_label_position(config, combination[0])
@@ -316,11 +314,9 @@ class Brain:
             self.validate_voxel_trail_position(config, combination[0], trail_pos1)
             self.validate_voxel_trail_position(config, combination[1], trail_pos2)
 
-            voxels = self.image_based_concatenation(
-                self.voxels, combination, trail_pos1, trail_pos2
-            )
-            labels = self.image_based_concatenation(
-                self.current_labels.labels, combination, trail_pos1, trail_pos2
+            voxels = self.image_based_selection(self.voxels, trail_pos1, trail_pos2)
+            labels = self.image_based_selection(
+                self.current_labels.labels, trail_pos1, trail_pos2
             )
 
             brain = Brain()
@@ -338,8 +334,64 @@ class Brain:
         # this should return the listof tuples of brain and the config
         return brain_data
 
+    def concatenate_fmri_data_trails(self, brain):
+        config = BrainDataConfig()
+        brain_data: list[Brain] = []
+
+        combinations = list(itertools.combinations(config.image_labels, 2))
+        combinations.append(("ARCU", "ARCU"))
+        # combinations.insert(0, ("ARCU", "ARCU"))
+
+        for combination in combinations:
+            trail_pos1 = self.get_image_label_position(config, combination[0])
+            trail_pos2 = self.get_image_label_position(config, combination[1])
+
+            self.validate_voxel_trail_position(config, combination[0], trail_pos1)
+            self.validate_voxel_trail_position(config, combination[1], trail_pos2)
+
+            voxels = self.image_based_concatenation(self.voxels, trail_pos1, trail_pos2)
+            labels = self.image_based_concatenation(
+                self.current_labels.labels, trail_pos1, trail_pos2
+            )
+
+            brain = Brain()
+            brain.area = self.area
+            brain.voxels = voxels
+            name = f"{self.current_labels.name}-{combination[0]}_{combination[1]}"
+
+            if combination[1] == "ARCU":
+                name = f"{self.current_labels.name}-{combination[0]}"
+
+            popmean = self.current_labels.popmean
+            brain.current_labels = BrainDataLabel(name, popmean, labels)
+
+            brain_data.append(brain)
+        # this should return the listof tuples of brain and the config
+        return brain_data
+
+    def image_based_selection(self, data: np.ndarray, trail_pos1: int, trail_pos2: int):
+        concatenated = []
+        i = 0
+        while i < data.shape[0]:
+            index1 = i + trail_pos1
+            print("index1", index1)
+            index2 = i + trail_pos2
+            print("index2", index2)
+            if data.ndim == 1:
+                concatenated.append(data[index1])
+                concatenated.append(data[index1])
+                if data[index1] != data[index2]:
+                    raise Exception(
+                        "These label must be same, Data label calculation is wrong"
+                    )
+            else:
+                concatenated.append(data[index1])
+                concatenated.append(data[index2])
+            i = i + 4
+        return np.array(concatenated)
+
     def image_based_concatenation(
-        self, data: np.ndarray, combination: tuple, trail_pos1: int, trail_pos2: int
+        self, data: np.ndarray, trail_pos1: int, trail_pos2: int
     ):
         concatenated = []
         if trail_pos1 is None and trail_pos2 is None:

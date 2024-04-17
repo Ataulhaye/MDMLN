@@ -88,16 +88,32 @@ class ExportData:
 
         for note in notes:
             ws.append(note)
+
+        self.set_note_font(notes, matrix, ws, sett)
+
         # Save File
         wb.save(sheet_name)
 
+    def set_note_font(self, notes, matrix, ws, sett):
+        note_cell_coord = None
+        for col in ws.iter_cols(min_row=1, max_col=1, max_row=(matrix.shape[0] + 6)):
+            for cell in col:
+                if cell.internal_value == notes[-1][0]:
+                    note_cell_coord = cell.coordinate
+                    break
+
+        if note_cell_coord is not None:
+            note_cell = ws[note_cell_coord]
+            note_cell.font = Font(name=sett.header_family, sz=sett.header_font)
+
     def create_note(self, t_config):
         notes = []
-        notes.append([])
-        notes.append([])
-        notes.append([])
-        notes.append([])
-        notes.append([])
+        for i in range(5):
+            notes.append([])
+        # notes.append([])
+        # notes.append([])
+        # notes.append([])
+        # notes.append([])
         notes.append([str(t_config)])
         return notes
 

@@ -241,7 +241,9 @@ def stg_binary_classification(classifiers, strategies, t_config: TrainingConfig)
         )
 
 
-def stg_image_subject_classification(classifiers, strategies, t_config: TrainingConfig):
+def stg_concatenated_trails_classification(
+    classifiers, strategies, t_config: TrainingConfig
+):
     config = BrainDataConfig()
     brain = Brain(
         area=config.STG,
@@ -255,9 +257,9 @@ def stg_image_subject_classification(classifiers, strategies, t_config: Training
     if t_config.predefined_split:
         split = "cr_split"
 
-    stg_subject_binary_data = brain.modify_fmri_data(brain)
+    stg_subject_binary_data = brain.concatenate_fmri_data_trails(brain)
 
-    t_config.analyze_binary_subjects = True
+    t_config.analyze_concatenated_trails = True
 
     all_data = []
 
@@ -270,6 +272,49 @@ def stg_image_subject_classification(classifiers, strategies, t_config: Training
             classifiers,
         )
         all_data.extend(export_data)
+    t_config.brain_area = brain.area
+    export = ExportData()
+    note = export.create_note(t_config)
+    export.create_and_write_datasheet(
+        data=all_data,
+        sheet_name=f"{brain.area}-Results",
+        title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+        notes=note,
+        transpose=True,
+        single_label=True,
+    )
+
+
+def stg_binary_trails_classification(classifiers, strategies, t_config: TrainingConfig):
+    config = BrainDataConfig()
+    brain = Brain(
+        area=config.STG,
+        data_path=config.STG_path,
+        load_labels=True,
+        load_int_labels=True,
+    )
+
+    brain.current_labels = brain.subject_labels
+    split = "r_split"
+    if t_config.predefined_split:
+        split = "cr_split"
+
+    stg_subject_binary_data = brain.binary_fmri_data_trails(brain)
+
+    t_config.analyze_binary_trails = True
+
+    all_data = []
+
+    for bd in stg_subject_binary_data:
+        training = DataTraining()
+        export_data = training.brain_data_classification(
+            bd,
+            t_config,
+            strategies,
+            classifiers,
+        )
+        all_data.extend(export_data)
+
     t_config.brain_area = brain.area
     export = ExportData()
     note = export.create_note(t_config)
@@ -559,14 +604,15 @@ def main():
     # strategies = ["mean"]
     # classifiers = ["SVM"]
     t_config = TrainingConfig()
-    # t_config.folds = 1
+    # t_config.folds = 10
     # t_config.explain = True
     t_config.dimension_reduction = True
     # t_config.has_fix_components = True
     # t_config.use_autoencoder = True
     # t_config.tsne = True
     # stg_binary_classification(classifiers, strategies, t_config)
-    stg_image_subject_classification(classifiers, strategies, t_config)
+    # stg_concatenated_trails_classification(classifiers, strategies, t_config)
+    stg_binary_trails_classification(classifiers, strategies, t_config)
     # stg_classification(classifiers, strategies, t_config)
     # ifg_classification(classifiers, strategies, t_config)
 
