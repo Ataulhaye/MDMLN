@@ -50,7 +50,7 @@ class DataTraining:
                 data_config: BrainDataConfig = None
                 if train_config.analyze_binary_subjects:
                     data_config = BrainDataConfig()
-                    data_config.conditions = 2
+                    data_config.conditions = 1
                 train_test_set = self.premeditate_random_train_test_split(
                     brain, train_config, data_config
                 )
