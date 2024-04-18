@@ -30,7 +30,7 @@ class TrainingConfig:
         explain: bool = False,
         nan_classifiers=["DecisionTree", "HistGradientBoosting", "LGBM", "CatBoost"],
         use_autoencoder=False,
-        analyze_binary_subjects=False,
+        analyze_concatenated_trails=False,
         analyze_binary_trails=False,
         brain_area="",
         tsne=False,
@@ -89,7 +89,7 @@ class TrainingConfig:
         self.tsne = tsne
         self.has_fix_components = has_fix_components
         self.pca_fix_components = pca_fix_components
-        self.analyze_concatenated_trails = analyze_binary_subjects
+        self.analyze_concatenated_trails = analyze_concatenated_trails
         self.analyze_binary_trails = analyze_binary_trails
 
     def __repr__(self) -> str:

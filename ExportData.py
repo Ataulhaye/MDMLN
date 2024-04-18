@@ -94,11 +94,16 @@ class ExportData:
         # Save File
         wb.save(sheet_name)
 
-    def set_note_font(self, notes, matrix, ws, sett):
+    def set_note_font(
+        self, notes, matrix, ws: openpyxl.worksheet.worksheet.Worksheet, sett
+    ):
         note_cell_coord = None
         for col in ws.iter_cols(min_row=1, max_col=1, max_row=(matrix.shape[0] + 6)):
             for cell in col:
-                if cell.internal_value == notes[-1][0]:
+                if (
+                    type(cell) == openpyxl.cell.cell.Cell
+                    and cell.internal_value == notes[-1][0]
+                ):
                     note_cell_coord = cell.coordinate
                     break
 
