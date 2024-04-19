@@ -193,7 +193,8 @@ def stg_binary_classification(classifiers, strategies, t_config: TrainingConfig)
     if t_config.predefined_split:
         split = "cr_split"
 
-    stg_subject_binary_data = brain.binary_data(config, brain.subject_labels_int)
+    brain.current_labels = brain.subject_labels_int
+    stg_subject_binary_data = brain.binary_data(config)
 
     t_config.dimension_reduction = True
     t_config.explain = True
@@ -218,8 +219,8 @@ def stg_binary_classification(classifiers, strategies, t_config: TrainingConfig)
             notes=note,
             transpose=True,
         )
-
-    stg_image_binary_data = brain.binary_data(config, brain.image_labels_int)
+    brain.current_labels = brain.image_labels_int
+    stg_image_binary_data = brain.binary_data(config)
 
     for bd in stg_image_binary_data:
         training = DataTraining()
@@ -847,7 +848,7 @@ def main():
     # t_config.has_fix_components = True
     # t_config.use_autoencoder = True
     # t_config.tsne = True
-    # stg_binary_classification(classifiers, strategies, t_config)
+    stg_binary_classification(classifiers, strategies, t_config)
     # stg_concatenated_trails_classification(classifiers, strategies, t_config)
     # stg_binary_trails_classification(classifiers, strategies, t_config)
 
@@ -855,9 +856,7 @@ def main():
     t_config.pca_fix_components = 10
     t_config.has_fix_components = True
     # ifg_concatenated_binary_subjects_trails_classification(classifiers, strategies, t_config)
-    stg_concatenated_binary_subjects_trails_classification(
-        classifiers, strategies, t_config
-    )
+    # stg_concatenated_binary_subjects_trails_classification(classifiers, strategies, t_config)
     # stg_concatenated_trails_classification(classifiers, strategies, t_config)
     # stg_binary_trails_classification(classifiers, strategies, t_config)
     # ifg_concatenated_trails_classification(classifiers, strategies, t_config)

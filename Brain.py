@@ -260,17 +260,12 @@ class Brain:
 
         return nans_len_list
 
-    def binary_data(
-        self,
-        config: BrainDataConfig,
-        label: BrainDataLabel,
-    ):
+    def binary_data(self, config: BrainDataConfig):
         brain_data: list[Brain] = []
-        # brain_data = []
         comb_src = None
         subject = False
 
-        if "subject" in label.name:
+        if "subject" in self.current_labels.name:
             comb_src = config.subject_labels_int
             subject = True
         else:
@@ -282,16 +277,20 @@ class Brain:
             labels = None
             if subject:
                 voxels = self.subject_binary_data(self.voxels, config, combination)
-                labels = self.subject_binary_data(label.labels, config, combination)
+                labels = self.subject_binary_data(
+                    self.current_labels.labels, config, combination
+                )
             else:
                 voxels = self.image_binary_data(self.voxels, config, combination)
-                labels = self.image_binary_data(label.labels, config, combination)
+                labels = self.image_binary_data(
+                    self.current_labels.labels, config, combination
+                )
 
             brain = Brain()
             brain.area = self.area
             brain.voxels = voxels
             binary_label = BrainDataLabel(
-                name=f"binary_{label.name}{combination}",
+                name=f"binary_{self.current_labels.name}_{combination[0]}-{combination[1]}",
                 popmean=config.binary_popmean,
                 labels=labels,
             )
