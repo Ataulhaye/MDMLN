@@ -301,7 +301,32 @@ class Brain:
 
         return brain_data
 
-    def binary_fmri_data_trails(self, brain):
+    def binary_subject_image_based_data(self):
+        config = BrainDataConfig()
+        brain_data: list[Brain] = []
+
+        combinations = list(itertools.combinations(config.subject_labels, 2))
+
+        for combination in combinations:
+            voxels = self.subject_binary_data(self.voxels, config, combination)
+            labels = self.subject_binary_data(
+                self.current_labels.labels, config, combination
+            )
+
+            brain = Brain()
+            brain.area = self.area
+            brain.voxels = voxels
+            name = (
+                f"{self.current_labels.name}-Binary_{combination[0]}-{combination[1]}"
+            )
+
+            brain.current_labels = BrainDataLabel(name, config.binary_popmean, labels)
+
+            brain_data.append(brain)
+
+        return brain_data
+
+    def binary_fmri_data_trails(self):
         config = BrainDataConfig()
         brain_data: list[Brain] = []
 
@@ -334,7 +359,7 @@ class Brain:
         # this should return the listof tuples of brain and the config
         return brain_data
 
-    def concatenate_fmri_data_trails(self, brain):
+    def concatenate_fmri_data_trails(self):
         config = BrainDataConfig()
         brain_data: list[Brain] = []
 
@@ -505,6 +530,31 @@ class Brain:
         return np.concatenate(chunks)
 
     def subject_binary_data(self, data, config: BrainDataConfig, combination):
+        chunks = []
+        patients = config.patients
+        trails = config.conditions
+        for label in combination:
+            match label:
+                case config.neurotypical_int | config.neurotypical:
+                    end = patients[config.neurotypical_int] * trails
+                    v = data[0:end]
+                    chunks.append(v)
+                case config.depressive_disorder_int | config.depressive_disorder:
+                    start = patients[config.neurotypical_int] * trails
+                    end = patients[config.depressive_disorder_int] * trails
+                    v = data[start : (start + end)]
+                    chunks.append(v)
+                case config.schizophrenia_spectrum_int | config.schizophrenia_spectrum:
+                    start = patients[config.neurotypical_int] * trails
+                    end = patients[config.depressive_disorder_int] * trails
+                    v = data[(start + end) :]
+                    chunks.append(v)
+                case _:
+                    raise Exception("Unsupported label")
+
+        return np.concatenate(chunks)
+
+    def subject_binary_data_old(self, data, config: BrainDataConfig, combination):
         chunks = []
         for label in combination:
             match label:
