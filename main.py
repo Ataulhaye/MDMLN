@@ -420,13 +420,60 @@ def ifg_concatenated_trails_classification(
     )
 
 
-def ifg_concatenated_binary_trails_classification(
+def ifg_concatenated_binary_subjects_trails_classification(
     classifiers, strategies, t_config: TrainingConfig
 ):
     config = BrainDataConfig()
     brain = Brain(
         area=config.IFG,
         data_path=config.IFG_path,
+        load_labels=True,
+        load_int_labels=True,
+    )
+
+    brain.current_labels = brain.subject_labels
+    split = "r_split"
+    if t_config.predefined_split:
+        split = "cr_split"
+
+    brains = brain.binary_subject_image_based_data()
+    for m_brain in brains:
+        ifg_subject_binary_data = m_brain.concatenate_fmri_data_trails()
+
+        t_config.analyze_binary_trails = False
+        t_config.analyze_concatenated_trails = True
+
+        all_data = []
+
+        for bd in ifg_subject_binary_data:
+            training = DataTraining()
+            export_data = training.brain_data_classification(
+                bd,
+                t_config,
+                strategies,
+                classifiers,
+            )
+            all_data.extend(export_data)
+        t_config.brain_area = brain.area
+        export = ExportData()
+        note = export.create_note(t_config)
+        export.create_and_write_datasheet(
+            data=all_data,
+            sheet_name=f"{brain.area}-Results",
+            title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+            notes=note,
+            transpose=True,
+            single_label=True,
+        )
+
+
+def stg_concatenated_binary_subjects_trails_classification(
+    classifiers, strategies, t_config: TrainingConfig
+):
+    config = BrainDataConfig()
+    brain = Brain(
+        area=config.STG,
+        data_path=config.STG_path,
         load_labels=True,
         load_int_labels=True,
     )
@@ -807,7 +854,10 @@ def main():
     t_config.dimension_reduction = True
     t_config.pca_fix_components = 10
     t_config.has_fix_components = True
-    ifg_concatenated_binary_trails_classification(classifiers, strategies, t_config)
+    # ifg_concatenated_binary_subjects_trails_classification(classifiers, strategies, t_config)
+    stg_concatenated_binary_subjects_trails_classification(
+        classifiers, strategies, t_config
+    )
     # stg_concatenated_trails_classification(classifiers, strategies, t_config)
     # stg_binary_trails_classification(classifiers, strategies, t_config)
     # ifg_concatenated_trails_classification(classifiers, strategies, t_config)
