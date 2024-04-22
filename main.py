@@ -180,7 +180,9 @@ def ifg_classification(classifiers, strategies, t_config: TrainingConfig):
     )
 
 
-def stg_binary_classification(classifiers, strategies, t_config: TrainingConfig):
+def stg_binary_classification_with_shap(
+    classifiers, strategies, t_config: TrainingConfig
+):
     config = BrainDataConfig()
     brain = Brain(
         area=config.STG,
@@ -240,6 +242,96 @@ def stg_binary_classification(classifiers, strategies, t_config: TrainingConfig)
             notes=note,
             transpose=True,
         )
+
+
+def stg_subject_binary_classification(
+    classifiers, strategies, t_config: TrainingConfig
+):
+    config = BrainDataConfig()
+    brain = Brain(
+        area=config.STG,
+        data_path=config.STG_path,
+        load_labels=True,
+        load_int_labels=True,
+    )
+
+    split = "r_split"
+    if t_config.predefined_split:
+        split = "cr_split"
+
+    brain.current_labels = brain.subject_labels
+    stg_subject_binary_data = brain.binary_data(config)
+
+    t_config.dimension_reduction = True
+    # t_config.explain = True
+    # t_config.folds = 1
+    # t_config.predefined_split = False
+    all_export_data = []
+
+    for bd in stg_subject_binary_data:
+        training = DataTraining()
+        export_data = training.brain_data_classification(
+            bd,
+            t_config,
+            strategies,
+            classifiers,
+        )
+        all_export_data.extend(export_data)
+    t_config.brain_area = brain.area
+    export = ExportData()
+    note = export.create_note(t_config)
+    export.create_and_write_datasheet(
+        data=all_export_data,
+        sheet_name=f"{brain.area}-Results",
+        title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+        notes=note,
+        transpose=True,
+        single_label=True,
+    )
+
+
+def ifg_binary_subject_classification(
+    classifiers, strategies, t_config: TrainingConfig
+):
+    config = BrainDataConfig()
+    brain = Brain(
+        area=config.IFG,
+        data_path=config.IFG_path,
+        load_labels=True,
+        load_int_labels=True,
+    )
+
+    split = "r_split"
+    if t_config.predefined_split:
+        split = "cr_split"
+
+    brain.current_labels = brain.subject_labels
+    ifg_subject_binary_data = brain.binary_data(config)
+
+    # t_config.dimension_reduction = True
+
+    all_export_data = []
+
+    for bd in ifg_subject_binary_data:
+        training = DataTraining()
+        export_data = training.brain_data_classification(
+            bd,
+            t_config,
+            strategies,
+            classifiers,
+        )
+        all_export_data.extend(export_data)
+    t_config.brain_area = brain.area
+    export = ExportData()
+    note = export.create_note(t_config)
+    export.create_and_write_datasheet(
+        data=all_export_data,
+        sheet_name=f"{brain.area}-Results",
+        title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+        notes=note,
+        transpose=True,
+        single_label=True,
+    )
 
 
 def stg_concatenated_trails_classification(
@@ -848,7 +940,9 @@ def main():
     # t_config.has_fix_components = True
     # t_config.use_autoencoder = True
     # t_config.tsne = True
-    stg_binary_classification(classifiers, strategies, t_config)
+    # stg_binary_classification_with_shap(classifiers, strategies, t_config)
+    # stg_subject_binary_classification(classifiers, strategies, t_config)
+    ifg_binary_subject_classification(classifiers, strategies, t_config)
     # stg_concatenated_trails_classification(classifiers, strategies, t_config)
     # stg_binary_trails_classification(classifiers, strategies, t_config)
 

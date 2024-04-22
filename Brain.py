@@ -265,11 +265,25 @@ class Brain:
         comb_src = None
         subject = False
 
-        if "subject" in self.current_labels.name:
+        if "subject" in self.current_labels.name and "int" in self.current_labels.name:
             comb_src = config.subject_labels_int
             subject = True
-        else:
+        elif (
+            "subject" in self.current_labels.name
+            and not "int" in self.current_labels.name
+        ):
+            comb_src = config.subject_labels
+            subject = True
+        elif "image" in self.current_labels.name and "int" in self.current_labels.name:
             comb_src = config.image_labels_int
+        elif (
+            "image" in self.current_labels.name
+            and not "int" in self.current_labels.name
+        ):
+            comb_src = config.image_labels
+        else:
+            raise Exception("Label matching went wrong")
+
         combinations = list(itertools.combinations(comb_src, 2))
 
         for combination in combinations:
