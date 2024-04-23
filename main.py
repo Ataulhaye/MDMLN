@@ -198,7 +198,7 @@ def stg_binary_classification_with_shap(
         split = "cr_split"
 
     brain.current_labels = brain.subject_labels_int
-    stg_subject_binary_data = brain.binary_data(config)
+    stg_subject_binary_data = brain.binarize_fmri_data(config)
 
     t_config.dimension_reduction = True
     t_config.explain = True
@@ -224,7 +224,7 @@ def stg_binary_classification_with_shap(
             transpose=True,
         )
     brain.current_labels = brain.image_labels_int
-    stg_image_binary_data = brain.binary_data(config)
+    stg_image_binary_data = brain.binarize_fmri_data(config)
 
     for bd in stg_image_binary_data:
         training = DataTraining()
@@ -262,7 +262,7 @@ def stg_subject_binary_classification(
         split = "cr_split"
 
     brain.current_labels = brain.subject_labels
-    stg_subject_binary_data = brain.binary_data(config)
+    stg_subject_binary_data = brain.binarize_fmri_data(config)
 
     t_config.dimension_reduction = True
     # t_config.explain = True
@@ -308,7 +308,7 @@ def ifg_binary_subject_classification(
         split = "cr_split"
 
     brain.current_labels = brain.subject_labels
-    ifg_subject_binary_data = brain.binary_data(config)
+    ifg_subject_binary_data = brain.binarize_fmri_data(config)
 
     # t_config.dimension_reduction = True
 
@@ -843,11 +843,17 @@ def test_load_model():
 
 def main():
 
-    # stg = STGAnalyser()
-    # stg.stg_subject_binary_classification()
-
+    stg = STGAnalyser()
     ifg = IFGAnalyser()
-    ifg.ifg_binary_subject_classification()
+    stg.training_config.dimension_reduction = True
+    stg.training_config.folds = 10
+    stg.stg_binary_image_wise_concatenated_trails_binary_subject_classification()
+
+    ifg.training_config.dimension_reduction = True
+    ifg.training_config.folds = 10
+    ifg.ifg_binary_image_wise_concatenated_trails_binary_subject_classification()
+    # ifg = IFGAnalyser()
+    # ifg.ifg_binary_subject_classification()
     # analyse_nans()
     # visualize_nans()
     # classify_iris()

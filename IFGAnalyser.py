@@ -67,7 +67,7 @@ class IFGAnalyser(AnalyserBase):
             split = "cr_split"
 
         self.brain.current_labels = self.brain.subject_labels
-        ifg_subject_binary_data = self.brain.binary_data(self.data_config)
+        ifg_subject_binary_data = self.brain.binarize_fmri_data(self.data_config)
 
         # self.training_config.dimension_reduction = True
 
@@ -196,6 +196,43 @@ class IFGAnalyser(AnalyserBase):
             data=all_data,
             sheet_name=f"{self.brain.area}-Results",
             title=f"{self.brain.area}-{self.training_config.folds}-Folds-{split}-Clf",
+            notes=note,
+            transpose=True,
+            single_label=True,
+        )
+
+    def ifg_binary_image_wise_concatenated_trails_binary_subject_classification(self):
+        """
+        Binarize the fMRI data based on subjects, then for every binarized instance image wise binarization with concatenation takes place
+        """
+        self.brain.current_labels = self.brain.subject_labels
+
+        all_data = []
+
+        stg_subject_binary_data = self.brain.binarize_fmri_data(self.data_config)
+
+        self.training_config.analyze_concatenated_trails = True
+        self.training_config.analyze_binary_trails = False
+
+        for mod_brain in stg_subject_binary_data:
+            binary_data = mod_brain.concatenate_fmri_data_trails()
+            for bd in binary_data:
+                training = DataTraining()
+                export_data = training.brain_data_classification(
+                    bd,
+                    self.training_config,
+                    self.strategies,
+                    self.classifiers,
+                )
+                all_data.extend(export_data)
+
+        self.training_config.brain_area = self.brain.area
+        export = ExportData()
+        note = export.create_note(self.training_config)
+        export.create_and_write_datasheet(
+            data=all_data,
+            sheet_name=f"{self.brain.area}-Results",
+            title=f"{self.brain.area}-{self.training_config.folds}-Folds",
             notes=note,
             transpose=True,
             single_label=True,

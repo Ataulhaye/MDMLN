@@ -260,7 +260,11 @@ class Brain:
 
         return nans_len_list
 
-    def binary_data(self, config: BrainDataConfig):
+    def binarize_fmri_data(self, config: BrainDataConfig):
+        """
+        Binarize the fmri data based on the Image or subject labels
+        In the brain object current labels are considered
+        """
         brain_data: list[Brain] = []
         comb_src = None
         subject = False

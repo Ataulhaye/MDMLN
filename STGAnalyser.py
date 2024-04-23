@@ -30,14 +30,14 @@ class STGAnalyser(AnalyserBase):
             self.brain, classifiers, strategies, training_config, data_config
         )
 
-    def stg_subject_binary_classification(self):
+    def stg_subject_wise_binary_classification(self):
 
         split = "r_split"
         if self.training_config.predefined_split:
             split = "cr_split"
 
         self.brain.current_labels = self.brain.subject_labels
-        stg_subject_binary_data = self.brain.binary_data(self.data_config)
+        stg_subject_binary_data = self.brain.binarize_fmri_data(self.data_config)
 
         # self.training_config.dimension_reduction = True
         # t_config.explain = True
@@ -66,7 +66,45 @@ class STGAnalyser(AnalyserBase):
             single_label=True,
         )
 
-    def stg_concatenated_trails_classification(self):
+    def stg_binary_image_wise_concatenated_trails_binary_subject_classification(self):
+        """
+        Binarize the fMRI data based on subjects, then for every binarized instance image wise binarization with concatenation takes place
+        """
+        self.brain.current_labels = self.brain.subject_labels
+
+        all_data = []
+
+        stg_subject_binary_data = self.brain.binarize_fmri_data(self.data_config)
+
+        self.training_config.analyze_concatenated_trails = True
+        self.training_config.analyze_binary_trails = False
+
+        for mod_brain in stg_subject_binary_data:
+            binary_data = mod_brain.concatenate_fmri_data_trails()
+            for bd in binary_data:
+                training = DataTraining()
+                export_data = training.brain_data_classification(
+                    bd,
+                    self.training_config,
+                    self.strategies,
+                    self.classifiers,
+                )
+                all_data.extend(export_data)
+
+        self.training_config.brain_area = self.brain.area
+        export = ExportData()
+        note = export.create_note(self.training_config)
+        export.create_and_write_datasheet(
+            data=all_data,
+            sheet_name=f"{self.brain.area}-Results",
+            title=f"{self.brain.area}-{self.training_config.folds}-Folds",
+            notes=note,
+            transpose=True,
+            single_label=True,
+        )
+
+    def stg_binary_image_wise_concatenated_trails_classification(self):
+        """ """
 
         self.brain.current_labels = self.brain.subject_labels
         split = "r_split"
@@ -101,7 +139,13 @@ class STGAnalyser(AnalyserBase):
             single_label=True,
         )
 
-    def stg_binary_trails_classification(self):
+    def stg_binary_image_wise_trails_classification(self):
+        """
+        Subject labels remains same as it it, but subjects are biuld according to the image labels
+        i. e
+        S1 = [[0], [1], [2], [3]], s1 is maybe neurotypical, with it four trtails
+        image_wise_trails looks like, i.e  S1 = [[0], [3]],
+        """
         self.brain.current_labels = self.brain.subject_labels
         split = "r_split"
         if self.training_config.predefined_split:
@@ -136,48 +180,14 @@ class STGAnalyser(AnalyserBase):
             single_label=True,
         )
 
-    def stg_concatenated_trails_classification(self):
-        self.brain.current_labels = self.brain.subject_labels
-        split = "r_split"
-        if self.training_config.predefined_split:
-            split = "cr_split"
-
-        stg_subject_binary_data = self.brain.concatenate_fmri_data_trails()
-
-        self.training_config.analyze_binary_trails = False
-        self.training_config.analyze_concatenated_trails = True
-
-        all_data = []
-
-        for bd in stg_subject_binary_data:
-            training = DataTraining()
-            export_data = training.brain_data_classification(
-                bd,
-                self.training_config,
-                self.strategies,
-                self.classifiers,
-            )
-            all_data.extend(export_data)
-        self.training_config.brain_area = self.brain.area
-        export = ExportData()
-        note = export.create_note(self.training_config)
-        export.create_and_write_datasheet(
-            data=all_data,
-            sheet_name=f"{self.brain.area}-Results",
-            title=f"{self.brain.area}-{self.training_config.folds}-Folds-{split}-Clf",
-            notes=note,
-            transpose=True,
-            single_label=True,
-        )
-
-    def stg_binary_classification_with_shap(self):
+    def stg_binary_image_and_subject_classification_with_shaply(self):
 
         split = "r_split"
         if self.training_config.predefined_split:
             split = "cr_split"
 
         self.brain.current_labels = self.brain.subject_labels_int
-        stg_subject_binary_data = self.brain.binary_data(self.data_config)
+        stg_subject_binary_data = self.brain.binarize_fmri_data(self.data_config)
 
         self.training_config.dimension_reduction = True
         self.training_config.explain = True
@@ -203,7 +213,7 @@ class STGAnalyser(AnalyserBase):
                 transpose=True,
             )
         self.brain.current_labels = self.brain.image_labels_int
-        stg_image_binary_data = self.brain.binary_data(self.data_config)
+        stg_image_binary_data = self.brain.binarize_fmri_data(self.data_config)
 
         for bd in stg_image_binary_data:
             training = DataTraining()
@@ -224,7 +234,10 @@ class STGAnalyser(AnalyserBase):
                 transpose=True,
             )
 
-    def stg_classification(self):
+    def stg_subject_and_image_classification(self):
+        """
+        Basic classification with image and subject labels
+        """
         self.brain.current_labels = self.brain.subject_labels_int
 
         training = DataTraining()
