@@ -25,7 +25,9 @@ from HyperParameterSearch import (
     get_voxel_tensor_datasets,
     train_and_validate_brain_voxels_ray,
 )
+from IFGAnalyser import IFGAnalyser
 from PlotData import VisualizeData
+from STGAnalyser import STGAnalyser
 from TrainingConfig import TrainingConfig
 from TrainUtlis import load_data, test_accuracy, train_and_validate_mnist_ray_tune
 
@@ -326,51 +328,6 @@ def ifg_binary_subject_classification(
     note = export.create_note(t_config)
     export.create_and_write_datasheet(
         data=all_export_data,
-        sheet_name=f"{brain.area}-Results",
-        title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
-        notes=note,
-        transpose=True,
-        single_label=True,
-    )
-
-
-def stg_concatenated_trails_classification(
-    classifiers, strategies, t_config: TrainingConfig
-):
-    config = BrainDataConfig()
-    brain = Brain(
-        area=config.STG,
-        data_path=config.STG_path,
-        load_labels=True,
-        load_int_labels=True,
-    )
-
-    brain.current_labels = brain.subject_labels
-    split = "r_split"
-    if t_config.predefined_split:
-        split = "cr_split"
-
-    stg_subject_binary_data = brain.concatenate_fmri_data_trails(brain)
-
-    t_config.analyze_concatenated_trails = True
-    t_config.analyze_binary_trails = False
-
-    all_data = []
-
-    for bd in stg_subject_binary_data:
-        training = DataTraining()
-        export_data = training.brain_data_classification(
-            bd,
-            t_config,
-            strategies,
-            classifiers,
-        )
-        all_data.extend(export_data)
-    t_config.brain_area = brain.area
-    export = ExportData()
-    note = export.create_note(t_config)
-    export.create_and_write_datasheet(
-        data=all_data,
         sheet_name=f"{brain.area}-Results",
         title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
         notes=note,
@@ -885,6 +842,12 @@ def test_load_model():
 
 
 def main():
+
+    # stg = STGAnalyser()
+    # stg.stg_subject_binary_classification()
+
+    ifg = IFGAnalyser()
+    ifg.ifg_binary_subject_classification()
     # analyse_nans()
     # visualize_nans()
     # classify_iris()
@@ -942,7 +905,7 @@ def main():
     # t_config.tsne = True
     # stg_binary_classification_with_shap(classifiers, strategies, t_config)
     # stg_subject_binary_classification(classifiers, strategies, t_config)
-    ifg_binary_subject_classification(classifiers, strategies, t_config)
+    # ifg_binary_subject_classification(classifiers, strategies, t_config)
     # stg_concatenated_trails_classification(classifiers, strategies, t_config)
     # stg_binary_trails_classification(classifiers, strategies, t_config)
 
