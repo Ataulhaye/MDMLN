@@ -19,15 +19,15 @@ from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
 from BrainTrainUtils import load_bestmodel_and_test
 from DataTraining import DataTraining
+from Enums import Lobe
 from EvaluateTrainingModel import EvaluateTrainingModel
 from ExportData import ExportData
+from FMRIAnalyser import FMRIAnalyser
 from HyperParameterSearch import (
     get_voxel_tensor_datasets,
     train_and_validate_brain_voxels_ray,
 )
-from IFGAnalyser import IFGAnalyser
 from PlotData import VisualizeData
-from STGAnalyser import STGAnalyser
 from TrainingConfig import TrainingConfig
 from TrainUtlis import load_data, test_accuracy, train_and_validate_mnist_ray_tune
 
@@ -842,23 +842,19 @@ def test_load_model():
 
 
 def main():
+    analyser = FMRIAnalyser(Lobe.IFG)
+    analyser.training_config.dimension_reduction = True
+    analyser.training_config.has_fix_components = (True, 10)
+    # analyser.binary_subject_classification()
 
-    stg = STGAnalyser()
-    ifg = IFGAnalyser()
-    stg.training_config.dimension_reduction = True
-    stg.training_config.has_fix_components = True
-    stg.training_config.pca_fix_components = 10
-    stg.training_config.folds = 5
-    stg.stg_subject_wise_binary_classification()  # verified
+    # stg.stg_subject_wise_binary_classification()  # verified
     # stg.stg_subject_wise_unary_image_binary_classification() #verified
     # stg.stg_binary_image_wise_concatenated_trails_binary_subject_classification()  # verified asked by Sadi
     # stg.stg_binary_image_wise_concatenated_trails_classification()# verified
     # stg.stg_binary_image_wise_trails_classification()
-
-    ifg.training_config.dimension_reduction = True
-    ifg.ifg_binary_subject_classification()
+    # ifg.ifg_binary_subject_classification()
     # ifg.ifg_binary_image_wise_concatenated_trails_binary_subject_classification()  # verified
-    # ifg = IFGAnalyser()
+
     # ifg.ifg_binary_subject_classification()
     # analyse_nans()
     # visualize_nans()
@@ -922,7 +918,6 @@ def main():
     # stg_binary_trails_classification(classifiers, strategies, t_config)
 
     t_config.dimension_reduction = True
-    t_config.pca_fix_components = 10
     t_config.has_fix_components = True
     # ifg_concatenated_binary_subjects_trails_classification(classifiers, strategies, t_config)
     # stg_concatenated_binary_subjects_trails_classification(classifiers, strategies, t_config)

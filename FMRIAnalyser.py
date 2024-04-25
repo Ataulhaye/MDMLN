@@ -1,36 +1,65 @@
-from AnalyserBase import AnalyserBase
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
 from DataTraining import DataTraining
+from Enums import Lobe
 from ExportData import ExportData
 from TrainingConfig import TrainingConfig
 
 
-class STGAnalyser(AnalyserBase):
+class FMRIAnalyser:
 
     def __init__(
         self,
+        lobe: Lobe,
         brain: Brain = None,
         classifiers=None,
         strategies=None,
         training_config: TrainingConfig = None,
-        data_config: BrainDataConfig = BrainDataConfig(),
+        data_config: BrainDataConfig = None,
     ):
-        if brain is None:
+        if lobe is None:
+            raise Exception("Lobe of the brain must be defined.")
+        else:
+            self.lobe = lobe
+
+        if classifiers is None:
+            self.classifiers = ["SVM", "MLP", "LinearDiscriminant", "LGBM"]
+        else:
+            self.classifiers = classifiers
+
+        if strategies is None:
+            self.strategies = ["mean", "remove-voxels", "median"]
+        else:
+            self.strategies = strategies
+
+        if training_config is None:
+            self.training_config = TrainingConfig()
+        else:
+            self.training_config = training_config
+
+        if data_config is None:
+            self.data_config = BrainDataConfig()
+        else:
+            self.data_config = data_config
+
+        if lobe is Lobe.STG:
             self.brain = Brain(
-                area=data_config.STG,
-                data_path=data_config.STG_path,
+                area=self.data_config.STG,
+                data_path=self.data_config.STG_path,
+                load_labels=True,
+                load_int_labels=True,
+            )
+        elif lobe is Lobe.IFG:
+            self.brain = Brain(
+                area=self.data_config.IFG,
+                data_path=self.data_config.IFG_path,
                 load_labels=True,
                 load_int_labels=True,
             )
         else:
             self.brain = brain
 
-        super(STGAnalyser, self).__init__(
-            self.brain, classifiers, strategies, training_config, data_config
-        )
-
-    def stg_subject_wise_binary_classification(self):
+    def binary_subject_classification(self):
         """
         Binarize the fMRI data based on subjects, image labels remains same. i.e N,S, N,D, D,S
         """
@@ -58,7 +87,10 @@ class STGAnalyser(AnalyserBase):
             all_export_data.extend(export_data)
         self.training_config.brain_area = self.brain.area
         export = ExportData()
-        note = export.create_note(self.training_config)
+
+        print_config = f"Popmean:{stg_subject_binary_data[0].current_labels.popmean}, Conditions:{self.data_config.conditions}, PCA fix components:{self.training_config.has_fix_components}, Method:{self.binary_subject_classification.__name__}"
+
+        note = export.create_note([self.training_config, print_config])
         export.create_and_write_datasheet(
             data=all_export_data,
             sheet_name=f"{self.brain.area}-Results",
@@ -68,7 +100,7 @@ class STGAnalyser(AnalyserBase):
             single_label=True,
         )
 
-    def stg_subject_wise_unary_image_binary_classification(self):
+    def unary_subject_binary_image_classification(self):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance image wise binarization takes place
         """
@@ -107,7 +139,7 @@ class STGAnalyser(AnalyserBase):
             single_label=True,
         )
 
-    def stg_binary_image_wise_concatenated_trails_binary_subject_classification(self):
+    def binary_subject_binary_concatenated_image_classification(self):
         """
         Binarize the fMRI data based on subjects, then for every binarized instance image wise binarization with concatenation takes place
         """
@@ -151,7 +183,7 @@ class STGAnalyser(AnalyserBase):
             single_label=True,
         )
 
-    def stg_binary_image_wise_concatenated_trails_classification(self):
+    def subject_binary_concatenated_image_classification(self):
         """Concate the (two out of four) image labels. i.e AR and AC from four images. AR and AC are concatenated.
         The subject labels remain same. Popmean would be 0.3
         """
@@ -193,7 +225,7 @@ class STGAnalyser(AnalyserBase):
             single_label=True,
         )
 
-    def stg_binary_image_wise_trails_classification(self):
+    def subject_binary_image_classification(self):
         """
         Select two (two out of four) image labels. i.e AR and AC from four images. AR and AC are for one subject i.e Neurotypical.
         The subject labels remain same. Popmean would be 0.3
@@ -235,7 +267,7 @@ class STGAnalyser(AnalyserBase):
             single_label=True,
         )
 
-    def stg_binary_image_and_subject_classification_with_shaply(self):
+    def binary_image_and_binary_subject_classification_with_shaply(self):
 
         split = "r_split"
         if self.training_config.predefined_split:
@@ -295,7 +327,7 @@ class STGAnalyser(AnalyserBase):
                 transpose=True,
             )
 
-    def stg_subject_and_image_classification(self):
+    def subject_and_image_classification(self):
         """
         Basic classification with image and subject labels
         """
@@ -335,3 +367,14 @@ class STGAnalyser(AnalyserBase):
             notes=note,
             transpose=True,
         )
+
+    def modify_patients(self, config: BrainDataConfig, combination):
+        config.patients = []
+        for comb in combination:
+            match comb:
+                case config.neurotypical | config.neurotypical_int:
+                    config.patients.append(config.neurotypical_patients)
+                case config.depressive_disorder | config.depressive_disorder_int:
+                    config.patients.append(config.depressive_disorder_patients)
+                case config.schizophrenia_spectrum | config.schizophrenia_spectrum_int:
+                    config.patients.append(config.schizophrenia_spectrum_patients)

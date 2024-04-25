@@ -141,8 +141,8 @@ class DataTraining:
     def apply_PCA(self, train_test_set: TestTrainingSet, train_config: TrainingConfig):
         x_dim = train_test_set.X_train.shape[1]
         pca = PCA(n_components=0.99, svd_solver="full")
-        if train_config.has_fix_components:
-            pca = PCA(n_components=train_config.pca_fix_components)
+        if train_config.has_fix_components[0]:
+            pca = PCA(n_components=train_config.has_fix_components[1])
         pca.fit(train_test_set.X_train)
         pca_x_train = pca.transform(train_test_set.X_train)
         pca_x_test = pca.transform(train_test_set.X_test)

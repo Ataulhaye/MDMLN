@@ -34,8 +34,8 @@ class TrainingConfig:
         analyze_binary_trails=False,
         brain_area="",
         tsne=False,
-        has_fix_components=False,
-        pca_fix_components=75,
+        has_fix_components=(False, 75),
+        # pca_fix_components=75,
         best_autoencoder_config_STG={
             "input_dim": 7238,
             "hidden_dim1": 32,
@@ -88,7 +88,7 @@ class TrainingConfig:
         self.brain_area = brain_area
         self.tsne = tsne
         self.has_fix_components = has_fix_components
-        self.pca_fix_components = pca_fix_components
+        # self.pca_fix_components = pca_fix_components
         self.analyze_concatenated_trails = analyze_concatenated_trails
         self.analyze_binary_trails = analyze_binary_trails
 

@@ -97,21 +97,20 @@ class ExportData:
     def set_note_font(
         self, notes, matrix, ws: openpyxl.worksheet.worksheet.Worksheet, sett
     ):
-        note_cell_coord = None
-        for col in ws.iter_cols(min_row=1, max_col=1, max_row=(matrix.shape[0] + 6)):
+        note_cell_coords = []
+        for col in ws.iter_cols(min_row=1, max_col=1, max_row=(matrix.shape[0] + 7)):
             for cell in col:
-                if (
-                    type(cell) == openpyxl.cell.cell.Cell
-                    and cell.internal_value == notes[-1][0]
+                if type(cell) == openpyxl.cell.cell.Cell and (
+                    cell.internal_value == notes[-1][0]
+                    or cell.internal_value == notes[-2][0]
                 ):
-                    note_cell_coord = cell.coordinate
-                    break
+                    note_cell_coords.append(cell.coordinate)
 
-        if note_cell_coord is not None:
+        for note_cell_coord in note_cell_coords:
             note_cell = ws[note_cell_coord]
             note_cell.font = Font(name=sett.header_family, sz=sett.header_font)
 
-    def create_note(self, t_config):
+    def create_note(self, configs):
         notes = []
         for i in range(5):
             notes.append([])
@@ -119,7 +118,8 @@ class ExportData:
         # notes.append([])
         # notes.append([])
         # notes.append([])
-        notes.append([str(t_config)])
+        for config in configs:
+            notes.append([str(config)])
         return notes
 
     def fill_color(self, cell_positions, matrix, ws, setting: ExelSettings, increment):
