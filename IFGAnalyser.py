@@ -30,8 +30,10 @@ class IFGAnalyser(AnalyserBase):
             self.brain, classifiers, strategies, training_config, data_config
         )
 
-    def ifg_classification(self):
-
+    def ifg_subject_and_image_classification(self):
+        """
+        Basic classification with image and subject labels
+        """
         training = DataTraining()
 
         self.brain.current_labels = self.brain.subject_labels_int
@@ -53,38 +55,35 @@ class IFGAnalyser(AnalyserBase):
         )
         export_data.extend(e_data)
 
-        split = "r_split"
-        if self.training_config.predefined_split:
-            split = "cr_split"
-
         self.training_config.brain_area = self.brain.area
         export = ExportData()
         note = export.create_note(self.training_config)
         export.create_and_write_datasheet(
             data=export_data,
             sheet_name=f"{self.brain.area}-Results",
-            title=f"{self.brain.area}-{self.training_config.folds}-Folds-{split}-Clf",
+            title=f"{self.brain.area}-{self.training_config.folds}",
             notes=note,
             transpose=True,
         )
 
     def ifg_binary_subject_classification(self):
-
-        split = "r_split"
-        if self.training_config.predefined_split:
-            split = "cr_split"
+        """
+        Binarize the fMRI data based on subjects, image labels remains same. i.e N,S, N,D, D,S
+        """
 
         self.brain.current_labels = self.brain.subject_labels
         ifg_subject_binary_data = self.brain.binarize_fmri_image_or_subject(
             self.data_config
         )
 
-        # self.training_config.dimension_reduction = True
-
         all_export_data = []
 
         for bd in ifg_subject_binary_data:
             training = DataTraining()
+            self.training_config.analyze_binary_trails = True
+            print("Patients", self.data_config.patients)
+            self.modify_patients(self.data_config, bd.voxel_label)
+            print("Patients changed", self.data_config.patients)
             export_data = training.brain_data_classification(
                 bd,
                 self.training_config,
@@ -99,7 +98,7 @@ class IFGAnalyser(AnalyserBase):
         export.create_and_write_datasheet(
             data=all_export_data,
             sheet_name=f"{self.brain.area}-Results",
-            title=f"{self.brain.area}-{self.training_config.folds}-Folds-{split}-Clf",
+            title=f"{self.brain.area}-{self.training_config.folds}-Folds",
             notes=note,
             transpose=True,
             single_label=True,

@@ -31,6 +31,9 @@ class STGAnalyser(AnalyserBase):
         )
 
     def stg_subject_wise_binary_classification(self):
+        """
+        Binarize the fMRI data based on subjects, image labels remains same. i.e N,S, N,D, D,S
+        """
 
         self.brain.current_labels = self.brain.subject_labels
         stg_subject_binary_data = self.brain.binarize_fmri_image_or_subject(

@@ -846,14 +846,17 @@ def main():
     stg = STGAnalyser()
     ifg = IFGAnalyser()
     stg.training_config.dimension_reduction = True
+    stg.training_config.has_fix_components = True
+    stg.training_config.pca_fix_components = 10
     stg.training_config.folds = 5
-    # stg.stg_subject_wise_binary_classification() #verified
+    stg.stg_subject_wise_binary_classification()  # verified
     # stg.stg_subject_wise_unary_image_binary_classification() #verified
-    # stg.stg_binary_image_wise_concatenated_trails_binary_subject_classification()  # verified
+    # stg.stg_binary_image_wise_concatenated_trails_binary_subject_classification()  # verified asked by Sadi
     # stg.stg_binary_image_wise_concatenated_trails_classification()# verified
-    stg.stg_binary_image_wise_trails_classification()
+    # stg.stg_binary_image_wise_trails_classification()
 
     ifg.training_config.dimension_reduction = True
+    ifg.ifg_binary_subject_classification()
     # ifg.ifg_binary_image_wise_concatenated_trails_binary_subject_classification()  # verified
     # ifg = IFGAnalyser()
     # ifg.ifg_binary_subject_classification()
