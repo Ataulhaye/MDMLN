@@ -277,10 +277,9 @@ class Brain:
         for label in comb_src:
             voxels = None
             labels = None
-            optional_labels = None
             if subject:
-                voxels = self.subject_unary_data(self.voxels, config, label)
-                labels = self.subject_unary_data(
+                voxels = self.subject_binary_or_unary_data(self.voxels, config, label)
+                labels = self.subject_binary_or_unary_data(
                     self.current_labels.labels, config, label
                 )
             else:
@@ -323,8 +322,10 @@ class Brain:
         for combination in combinations:
             if subject:
                 # self.modify_data_config(config, combination)
-                voxels = self.subject_binary_data(self.voxels, config, combination)
-                labels = self.subject_binary_data(
+                voxels = self.subject_binary_or_unary_data(
+                    self.voxels, config, combination
+                )
+                labels = self.subject_binary_or_unary_data(
                     self.current_labels.labels, config, combination
                 )
             else:
@@ -391,8 +392,8 @@ class Brain:
         combinations = list(itertools.combinations(config.subject_labels, 2))
 
         for combination in combinations:
-            voxels = self.subject_binary_data(self.voxels, config, combination)
-            labels = self.subject_binary_data(
+            voxels = self.subject_binary_or_unary_data(self.voxels, config, combination)
+            labels = self.subject_binary_or_unary_data(
                 self.current_labels.labels, config, combination
             )
 
@@ -502,15 +503,12 @@ class Brain:
             index2 = i + trail_pos2
             print("index2", index2)
             if data.ndim == 1:
-                selection.append(data[index1])
-                selection.append(data[index2])
                 if len(data[index1]) == 1 and data[index1] != data[index2]:
                     raise Exception(
                         "These label must be same, Data label calculation is wrong"
                     )
-            else:
-                selection.append(data[index1])
-                selection.append(data[index2])
+            selection.append(data[index1])
+            selection.append(data[index2])
             i = i + 4
         return np.array(selection)
 
@@ -617,32 +615,10 @@ class Brain:
                         "Voxel trail positions are not calculated coorectly"
                     )
 
-    def subject_binary_data(self, data, config: BrainDataConfig, combination):
-        chunks = []
-        patients = config.patients
-        trails = config.conditions
-        for label in combination:
-            match label:
-                case config.neurotypical_int | config.neurotypical:
-                    end = patients[config.neurotypical_int] * trails
-                    v = data[0:end]
-                    chunks.append(v)
-                case config.depressive_disorder_int | config.depressive_disorder:
-                    start = patients[config.neurotypical_int] * trails
-                    end = patients[config.depressive_disorder_int] * trails
-                    v = data[start : (start + end)]
-                    chunks.append(v)
-                case config.schizophrenia_spectrum_int | config.schizophrenia_spectrum:
-                    start = patients[config.neurotypical_int] * trails
-                    end = patients[config.depressive_disorder_int] * trails
-                    v = data[(start + end) :]
-                    chunks.append(v)
-                case _:
-                    raise Exception("Unsupported label")
-
-        return np.concatenate(chunks)
-
-    def subject_unary_data(self, data, config: BrainDataConfig, combination):
+    def subject_binary_or_unary_data(self, data, config: BrainDataConfig, combination):
+        """
+        Binary or unary data will be returned depends upon the combination provided
+        """
         chunks = []
         patients = config.patients
         trails = config.conditions

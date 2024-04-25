@@ -843,8 +843,9 @@ def test_load_model():
 
 def main():
     analyser = FMRIAnalyser(Lobe.IFG)
-    analyser.training_config.dimension_reduction = True
+    # analyser.training_config.dimension_reduction = True
     analyser.training_config.has_fix_components = (True, 10)
+    analyser.unary_subject_binary_image_classification()
     # analyser.binary_subject_classification()
 
     # stg.stg_subject_wise_binary_classification()  # verified
