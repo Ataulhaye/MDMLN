@@ -40,20 +40,17 @@ class DataTraining:
     nan_classifiers = ["DecisionTree", "HistGradientBoosting", "LGBM", "CatBoost"]
 
     def training_prediction_using_cross_validation(
-        self, model, brain: Brain, train_config: TrainingConfig
+        self,
+        model,
+        brain: Brain,
+        train_config: TrainingConfig,
+        data_config: BrainDataConfig = None,
     ):
         scores = []
         for i in range(train_config.folds):
             train_test_set = None
 
             if train_config.predefined_split:
-                data_config: BrainDataConfig = None
-                if train_config.analyze_concatenated_trails:
-                    data_config = BrainDataConfig()
-                    data_config.conditions = 1
-                if train_config.analyze_binary_trails:
-                    data_config = BrainDataConfig()
-                    data_config.conditions = 2
                 train_test_set = self.premeditate_random_train_test_split(
                     brain, train_config, data_config
                 )
@@ -335,6 +332,7 @@ class DataTraining:
         self,
         brain: Brain,
         train_config: TrainingConfig,
+        data_config: BrainDataConfig = None,
     ):
         """Performs k-Fold classification, training and testing
         Args:
@@ -389,7 +387,7 @@ class DataTraining:
         )
 
         scores = self.training_prediction_using_cross_validation(
-            model=model, train_config=train_config, brain=brain
+            model=model, train_config=train_config, brain=brain, data_config=data_config
         )
         # scores = self.training_prediction_using_default_cross_validation(model=model,x=x,y=y.labels,folds=folds,test_size=test_size,predefined_split=predefined_split,)
 
@@ -458,6 +456,7 @@ class DataTraining:
         train_config: TrainingConfig,
         strategies: list[str],
         classifiers: list[str],
+        data_config: BrainDataConfig = None,
     ):
         data_list = list()
         config = BrainDataConfig()
@@ -469,7 +468,9 @@ class DataTraining:
             train_config.classifier = classifier
             for strategy in strategies:
                 train_config.strategy = strategy
-                results = self.train_and_test_model_accuracy(brain, train_config)
+                results = self.train_and_test_model_accuracy(
+                    brain, train_config, data_config
+                )
                 data_list.append(results)
 
         return data_list

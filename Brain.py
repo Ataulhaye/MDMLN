@@ -1,3 +1,4 @@
+import copy
 import itertools
 
 import numpy as np
@@ -10,6 +11,7 @@ from TestTrainingSet import TestTrainingSet
 
 
 class Brain:
+
     def __init__(
         self,
         area: str = None,
@@ -19,9 +21,12 @@ class Brain:
         current_labels: BrainDataLabel = None,
         mask: str = None,
         niimg: str = None,
+        voxel_label=None,
     ):
         self.area = area
         self.current_labels = current_labels
+        if voxel_label is not None:
+            self.voxel_label = voxel_label
         if niimg is not None:
             self.niimg = niimg
         if mask is not None:
@@ -260,55 +265,91 @@ class Brain:
 
         return nans_len_list
 
-    def binarize_fmri_data(self, config: BrainDataConfig):
+    def unary_fmri_subject_or_image(self, config: BrainDataConfig):
         """
         Binarize the fmri data based on the Image or subject labels
         In the brain object current labels are considered
         """
         brain_data: list[Brain] = []
-        comb_src = None
-        subject = False
 
-        if "subject" in self.current_labels.name and "int" in self.current_labels.name:
-            comb_src = config.subject_labels_int
-            subject = True
-        elif (
-            "subject" in self.current_labels.name
-            and not "int" in self.current_labels.name
-        ):
-            comb_src = config.subject_labels
-            subject = True
-        elif "image" in self.current_labels.name and "int" in self.current_labels.name:
-            comb_src = config.image_labels_int
-        elif (
-            "image" in self.current_labels.name
-            and not "int" in self.current_labels.name
-        ):
-            comb_src = config.image_labels
-        else:
-            raise Exception("Label matching went wrong")
+        comb_src, subject, int_label = self.get_combination_source(config)
+
+        for label in comb_src:
+            voxels = None
+            labels = None
+            optional_labels = None
+            if subject:
+                voxels = self.subject_unary_data(self.voxels, config, label)
+                labels = self.subject_unary_data(
+                    self.current_labels.labels, config, label
+                )
+            else:
+                trail_pos = self.get_subject_or_image_label_position(config, label)
+                voxels = self.image_based_unary_selection(self.voxels, trail_pos)
+                labels = self.image_based_unary_selection(
+                    self.current_labels.labels, trail_pos
+                )
+                # voxels = self.image_unary_data(self.voxels, config, label)
+                # labels = self.image_unary_data(self.current_labels.labels, config, label)
+            brain = copy.deepcopy(self)
+            brain.voxels = voxels
+            brain.voxel_label = label
+            unary_label = BrainDataLabel(
+                name=f"unary_{self.current_labels.name}_{label}",
+                popmean=config.unary_popmean,
+                labels=labels,
+            )
+            brain.current_labels = unary_label
+
+            brain_data.append(brain)
+
+        return brain_data
+
+    def validate_data_dim(self, label):
+        if self.current_labels.labels.shape != label.shape:
+            raise Exception("Data dimension mismatch")
+
+    def binarize_fmri_image_or_subject(self, config: BrainDataConfig):
+        """
+        Binarize the fmri data based on the Image or subject labels
+        In the brain object current labels are considered
+        """
+        brain_data: list[Brain] = []
+
+        comb_src, subject, int_label = self.get_combination_source(config)
 
         combinations = list(itertools.combinations(comb_src, 2))
 
         for combination in combinations:
-            voxels = None
-            labels = None
             if subject:
+                # self.modify_data_config(config, combination)
                 voxels = self.subject_binary_data(self.voxels, config, combination)
                 labels = self.subject_binary_data(
                     self.current_labels.labels, config, combination
                 )
             else:
-                voxels = self.image_binary_data(self.voxels, config, combination)
-                labels = self.image_binary_data(
-                    self.current_labels.labels, config, combination
+                # voxels = self.image_binary_data(self.voxels, config, combination)
+                # labels = self.image_binary_data(self.current_labels.labels, config, combination)
+
+                trail_pos1 = self.get_image_label_position(config, combination[0])
+                trail_pos2 = self.get_image_label_position(config, combination[1])
+
+                self.validate_voxel_trail_position(config, combination[0], trail_pos1)
+                self.validate_voxel_trail_position(config, combination[1], trail_pos2)
+
+                voxels = self.image_based_binary_selection(
+                    self.voxels, trail_pos1, trail_pos2
+                )
+                labels = self.image_based_binary_selection(
+                    self.current_labels.labels, trail_pos1, trail_pos2
                 )
 
             brain = Brain()
             brain.area = self.area
+            brain.voxel_label = combination
             brain.voxels = voxels
             binary_label = BrainDataLabel(
-                name=f"binary_{self.current_labels.name}_{combination[0]}-{combination[1]}",
+                name=f"{self.current_labels.name}_binary_{combination[0]}-{combination[1]}",
                 popmean=config.binary_popmean,
                 labels=labels,
             )
@@ -317,6 +358,55 @@ class Brain:
             brain_data.append(brain)
 
         return brain_data
+
+    def get_combination_source(self, config: BrainDataConfig):
+        int_label = False
+        subject = False
+        if "subject" in self.current_labels.type and "int" in self.current_labels.type:
+            comb_src = config.subject_labels_int
+            subject = True
+            int_label = True
+        elif (
+            "subject" in self.current_labels.type
+            and not "int" in self.current_labels.type
+        ):
+            comb_src = config.subject_labels
+            subject = True
+        elif "image" in self.current_labels.type and "int" in self.current_labels.type:
+            comb_src = config.image_labels_int
+            int_label = True
+        elif (
+            "image" in self.current_labels.type
+            and not "int" in self.current_labels.type
+        ):
+            comb_src = config.image_labels
+        else:
+            raise Exception("Label matching went wrong")
+        return comb_src, subject, int_label
+
+    def get_combination_source1(self, config: BrainDataConfig):
+        int_label = False
+        if "subject" in self.current_labels.name and "int" in self.current_labels.name:
+            comb_src = config.subject_labels_int
+            subject = True
+            int_label = True
+        elif (
+            "subject" in self.current_labels.name
+            and not "int" in self.current_labels.name
+        ):
+            comb_src = config.subject_labels
+            subject = True
+        elif "image" in self.current_labels.name and "int" in self.current_labels.name:
+            comb_src = config.image_labels_int
+            int_label = True
+        elif (
+            "image" in self.current_labels.name
+            and not "int" in self.current_labels.name
+        ):
+            comb_src = config.image_labels
+        else:
+            raise Exception("Label matching went wrong")
+        return comb_src, subject, int_label
 
     def binary_subject_image_based_data(self):
         config = BrainDataConfig()
@@ -343,7 +433,7 @@ class Brain:
 
         return brain_data
 
-    def binary_fmri_data_trails(self):
+    def binary_fmri_image_trails(self):
         config = BrainDataConfig()
         brain_data: list[Brain] = []
 
@@ -356,8 +446,10 @@ class Brain:
             self.validate_voxel_trail_position(config, combination[0], trail_pos1)
             self.validate_voxel_trail_position(config, combination[1], trail_pos2)
 
-            voxels = self.image_based_selection(self.voxels, trail_pos1, trail_pos2)
-            labels = self.image_based_selection(
+            voxels = self.image_based_binary_selection(
+                self.voxels, trail_pos1, trail_pos2
+            )
+            labels = self.image_based_binary_selection(
                 self.current_labels.labels, trail_pos1, trail_pos2
             )
 
@@ -376,7 +468,7 @@ class Brain:
         # this should return the listof tuples of brain and the config
         return brain_data
 
-    def concatenate_fmri_data_trails(self):
+    def concatenate_fmri_image_trails(self):
         config = BrainDataConfig()
         brain_data: list[Brain] = []
 
@@ -385,11 +477,12 @@ class Brain:
         # combinations.insert(0, ("ARCU", "ARCU"))
 
         for combination in combinations:
-            trail_pos1 = self.get_image_label_position(config, combination[0])
-            trail_pos2 = self.get_image_label_position(config, combination[1])
-
-            self.validate_voxel_trail_position(config, combination[0], trail_pos1)
-            self.validate_voxel_trail_position(config, combination[1], trail_pos2)
+            trail_pos1 = self.get_subject_or_image_label_position(
+                config, combination[0]
+            )
+            trail_pos2 = self.get_subject_or_image_label_position(
+                config, combination[1]
+            )
 
             voxels = self.image_based_concatenation(self.voxels, trail_pos1, trail_pos2)
             labels = self.image_based_concatenation(
@@ -399,6 +492,7 @@ class Brain:
             brain = Brain()
             brain.area = self.area
             brain.voxels = voxels
+            brain.voxel_label = combination
             name = f"{self.current_labels.name}-{combination[0]}_{combination[1]}"
 
             if combination[1] == "ARCU":
@@ -411,8 +505,20 @@ class Brain:
         # this should return the listof tuples of brain and the config
         return brain_data
 
-    def image_based_selection(self, data: np.ndarray, trail_pos1: int, trail_pos2: int):
-        concatenated = []
+    def image_based_unary_selection(self, data: np.ndarray, trail_pos: int):
+        selection = []
+        i = 0
+        while i < data.shape[0]:
+            index = i + trail_pos
+            print("index", index)
+            selection.append(data[index])
+            i = i + 4
+        return np.array(selection)
+
+    def image_based_binary_selection(
+        self, data: np.ndarray, trail_pos1: int, trail_pos2: int
+    ):
+        selection = []
         i = 0
         while i < data.shape[0]:
             index1 = i + trail_pos1
@@ -420,17 +526,17 @@ class Brain:
             index2 = i + trail_pos2
             print("index2", index2)
             if data.ndim == 1:
-                concatenated.append(data[index1])
-                concatenated.append(data[index1])
-                if data[index1] != data[index2]:
+                selection.append(data[index1])
+                selection.append(data[index2])
+                if len(data[index1]) == 1 and data[index1] != data[index2]:
                     raise Exception(
                         "These label must be same, Data label calculation is wrong"
                     )
             else:
-                concatenated.append(data[index1])
-                concatenated.append(data[index2])
+                selection.append(data[index1])
+                selection.append(data[index2])
             i = i + 4
-        return np.array(concatenated)
+        return np.array(selection)
 
     def image_based_concatenation(
         self, data: np.ndarray, trail_pos1: int, trail_pos2: int
@@ -452,11 +558,12 @@ class Brain:
                 index4 = i + trail_pos4
                 print("index4", index4)
                 if data.ndim == 1:
-                    concatenated.append(data[index1])
                     if data[index1] != data[index2] != data[index3] != data[index4]:
-                        raise Exception(
-                            "These label must be same, Data label calculation is wrong"
+                        concatenated.append(
+                            f"{data[index1]}_{data[index2]}_{data[index3]}_{data[index4]}_"
                         )
+                    else:
+                        concatenated.append(data[index1])
                 else:
                     chunk = np.concatenate(
                         (data[index1], data[index2], data[index3], data[index4])
@@ -471,11 +578,10 @@ class Brain:
                 index2 = i + trail_pos2
                 print("index2", index2)
                 if data.ndim == 1:
-                    concatenated.append(data[index1])
                     if data[index1] != data[index2]:
-                        raise Exception(
-                            "These label must be same, Data label calculation is wrong"
-                        )
+                        concatenated.append(f"{data[index1]}_{data[index2]}")
+                    else:
+                        concatenated.append(data[index1])
                 else:
                     chunk = np.concatenate((data[index1], data[index2]))
                     concatenated.append(chunk)
@@ -484,6 +590,7 @@ class Brain:
         return np.array(concatenated)
 
     def get_image_label_position(self, config: BrainDataConfig, label):
+        position = np.NAN
         match label:
             case config.abstract_related:
                 position = config.AR_position
@@ -495,23 +602,46 @@ class Brain:
                 position = config.CU_position
             case "ARCU":
                 position = None
+        self.validate_voxel_trail_position(config, label, position)
+        return position
+
+    def get_subject_or_image_label_position(self, config: BrainDataConfig, label):
+        position = np.NAN
+        match label:
+            case config.abstract_related:
+                position = config.AR_position
+            case config.abstract_unrelated:
+                position = config.AU_position
+            case config.concrete_related:
+                position = config.CR_position
+            case config.concrete_unrelated:
+                position = config.CU_position
+            case "ARCU":
+                position = None
+            case config.neurotypical:
+                position = config.neurotypical_int
+            case config.depressive_disorder:
+                position = config.depressive_disorder_int
+            case config.schizophrenia_spectrum:
+                position = config.schizophrenia_spectrum_int
+        self.validate_voxel_trail_position(config, label, position)
         return position
 
     def validate_voxel_trail_position(
         self, config: BrainDataConfig, combination, position
     ):
         match combination:
-            case config.abstract_related:
+            case config.abstract_related | config.neurotypical:
                 if position != 0:
                     raise Exception(
                         "Voxel trail positions are not calculated coorectly"
                     )
-            case config.abstract_unrelated:
+            case config.abstract_unrelated | config.depressive_disorder:
                 if position != 1:
                     raise Exception(
                         "Voxel trail positions are not calculated coorectly"
                     )
-            case config.concrete_related:
+            case config.concrete_related | config.schizophrenia_spectrum:
                 if position != 2:
                     raise Exception(
                         "Voxel trail positions are not calculated coorectly"
@@ -531,22 +661,69 @@ class Brain:
         chunks = []
         for label in combination:
             match label:
-                case config.abstract_related_int:
+                case config.abstract_related_int | config.abstract_related:
                     v = data[0::4]
                     chunks.append(v)
-                case config.abstract_unrelated_int:
+                case config.abstract_unrelated_int | config.abstract_unrelated:
                     v = data[1::4]
                     chunks.append(v)
-                case config.concrete_related_int:
+                case config.concrete_related_int | config.concrete_related:
                     v = data[2::4]
                     chunks.append(v)
-                case config.concrete_unrelated_int:
+                case config.concrete_unrelated_int | config.concrete_unrelated:
+                    v = data[3::4]
+                    chunks.append(v)
+
+        # Lst = [[50], [70], [30], [20], [90], [10], [40]]
+        # print(Lst[0::4])
+        # [[50], [90]]
+        return np.concatenate(chunks)
+
+    def image_unary_data(self, data, config: BrainDataConfig, combination):
+        chunks = []
+        for label in combination:
+            match label:
+                case config.abstract_related_int | config.abstract_related:
+                    v = data[0::4]
+                    chunks.append(v)
+                case config.abstract_unrelated_int | config.abstract_unrelated:
+                    v = data[1::4]
+                    chunks.append(v)
+                case config.concrete_related_int | config.concrete_related:
+                    v = data[2::4]
+                    chunks.append(v)
+                case config.concrete_unrelated_int | config.concrete_unrelated:
                     v = data[3::4]
                     chunks.append(v)
 
         return np.concatenate(chunks)
 
     def subject_binary_data(self, data, config: BrainDataConfig, combination):
+        chunks = []
+        patients = config.patients
+        trails = config.conditions
+        for label in combination:
+            match label:
+                case config.neurotypical_int | config.neurotypical:
+                    end = patients[config.neurotypical_int] * trails
+                    v = data[0:end]
+                    chunks.append(v)
+                case config.depressive_disorder_int | config.depressive_disorder:
+                    start = patients[config.neurotypical_int] * trails
+                    end = patients[config.depressive_disorder_int] * trails
+                    v = data[start : (start + end)]
+                    chunks.append(v)
+                case config.schizophrenia_spectrum_int | config.schizophrenia_spectrum:
+                    start = patients[config.neurotypical_int] * trails
+                    end = patients[config.depressive_disorder_int] * trails
+                    v = data[(start + end) :]
+                    chunks.append(v)
+                case _:
+                    raise Exception("Unsupported label")
+
+        return np.concatenate(chunks)
+
+    def subject_unary_data(self, data, config: BrainDataConfig, combination):
         chunks = []
         patients = config.patients
         trails = config.conditions

@@ -93,6 +93,7 @@ class EvaluateTrainingModel:
         significance_level (float, optional): significance level of 0.05 indicates a 5% risk of concluding that a difference exists when there is no actual difference. Defaults to 0.05.
         """
         try:
+            print("popmean: ", popmean)
             classifier_name = type(classifier).__name__
             t_statistic, p_value = stats.ttest_1samp(
                 a=scores, popmean=popmean, alternative="greater"

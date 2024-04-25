@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from numpy import NAN
+
 
 class BrainDataConfig:
     def __init__(self):
@@ -74,6 +76,8 @@ class BrainDataConfig:
         self.image_label_popmean = round(((100 / len(self.image_labels)) / 100), 2)
 
         self.binary_popmean = 0.5
+        # self.unary_popmean = 1.0 #this should not be used while evaluating the models
+        self.unary_popmean = NAN
 
         self.STG_path = (
             Path("fmri_data/left_STG_MTG_AALlable_ROI.rex.mat").absolute().resolve()

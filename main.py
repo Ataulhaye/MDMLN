@@ -198,7 +198,7 @@ def stg_binary_classification_with_shap(
         split = "cr_split"
 
     brain.current_labels = brain.subject_labels_int
-    stg_subject_binary_data = brain.binarize_fmri_data(config)
+    stg_subject_binary_data = brain.binarize_fmri_image_or_subject(config)
 
     t_config.dimension_reduction = True
     t_config.explain = True
@@ -224,7 +224,7 @@ def stg_binary_classification_with_shap(
             transpose=True,
         )
     brain.current_labels = brain.image_labels_int
-    stg_image_binary_data = brain.binarize_fmri_data(config)
+    stg_image_binary_data = brain.binarize_fmri_image_or_subject(config)
 
     for bd in stg_image_binary_data:
         training = DataTraining()
@@ -262,7 +262,7 @@ def stg_subject_binary_classification(
         split = "cr_split"
 
     brain.current_labels = brain.subject_labels
-    stg_subject_binary_data = brain.binarize_fmri_data(config)
+    stg_subject_binary_data = brain.binarize_fmri_image_or_subject(config)
 
     t_config.dimension_reduction = True
     # t_config.explain = True
@@ -308,7 +308,7 @@ def ifg_binary_subject_classification(
         split = "cr_split"
 
     brain.current_labels = brain.subject_labels
-    ifg_subject_binary_data = brain.binarize_fmri_data(config)
+    ifg_subject_binary_data = brain.binarize_fmri_image_or_subject(config)
 
     # t_config.dimension_reduction = True
 
@@ -350,7 +350,7 @@ def stg_binary_trails_classification(classifiers, strategies, t_config: Training
     if t_config.predefined_split:
         split = "cr_split"
 
-    stg_subject_binary_data = brain.binary_fmri_data_trails()
+    stg_subject_binary_data = brain.binary_fmri_image_trails()
 
     t_config.analyze_binary_trails = True
     t_config.analyze_concatenated_trails = False
@@ -396,7 +396,7 @@ def stg_concatenated_trails_classification(
     if t_config.predefined_split:
         split = "cr_split"
 
-    stg_subject_binary_data = brain.concatenate_fmri_data_trails()
+    stg_subject_binary_data = brain.concatenate_fmri_image_trails()
 
     t_config.analyze_binary_trails = False
     t_config.analyze_concatenated_trails = True
@@ -441,7 +441,7 @@ def ifg_concatenated_trails_classification(
     if t_config.predefined_split:
         split = "cr_split"
 
-    ifg_subject_binary_data = brain.concatenate_fmri_data_trails()
+    ifg_subject_binary_data = brain.concatenate_fmri_image_trails()
 
     t_config.analyze_binary_trails = False
     t_config.analyze_concatenated_trails = True
@@ -488,7 +488,7 @@ def ifg_concatenated_binary_subjects_trails_classification(
 
     brains = brain.binary_subject_image_based_data()
     for m_brain in brains:
-        ifg_subject_binary_data = m_brain.concatenate_fmri_data_trails()
+        ifg_subject_binary_data = m_brain.concatenate_fmri_image_trails()
 
         t_config.analyze_binary_trails = False
         t_config.analyze_concatenated_trails = True
@@ -535,7 +535,7 @@ def stg_concatenated_binary_subjects_trails_classification(
 
     brains = brain.binary_subject_image_based_data()
     for m_brain in brains:
-        ifg_subject_binary_data = m_brain.concatenate_fmri_data_trails()
+        ifg_subject_binary_data = m_brain.concatenate_fmri_image_trails()
 
         t_config.analyze_binary_trails = False
         t_config.analyze_concatenated_trails = True
@@ -578,7 +578,7 @@ def ifg_binary_trails_classification(classifiers, strategies, t_config: Training
     if t_config.predefined_split:
         split = "cr_split"
 
-    ifg_subject_binary_data = brain.binary_fmri_data_trails()
+    ifg_subject_binary_data = brain.binary_fmri_image_trails()
 
     t_config.analyze_binary_trails = True
     t_config.analyze_concatenated_trails = False
@@ -846,12 +846,15 @@ def main():
     stg = STGAnalyser()
     ifg = IFGAnalyser()
     stg.training_config.dimension_reduction = True
-    stg.training_config.folds = 10
-    stg.stg_binary_image_wise_concatenated_trails_binary_subject_classification()
+    stg.training_config.folds = 5
+    # stg.stg_subject_wise_binary_classification() #verified
+    # stg.stg_subject_wise_unary_image_binary_classification() #verified
+    # stg.stg_binary_image_wise_concatenated_trails_binary_subject_classification()  # verified
+    # stg.stg_binary_image_wise_concatenated_trails_classification()# verified
+    stg.stg_binary_image_wise_trails_classification()
 
     ifg.training_config.dimension_reduction = True
-    ifg.training_config.folds = 10
-    ifg.ifg_binary_image_wise_concatenated_trails_binary_subject_classification()
+    # ifg.ifg_binary_image_wise_concatenated_trails_binary_subject_classification()  # verified
     # ifg = IFGAnalyser()
     # ifg.ifg_binary_subject_classification()
     # analyse_nans()

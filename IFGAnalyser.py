@@ -36,12 +36,20 @@ class IFGAnalyser(AnalyserBase):
 
         self.brain.current_labels = self.brain.subject_labels_int
         export_data = training.brain_data_classification(
-            self.brain, self.training_config, self.strategies, self.classifiers
+            self.brain,
+            self.training_config,
+            self.strategies,
+            self.classifiers,
+            self.data_config,
         )
 
         self.brain.current_labels = self.brain.image_labels_int
         e_data = training.brain_data_classification(
-            self.brain, self.training_config, self.strategies, self.classifiers
+            self.brain,
+            self.training_config,
+            self.strategies,
+            self.classifiers,
+            self.data_config,
         )
         export_data.extend(e_data)
 
@@ -67,7 +75,9 @@ class IFGAnalyser(AnalyserBase):
             split = "cr_split"
 
         self.brain.current_labels = self.brain.subject_labels
-        ifg_subject_binary_data = self.brain.binarize_fmri_data(self.data_config)
+        ifg_subject_binary_data = self.brain.binarize_fmri_image_or_subject(
+            self.data_config
+        )
 
         # self.training_config.dimension_reduction = True
 
@@ -80,6 +90,7 @@ class IFGAnalyser(AnalyserBase):
                 self.training_config,
                 self.strategies,
                 self.classifiers,
+                self.data_config,
             )
             all_export_data.extend(export_data)
         self.training_config.brain_area = self.brain.area
@@ -101,7 +112,7 @@ class IFGAnalyser(AnalyserBase):
         if self.training_config.predefined_split:
             split = "cr_split"
 
-        ifg_subject_binary_data = self.brain.concatenate_fmri_data_trails()
+        ifg_subject_binary_data = self.brain.concatenate_fmri_image_trails()
 
         self.training_config.analyze_binary_trails = False
         self.training_config.analyze_concatenated_trails = True
@@ -115,6 +126,7 @@ class IFGAnalyser(AnalyserBase):
                 self.training_config,
                 self.strategies,
                 self.classifiers,
+                self.data_config,
             )
             all_data.extend(export_data)
         self.training_config.brain_area = self.brain.area
@@ -137,7 +149,7 @@ class IFGAnalyser(AnalyserBase):
 
         self.brains = self.brain.binary_subject_image_based_data()
         for m_brain in self.brains:
-            ifg_subject_binary_data = m_brain.concatenate_fmri_data_trails()
+            ifg_subject_binary_data = m_brain.concatenate_fmri_image_trails()
 
             self.training_config.analyze_binary_trails = False
             self.training_config.analyze_concatenated_trails = True
@@ -151,6 +163,7 @@ class IFGAnalyser(AnalyserBase):
                     self.training_config,
                     self.strategies,
                     self.classifiers,
+                    self.data_config,
                 )
                 all_data.extend(export_data)
             self.training_config.brain_area = self.brain.area
@@ -172,7 +185,7 @@ class IFGAnalyser(AnalyserBase):
         if self.training_config.predefined_split:
             split = "cr_split"
 
-        ifg_subject_binary_data = self.brain.binary_fmri_data_trails()
+        ifg_subject_binary_data = self.brain.binary_fmri_image_trails()
 
         self.training_config.analyze_binary_trails = True
         self.training_config.analyze_concatenated_trails = False
@@ -186,6 +199,7 @@ class IFGAnalyser(AnalyserBase):
                 self.training_config,
                 self.strategies,
                 self.classifiers,
+                self.data_config,
             )
             all_data.extend(export_data)
 
@@ -209,20 +223,27 @@ class IFGAnalyser(AnalyserBase):
 
         all_data = []
 
-        stg_subject_binary_data = self.brain.binarize_fmri_data(self.data_config)
+        stg_subject_binary_data = self.brain.binarize_fmri_image_or_subject(
+            self.data_config
+        )
 
         self.training_config.analyze_concatenated_trails = True
         self.training_config.analyze_binary_trails = False
 
         for mod_brain in stg_subject_binary_data:
-            binary_data = mod_brain.concatenate_fmri_data_trails()
+            binary_data = mod_brain.concatenate_fmri_image_trails()
             for bd in binary_data:
                 training = DataTraining()
+                self.data_config.conditions = 1
+                print("Patients", self.data_config.patients)
+                self.modify_patients(self.data_config, mod_brain.voxel_label)
+                print("Patients changed", self.data_config.patients)
                 export_data = training.brain_data_classification(
                     bd,
                     self.training_config,
                     self.strategies,
                     self.classifiers,
+                    self.data_config,
                 )
                 all_data.extend(export_data)
 

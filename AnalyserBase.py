@@ -34,3 +34,14 @@ class AnalyserBase:
             self.data_config = data_config
 
         self.brain = brain
+
+    def modify_patients(self, config: BrainDataConfig, combination):
+        config.patients = []
+        for comb in combination:
+            match comb:
+                case config.neurotypical | config.neurotypical_int:
+                    config.patients.append(config.neurotypical_patients)
+                case config.depressive_disorder | config.depressive_disorder_int:
+                    config.patients.append(config.depressive_disorder_patients)
+                case config.schizophrenia_spectrum | config.schizophrenia_spectrum_int:
+                    config.patients.append(config.schizophrenia_spectrum_patients)
