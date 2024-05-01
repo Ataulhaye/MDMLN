@@ -125,6 +125,19 @@ def visualize_nans():
     data_list = [stg, ifg]
     for data in data_list:
         nans_column_wise = stg.calculate_nans_voxel_wise(data.voxels)
+        print("---------------------------------------------------------")
+        print(
+            f"Indexes of {data.area} where whole column is NAN: ",
+            nans_column_wise.count(488),
+        )
+        total_nans = sum(nans_column_wise)
+        print("Total NANs: ", total_nans)
+        print(
+            "Total NANs in all data: {:0.2f}%".format(
+                ((total_nans / (data.voxels.shape[0] * data.voxels.shape[1])) * 100)
+            )
+        )
+        print("-------------------------------------------------------------")
         columns = [i for i in range(data.voxels.shape[1])]
         VisualizeData.plot_bar_graph(
             ("Columns", columns),
@@ -845,7 +858,11 @@ def main():
     analyser = FMRIAnalyser(Lobe.IFG)
     # analyser.training_config.dimension_reduction = True
     analyser.training_config.has_fix_components = (True, 10)
+    analyser.subject_binary_image_classification()
+    analyser.binary_subject_binary_image_classification()
     analyser.unary_subject_binary_image_classification()
+
+    # analyser.unary_subject_binary_image_classification()
     # analyser.binary_subject_classification()
 
     # stg.stg_subject_wise_binary_classification()  # verified

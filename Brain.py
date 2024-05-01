@@ -272,7 +272,7 @@ class Brain:
         """
         brain_data: list[Brain] = []
 
-        comb_src, subject, int_label = self.get_combination_source(config)
+        comb_src, subject, int_label = self.__get_combination_source(config)
 
         for label in comb_src:
             voxels = None
@@ -283,7 +283,7 @@ class Brain:
                     self.current_labels.labels, config, label
                 )
             else:
-                trail_pos = self.get_subject_or_image_label_position(config, label)
+                trail_pos = self.__get_subject_or_image_label_position(config, label)
                 voxels = self.image_based_unary_selection(self.voxels, trail_pos)
                 labels = self.image_based_unary_selection(
                     self.current_labels.labels, trail_pos
@@ -315,7 +315,7 @@ class Brain:
         """
         brain_data: list[Brain] = []
 
-        comb_src, subject, int_label = self.get_combination_source(config)
+        comb_src, subject, int_label = self.__get_combination_source(config)
 
         combinations = list(itertools.combinations(comb_src, 2))
 
@@ -329,10 +329,10 @@ class Brain:
                     self.current_labels.labels, config, combination
                 )
             else:
-                trail_pos1 = self.get_subject_or_image_label_position(
+                trail_pos1 = self.__get_subject_or_image_label_position(
                     config, combination[0]
                 )
-                trail_pos2 = self.get_subject_or_image_label_position(
+                trail_pos2 = self.__get_subject_or_image_label_position(
                     config, combination[1]
                 )
 
@@ -357,7 +357,7 @@ class Brain:
 
         return brain_data
 
-    def get_combination_source(self, config: BrainDataConfig):
+    def __get_combination_source(self, config: BrainDataConfig):
         int_label = False
         subject = False
         if "subject" in self.current_labels.type and "int" in self.current_labels.type:
@@ -411,17 +411,21 @@ class Brain:
         return brain_data
 
     def binary_fmri_image_trails(self):
+        """
+        deprecated use instead: binarize_fmri_image_or_subject
+        """
         config = BrainDataConfig()
         brain_data: list[Brain] = []
 
         combinations = list(itertools.combinations(config.image_labels, 2))
 
         for combination in combinations:
-            trail_pos1 = self.get_image_label_position(config, combination[0])
-            trail_pos2 = self.get_image_label_position(config, combination[1])
-
-            self.validate_voxel_trail_position(config, combination[0], trail_pos1)
-            self.validate_voxel_trail_position(config, combination[1], trail_pos2)
+            trail_pos1 = self.__get_subject_or_image_label_position(
+                config, combination[0]
+            )
+            trail_pos2 = self.__get_subject_or_image_label_position(
+                config, combination[1]
+            )
 
             voxels = self.image_based_binary_selection(
                 self.voxels, trail_pos1, trail_pos2
@@ -454,15 +458,17 @@ class Brain:
         # combinations.insert(0, ("ARCU", "ARCU"))
 
         for combination in combinations:
-            trail_pos1 = self.get_subject_or_image_label_position(
+            trail_pos1 = self.__get_subject_or_image_label_position(
                 config, combination[0]
             )
-            trail_pos2 = self.get_subject_or_image_label_position(
+            trail_pos2 = self.__get_subject_or_image_label_position(
                 config, combination[1]
             )
 
-            voxels = self.image_based_concatenation(self.voxels, trail_pos1, trail_pos2)
-            labels = self.image_based_concatenation(
+            voxels = self.__image_based_concatenation(
+                self.voxels, trail_pos1, trail_pos2
+            )
+            labels = self.__image_based_concatenation(
                 self.current_labels.labels, trail_pos1, trail_pos2
             )
 
@@ -512,7 +518,7 @@ class Brain:
             i = i + 4
         return np.array(selection)
 
-    def image_based_concatenation(
+    def __image_based_concatenation(
         self, data: np.ndarray, trail_pos1: int, trail_pos2: int
     ):
         concatenated = []
@@ -563,7 +569,7 @@ class Brain:
 
         return np.array(concatenated)
 
-    def get_subject_or_image_label_position(self, config: BrainDataConfig, label):
+    def __get_subject_or_image_label_position(self, config: BrainDataConfig, label):
         position = np.NAN
         match label:
             case config.abstract_related:
@@ -582,10 +588,10 @@ class Brain:
                 position = config.depressive_disorder_int
             case config.schizophrenia_spectrum:
                 position = config.schizophrenia_spectrum_int
-        self.validate_voxel_trail_position(config, label, position)
+        self.__validate_voxel_trail_position(config, label, position)
         return position
 
-    def validate_voxel_trail_position(
+    def __validate_voxel_trail_position(
         self, config: BrainDataConfig, combination, position
     ):
         match combination:

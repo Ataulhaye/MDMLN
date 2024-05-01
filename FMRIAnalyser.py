@@ -61,7 +61,7 @@ class FMRIAnalyser:
 
     def binary_subject_classification(self):
         """
-        Binarize the fMRI data based on subjects, image labels remains same. i.e N,S, N,D, D,S
+        Binarize the fMRI data based on subjects, image labels remains same.
         """
 
         self.brain.current_labels = self.brain.subject_labels
@@ -104,18 +104,63 @@ class FMRIAnalyser:
             single_label=True,
         )
 
+    def binary_image_classification(self):
+        """
+        Binarize the fMRI data based on images. i.e AR, AU
+        """
+
+        self.brain.current_labels = self.brain.image_labels
+        stg_image_binary_data = self.brain.binarize_fmri_image_or_subject(
+            self.data_config
+        )
+
+        all_export_data = []
+
+        for bd in stg_image_binary_data:
+            training = DataTraining()
+            self.training_config.analyze_binary_trails = True
+            self.data_config.conditions = 2
+            print("Patients", self.data_config.patients)
+            self.modify_patients(self.data_config, bd.voxel_label)
+            print("Patients changed", self.data_config.patients)
+            export_data = training.brain_data_classification(
+                bd,
+                self.training_config,
+                self.strategies,
+                self.classifiers,
+                self.data_config,
+            )
+            all_export_data.extend(export_data)
+        self.training_config.brain_area = self.brain.area
+        export = ExportData()
+
+        print_config = self.get_note(
+            stg_image_binary_data[0].current_labels.popmean,
+            self.binary_image_classification,
+        )
+        note = export.create_note([self.training_config, print_config])
+        export.create_and_write_datasheet(
+            data=all_export_data,
+            sheet_name=f"{self.brain.area}-Results",
+            title=f"{self.brain.area}-{self.training_config.folds}-Folds",
+            notes=note,
+            transpose=True,
+            single_label=True,
+        )
+
     def unary_subject_binary_image_classification(self):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance image wise binarization takes place
+        i.e unary_subject_labels_N_binary_AR-AU
         """
         all_export_data = []
 
         self.brain.current_labels = self.brain.subject_labels
-        stg_subject_binary_data = self.brain.unary_fmri_subject_or_image(
+        stg_subject_unary_data = self.brain.unary_fmri_subject_or_image(
             self.data_config
         )
         mean = None
-        for un_brain in stg_subject_binary_data:
+        for un_brain in stg_subject_unary_data:
             slice_to = un_brain.current_labels.labels.shape[0]
             un_brain.current_labels.labels = un_brain.image_labels.labels[0:slice_to]
             un_brain.current_labels.type = "image"
@@ -149,7 +194,7 @@ class FMRIAnalyser:
             single_label=True,
         )
 
-    def binary_subject_binary_concatenated_image_classification(self):
+    def binary_subject_concatenated_image_classification(self):
         """
         Binarize the fMRI data based on subjects, then for every binarized instance image wise binarization with concatenation takes place
         """
@@ -185,7 +230,7 @@ class FMRIAnalyser:
         self.training_config.brain_area = self.brain.area
         export = ExportData()
         print_config = self.get_note(
-            mean, self.binary_subject_binary_concatenated_image_classification
+            mean, self.binary_subject_concatenated_image_classification
         )
         note = export.create_note([self.training_config, print_config])
         export.create_and_write_datasheet(
@@ -197,7 +242,56 @@ class FMRIAnalyser:
             single_label=True,
         )
 
-    def subject_binary_concatenated_image_classification(self):
+    def binary_subject_binary_image_classification(self):
+        """
+        Binarize the fMRI data based on subjects, then for every binarized instance image wise binary selection takes place
+        """
+        self.brain.current_labels = self.brain.subject_labels
+
+        all_data = []
+
+        stg_subject_binary_data = self.brain.binarize_fmri_image_or_subject(
+            self.data_config
+        )
+
+        self.training_config.analyze_concatenated_trails = False
+        self.training_config.analyze_binary_trails = True
+        mean = None
+        for mod_brain in stg_subject_binary_data:
+            mod_brain.current_labels.type = "image"
+            binary_data = mod_brain.binarize_fmri_image_or_subject(self.data_config)
+            for bd in binary_data:
+                mean = bd.current_labels.popmean
+                training = DataTraining()
+                self.data_config.conditions = 2
+                print("Patients", self.data_config.patients)
+                self.modify_patients(self.data_config, mod_brain.voxel_label)
+                print("Patients changed", self.data_config.patients)
+                export_data = training.brain_data_classification(
+                    bd,
+                    self.training_config,
+                    self.strategies,
+                    self.classifiers,
+                    self.data_config,
+                )
+                all_data.extend(export_data)
+
+        self.training_config.brain_area = self.brain.area
+        export = ExportData()
+        print_config = self.get_note(
+            mean, self.binary_subject_binary_image_classification
+        )
+        note = export.create_note([self.training_config, print_config])
+        export.create_and_write_datasheet(
+            data=all_data,
+            sheet_name=f"{self.brain.area}-Results",
+            title=f"{self.brain.area}-{self.training_config.folds}-Folds",
+            notes=note,
+            transpose=True,
+            single_label=True,
+        )
+
+    def subject_concatenated_image_classification(self):
         """Concate the (two out of four) image labels. i.e AR and AC from four images. AR and AC are concatenated.
         The subject labels remain same. Popmean would be 0.3
         """
@@ -231,7 +325,7 @@ class FMRIAnalyser:
         self.training_config.brain_area = self.brain.area
         export = ExportData()
         print_config = self.get_note(
-            mean, self.subject_binary_concatenated_image_classification
+            mean, self.subject_concatenated_image_classification
         )
         note = export.create_note([self.training_config, print_config])
         export.create_and_write_datasheet(
@@ -250,7 +344,9 @@ class FMRIAnalyser:
         """
         self.brain.current_labels = self.brain.image_labels
 
-        stg_image_binary_data = self.brain.binary_fmri_image_trails()
+        stg_image_binary_data = self.brain.binarize_fmri_image_or_subject(
+            self.data_config
+        )
 
         self.training_config.analyze_binary_trails = True
         self.training_config.analyze_concatenated_trails = False
@@ -401,4 +497,4 @@ class FMRIAnalyser:
                     config.patients.append(config.schizophrenia_spectrum_patients)
 
     def get_note(self, mean, method):
-        return f"Popmean:{mean}, Conditions:{self.data_config.conditions}, PCA fix components:{self.training_config.has_fix_components}, Method:{method.__name__}"
+        return f"Popmean:{mean}, Conditions:{self.data_config.conditions}, PCA fix components:{self.training_config.has_fix_components}, Executed By:{method.__name__}(...)"
