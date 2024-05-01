@@ -76,6 +76,7 @@ class FMRIAnalyser:
         for bd in stg_subject_binary_data:
             training = DataTraining()
             self.training_config.analyze_binary_trails = True
+            self.training_config.analyze_concatenated_trails = False
             print("Patients", self.data_config.patients)
             self.__modify_patients(self.data_config, bd.voxel_label)
             print("Patients changed", self.data_config.patients)
@@ -119,10 +120,8 @@ class FMRIAnalyser:
         for bd in stg_image_binary_data:
             training = DataTraining()
             self.training_config.analyze_binary_trails = True
+            self.training_config.analyze_concatenated_trails = False
             self.data_config.conditions = 2
-            print("Patients", self.data_config.patients)
-            self.__modify_patients(self.data_config, bd.voxel_label)
-            print("Patients changed", self.data_config.patients)
             export_data = training.brain_data_classification(
                 bd,
                 self.training_config,
@@ -169,7 +168,10 @@ class FMRIAnalyser:
                 training = DataTraining()
                 self.data_config.conditions = 2
                 self.training_config.analyze_binary_trails = True
+                self.training_config.analyze_concatenated_trails = False
+                print("Patients", self.data_config.patients)
                 self.__modify_patients(self.data_config, un_brain.voxel_label)
+                print("Patients changed", self.data_config.patients)
                 mean = bd.current_labels.popmean
                 export_data = training.brain_data_classification(
                     bd,
@@ -304,6 +306,8 @@ class FMRIAnalyser:
         )
 
         self.training_config.analyze_binary_trails = True
+        self.training_config.analyze_concatenated_trails = False
+
         mean = None
 
         for mod_brain in stg_subject_binary_data:
