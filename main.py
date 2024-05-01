@@ -854,26 +854,37 @@ def test_load_model():
     load_bestmodel_and_test(brain_area, model_path, device, gpus_per_trial=1)
 
 
-def main():
-    analyser = FMRIAnalyser(Lobe.IFG)
-    # analyser.training_config.dimension_reduction = True
-    analyser.training_config.has_fix_components = (True, 10)
+def analyze_STG():
+    analyser = FMRIAnalyser(Lobe.STG)
+    analyser.training_config.dimension_reduction = True
+    # analyser.training_config.has_fix_components = (True, 10)
+    analyser.binary_subject_classification()
+    analyser.binary_image_classification()
+    analyser.unary_subject_binary_image_classification()
+    analyser.binary_subject_concatenated_image_classification()
+    analyser.binary_subject_binary_image_classification()
     analyser.binary_subject_unary_image_classification()
-    # analyser.unary_subject_binary_image_classification()
-    # analyser.subject_binary_image_classification()
-    # analyser.binary_subject_binary_image_classification()
-    # analyser.unary_subject_binary_image_classification()
+    analyser.subject_concatenated_image_classification()
+    analyser.subject_binary_image_classification()
 
-    # analyser.unary_subject_binary_image_classification()
-    # analyser.binary_subject_classification()
 
-    # stg.stg_subject_wise_binary_classification()  # verified
-    # stg.stg_subject_wise_unary_image_binary_classification() #verified
-    # stg.stg_binary_image_wise_concatenated_trails_binary_subject_classification()  # verified asked by Sadi
-    # stg.stg_binary_image_wise_concatenated_trails_classification()# verified
-    # stg.stg_binary_image_wise_trails_classification()
-    # ifg.ifg_binary_subject_classification()
-    # ifg.ifg_binary_image_wise_concatenated_trails_binary_subject_classification()  # verified
+def analyze_IFG():
+    analyser = FMRIAnalyser(Lobe.IFG)
+    analyser.training_config.dimension_reduction = True
+    # analyser.training_config.has_fix_components = (True, 10)
+    analyser.binary_subject_classification()
+    analyser.binary_image_classification()
+    analyser.unary_subject_binary_image_classification()
+    analyser.binary_subject_concatenated_image_classification()
+    analyser.binary_subject_binary_image_classification()
+    analyser.binary_subject_unary_image_classification()
+    analyser.subject_concatenated_image_classification()
+    analyser.subject_binary_image_classification()
+
+
+def main():
+    analyze_IFG()
+    analyze_STG()
 
     # ifg.ifg_binary_subject_classification()
     # analyse_nans()

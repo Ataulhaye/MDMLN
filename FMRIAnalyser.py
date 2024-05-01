@@ -77,7 +77,7 @@ class FMRIAnalyser:
             training = DataTraining()
             self.training_config.analyze_binary_trails = True
             print("Patients", self.data_config.patients)
-            self.modify_patients(self.data_config, bd.voxel_label)
+            self.__modify_patients(self.data_config, bd.voxel_label)
             print("Patients changed", self.data_config.patients)
             export_data = training.brain_data_classification(
                 bd,
@@ -90,9 +90,7 @@ class FMRIAnalyser:
         self.training_config.brain_area = self.brain.area
         export = ExportData()
 
-        # print_config = f"Popmean:{stg_subject_binary_data[0].current_labels.popmean}, Conditions:{self.data_config.conditions}, PCA fix components:{self.training_config.has_fix_components}, Method:{self.binary_subject_classification.__name__}"
-
-        print_config = self.get_note(
+        print_config = self.__get_note(
             stg_subject_binary_data[0].current_labels.popmean,
             self.binary_subject_classification,
         )
@@ -123,7 +121,7 @@ class FMRIAnalyser:
             self.training_config.analyze_binary_trails = True
             self.data_config.conditions = 2
             print("Patients", self.data_config.patients)
-            self.modify_patients(self.data_config, bd.voxel_label)
+            self.__modify_patients(self.data_config, bd.voxel_label)
             print("Patients changed", self.data_config.patients)
             export_data = training.brain_data_classification(
                 bd,
@@ -136,7 +134,7 @@ class FMRIAnalyser:
         self.training_config.brain_area = self.brain.area
         export = ExportData()
 
-        print_config = self.get_note(
+        print_config = self.__get_note(
             stg_image_binary_data[0].current_labels.popmean,
             self.binary_image_classification,
         )
@@ -171,7 +169,7 @@ class FMRIAnalyser:
                 training = DataTraining()
                 self.data_config.conditions = 2
                 self.training_config.analyze_binary_trails = True
-                self.modify_patients(self.data_config, un_brain.voxel_label)
+                self.__modify_patients(self.data_config, un_brain.voxel_label)
                 mean = bd.current_labels.popmean
                 export_data = training.brain_data_classification(
                     bd,
@@ -183,7 +181,7 @@ class FMRIAnalyser:
                 all_export_data.extend(export_data)
         self.training_config.brain_area = self.brain.area
         export = ExportData()
-        print_config = self.get_note(
+        print_config = self.__get_note(
             mean, self.unary_subject_binary_image_classification
         )
         note = export.create_note([self.training_config, print_config])
@@ -218,7 +216,7 @@ class FMRIAnalyser:
                 training = DataTraining()
                 self.data_config.conditions = 1
                 print("Patients", self.data_config.patients)
-                self.modify_patients(self.data_config, mod_brain.voxel_label)
+                self.__modify_patients(self.data_config, mod_brain.voxel_label)
                 print("Patients changed", self.data_config.patients)
                 export_data = training.brain_data_classification(
                     bd,
@@ -231,7 +229,7 @@ class FMRIAnalyser:
 
         self.training_config.brain_area = self.brain.area
         export = ExportData()
-        print_config = self.get_note(
+        print_config = self.__get_note(
             mean, self.binary_subject_concatenated_image_classification
         )
         note = export.create_note([self.training_config, print_config])
@@ -267,7 +265,7 @@ class FMRIAnalyser:
                 training = DataTraining()
                 self.data_config.conditions = 2
                 print("Patients", self.data_config.patients)
-                self.modify_patients(self.data_config, mod_brain.voxel_label)
+                self.__modify_patients(self.data_config, mod_brain.voxel_label)
                 print("Patients changed", self.data_config.patients)
                 export_data = training.brain_data_classification(
                     bd,
@@ -280,56 +278,8 @@ class FMRIAnalyser:
 
         self.training_config.brain_area = self.brain.area
         export = ExportData()
-        print_config = self.get_note(
+        print_config = self.__get_note(
             mean, self.binary_subject_binary_image_classification
-        )
-        note = export.create_note([self.training_config, print_config])
-        export.create_and_write_datasheet(
-            data=all_data,
-            sheet_name=f"{self.brain.area}-Results",
-            title=f"{self.brain.area}-{self.training_config.folds}-Folds",
-            notes=note,
-            transpose=True,
-            single_label=True,
-        )
-
-    def binary_subject_concatenated_image_classification(self):
-        """
-        Binarize the fMRI data based on subjects, then for every binarized instance image wise binarization with concatenation takes place
-        """
-        self.brain.current_labels = self.brain.subject_labels
-
-        all_data = []
-
-        stg_subject_binary_data = self.brain.binarize_fmri_image_or_subject(
-            self.data_config
-        )
-
-        self.training_config.analyze_concatenated_trails = True
-        self.training_config.analyze_binary_trails = False
-        mean = None
-        for mod_brain in stg_subject_binary_data:
-            binary_data = mod_brain.concatenate_fmri_image_trails()
-            for bd in binary_data:
-                mean = bd.current_labels.popmean
-                training = DataTraining()
-                self.data_config.conditions = 1
-                print("Patients", self.data_config.patients)
-                self.modify_patients(self.data_config, mod_brain.voxel_label)
-                print("Patients changed", self.data_config.patients)
-                export_data = training.brain_data_classification(
-                    bd,
-                    self.training_config,
-                    self.strategies,
-                    self.classifiers,
-                    self.data_config,
-                )
-                all_data.extend(export_data)
-
-        self.training_config.brain_area = self.brain.area
-        export = ExportData()
-        print_config = self.get_note(
-            mean, self.binary_subject_concatenated_image_classification
         )
         note = export.create_note([self.training_config, print_config])
         export.create_and_write_datasheet(
@@ -371,7 +321,7 @@ class FMRIAnalyser:
                 training = DataTraining()
                 self.data_config.conditions = 1
                 print("Patients", self.data_config.patients)
-                self.modify_patients(self.data_config, mod_brain.voxel_label)
+                self.__modify_patients(self.data_config, mod_brain.voxel_label)
                 print("Patients changed", self.data_config.patients)
                 export_data = training.brain_data_classification(
                     bd,
@@ -384,7 +334,7 @@ class FMRIAnalyser:
 
         self.training_config.brain_area = self.brain.area
         export = ExportData()
-        print_config = self.get_note(
+        print_config = self.__get_note(
             mean, self.binary_subject_unary_image_classification
         )
         note = export.create_note([self.training_config, print_config])
@@ -430,7 +380,7 @@ class FMRIAnalyser:
             all_data.extend(export_data)
         self.training_config.brain_area = self.brain.area
         export = ExportData()
-        print_config = self.get_note(
+        print_config = self.__get_note(
             mean, self.subject_concatenated_image_classification
         )
         note = export.create_note([self.training_config, print_config])
@@ -479,7 +429,7 @@ class FMRIAnalyser:
 
         self.training_config.brain_area = self.brain.area
         export = ExportData()
-        print_config = self.get_note(mean, self.subject_binary_image_classification)
+        print_config = self.__get_note(mean, self.subject_binary_image_classification)
         note = export.create_note([self.training_config, print_config])
         export.create_and_write_datasheet(
             data=all_data,
@@ -591,7 +541,7 @@ class FMRIAnalyser:
             transpose=True,
         )
 
-    def modify_patients(self, config: BrainDataConfig, combination):
+    def __modify_patients(self, config: BrainDataConfig, combination):
         config.patients = []
         for comb in combination:
             match comb:
@@ -602,5 +552,5 @@ class FMRIAnalyser:
                 case config.schizophrenia_spectrum | config.schizophrenia_spectrum_int:
                     config.patients.append(config.schizophrenia_spectrum_patients)
 
-    def get_note(self, mean, method):
+    def __get_note(self, mean, method):
         return f"Popmean:{mean}, Conditions:{self.data_config.conditions}, PCA fix components:{self.training_config.has_fix_components}, Executed By:{method.__name__}(...)"
