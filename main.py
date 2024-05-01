@@ -858,9 +858,11 @@ def main():
     analyser = FMRIAnalyser(Lobe.IFG)
     # analyser.training_config.dimension_reduction = True
     analyser.training_config.has_fix_components = (True, 10)
-    analyser.subject_binary_image_classification()
-    analyser.binary_subject_binary_image_classification()
-    analyser.unary_subject_binary_image_classification()
+    analyser.binary_subject_unary_image_classification()
+    # analyser.unary_subject_binary_image_classification()
+    # analyser.subject_binary_image_classification()
+    # analyser.binary_subject_binary_image_classification()
+    # analyser.unary_subject_binary_image_classification()
 
     # analyser.unary_subject_binary_image_classification()
     # analyser.binary_subject_classification()

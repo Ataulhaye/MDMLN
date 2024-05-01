@@ -1,3 +1,5 @@
+import copy
+
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
 from DataTraining import DataTraining
@@ -280,6 +282,110 @@ class FMRIAnalyser:
         export = ExportData()
         print_config = self.get_note(
             mean, self.binary_subject_binary_image_classification
+        )
+        note = export.create_note([self.training_config, print_config])
+        export.create_and_write_datasheet(
+            data=all_data,
+            sheet_name=f"{self.brain.area}-Results",
+            title=f"{self.brain.area}-{self.training_config.folds}-Folds",
+            notes=note,
+            transpose=True,
+            single_label=True,
+        )
+
+    def binary_subject_concatenated_image_classification(self):
+        """
+        Binarize the fMRI data based on subjects, then for every binarized instance image wise binarization with concatenation takes place
+        """
+        self.brain.current_labels = self.brain.subject_labels
+
+        all_data = []
+
+        stg_subject_binary_data = self.brain.binarize_fmri_image_or_subject(
+            self.data_config
+        )
+
+        self.training_config.analyze_concatenated_trails = True
+        self.training_config.analyze_binary_trails = False
+        mean = None
+        for mod_brain in stg_subject_binary_data:
+            binary_data = mod_brain.concatenate_fmri_image_trails()
+            for bd in binary_data:
+                mean = bd.current_labels.popmean
+                training = DataTraining()
+                self.data_config.conditions = 1
+                print("Patients", self.data_config.patients)
+                self.modify_patients(self.data_config, mod_brain.voxel_label)
+                print("Patients changed", self.data_config.patients)
+                export_data = training.brain_data_classification(
+                    bd,
+                    self.training_config,
+                    self.strategies,
+                    self.classifiers,
+                    self.data_config,
+                )
+                all_data.extend(export_data)
+
+        self.training_config.brain_area = self.brain.area
+        export = ExportData()
+        print_config = self.get_note(
+            mean, self.binary_subject_concatenated_image_classification
+        )
+        note = export.create_note([self.training_config, print_config])
+        export.create_and_write_datasheet(
+            data=all_data,
+            sheet_name=f"{self.brain.area}-Results",
+            title=f"{self.brain.area}-{self.training_config.folds}-Folds",
+            notes=note,
+            transpose=True,
+            single_label=True,
+        )
+
+    def binary_subject_unary_image_classification(self):
+        """
+        Binarize the fMRI data based on subjects, then for every binarized instance image unary selection takes place
+        """
+        self.brain.current_labels = self.brain.subject_labels
+
+        all_data = []
+
+        stg_subject_binary_data = self.brain.binarize_fmri_image_or_subject(
+            self.data_config
+        )
+
+        self.training_config.analyze_binary_trails = True
+        mean = None
+
+        for mod_brain in stg_subject_binary_data:
+            slice_to = mod_brain.current_labels.labels.shape[0]
+            predecessor = copy.deepcopy(mod_brain.current_labels)
+            mod_brain.current_labels.labels = self.brain.image_labels.labels[0:slice_to]
+            mod_brain.current_labels.type = "image"
+            binary_data = mod_brain.unary_fmri_subject_or_image(self.data_config)
+            for bd in binary_data:
+                bd.current_labels.popmean = predecessor.popmean
+                bd.current_labels.labels = bd.image_based_unary_selection(
+                    predecessor.labels, 0
+                )
+                mean = bd.current_labels.popmean
+                training = DataTraining()
+                self.data_config.conditions = 1
+                print("Patients", self.data_config.patients)
+                self.modify_patients(self.data_config, mod_brain.voxel_label)
+                print("Patients changed", self.data_config.patients)
+                export_data = training.brain_data_classification(
+                    bd,
+                    self.training_config,
+                    self.strategies,
+                    self.classifiers,
+                    self.data_config,
+                )
+                all_data.extend(export_data)
+
+        self.training_config.brain_area = self.brain.area
+        export = ExportData()
+        print_config = self.get_note(
+            mean, self.binary_subject_unary_image_classification
         )
         note = export.create_note([self.training_config, print_config])
         export.create_and_write_datasheet(

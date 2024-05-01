@@ -293,8 +293,9 @@ class Brain:
             brain = copy.deepcopy(self)
             brain.voxels = voxels
             brain.voxel_label = label
+            
             unary_label = BrainDataLabel(
-                name=f"unary_{self.current_labels.name}_{label}",
+                name=f"{self.current_labels.name}_unary_{label}",
                 popmean=config.unary_popmean,
                 labels=labels,
             )
