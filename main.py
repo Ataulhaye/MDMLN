@@ -856,33 +856,63 @@ def test_load_model():
 
 def analyze_STG():
     analyser = FMRIAnalyser(Lobe.STG)
-    analyser.training_config.dimension_reduction = True
+    # analyser.training_config.dimension_reduction = True
     # analyser.training_config.has_fix_components = (True, 10)
     analyser.binary_subject_classification()
+    analyser = FMRIAnalyser(Lobe.STG)
+    # analyser.training_config.dimension_reduction = True
     analyser.binary_image_classification()
+    analyser = FMRIAnalyser(Lobe.STG)
+    # analyser.training_config.dimension_reduction = True
     analyser.unary_subject_binary_image_classification()
+    analyser = FMRIAnalyser(Lobe.STG)
+    # analyser.training_config.dimension_reduction = True
     analyser.binary_subject_concatenated_image_classification()
+    analyser = FMRIAnalyser(Lobe.STG)
+    # analyser.training_config.dimension_reduction = True
     analyser.binary_subject_binary_image_classification()
+    analyser = FMRIAnalyser(Lobe.STG)
+    # analyser.training_config.dimension_reduction = True
     analyser.binary_subject_unary_image_classification()
+    analyser = FMRIAnalyser(Lobe.STG)
+    # analyser.training_config.dimension_reduction = True
     analyser.subject_concatenated_image_classification()
+    analyser = FMRIAnalyser(Lobe.STG)
+    # analyser.training_config.dimension_reduction = True
     analyser.subject_binary_image_classification()
 
 
 def analyze_IFG():
     analyser = FMRIAnalyser(Lobe.IFG)
-    analyser.training_config.dimension_reduction = True
+    # analyser.training_config.dimension_reduction = True
     # analyser.training_config.has_fix_components = (True, 10)
     analyser.binary_subject_classification()
+    analyser = FMRIAnalyser(Lobe.IFG)
+    # analyser.training_config.dimension_reduction = True
     analyser.binary_image_classification()
+    analyser = FMRIAnalyser(Lobe.IFG)
+    # analyser.training_config.dimension_reduction = True
     analyser.unary_subject_binary_image_classification()
+    analyser = FMRIAnalyser(Lobe.IFG)
+    # analyser.training_config.dimension_reduction = True
     analyser.binary_subject_concatenated_image_classification()
+    analyser = FMRIAnalyser(Lobe.IFG)
+    # analyser.training_config.dimension_reduction = True
     analyser.binary_subject_binary_image_classification()
+    analyser = FMRIAnalyser(Lobe.IFG)
+    # analyser.training_config.dimension_reduction = True
     analyser.binary_subject_unary_image_classification()
+    analyser = FMRIAnalyser(Lobe.IFG)
+    # analyser.training_config.dimension_reduction = True
     analyser.subject_concatenated_image_classification()
+    analyser = FMRIAnalyser(Lobe.IFG)
+    # analyser.training_config.dimension_reduction = True
     analyser.subject_binary_image_classification()
 
 
 def main():
+    # analyser = FMRIAnalyser(Lobe.IFG)
+    # analyser.unary_subject_binary_image_classification()
     analyze_IFG()
     analyze_STG()
 
