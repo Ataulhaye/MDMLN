@@ -1,3 +1,4 @@
+import numpy as np
 import scipy.stats as stats
 from numpy import ndarray
 from typing_extensions import deprecated
@@ -99,8 +100,8 @@ class EvaluateTrainingModel:
                 a=scores, popmean=popmean, alternative="greater"
             )
             # p value less than 0.05 consider to be significant, greater than 0.05 is considered not to be significant
-
-            percent = "{:0.2f}%".format((scores.mean() * 100))
+            mean = scores.mean()
+            percent = "{:0.2f}%".format((mean * 100))
             if p_value <= significance_level:
                 # percent = "{:0.2f}%".format((scores.mean() * 100))
                 # return f"Performance of the {classifier_name} is significant. {percent}"
@@ -111,6 +112,8 @@ class EvaluateTrainingModel:
                     sub_column_name=strategy,
                     column_name=data_label,
                     result=tuple(("Significant:", percent)),
+                    standard_deviation=np.std(scores),
+                    mean=mean,
                 )
 
             else:
@@ -122,6 +125,8 @@ class EvaluateTrainingModel:
                     sub_column_name=strategy,
                     column_name=data_label,
                     result=tuple(("Not significant:", percent)),
+                    standard_deviation=np.std(scores),
+                    mean=mean,
                 )
         except (Exception, ValueError, RuntimeError, TypeError, NameError) as err:
             print("Error!", err)

@@ -911,10 +911,12 @@ def analyze_IFG():
 
 
 def main():
-    # analyser = FMRIAnalyser(Lobe.IFG)
-    # analyser.unary_subject_binary_image_classification()
-    analyze_IFG()
-    analyze_STG()
+    analyser = FMRIAnalyser(Lobe.IFG)
+    analyser.training_config.dimension_reduction = True
+    analyser.strategies.insert(0, "mice")
+    analyser.unary_subject_binary_image_classification()
+    # analyze_IFG()
+    # analyze_STG()
 
     # ifg.ifg_binary_subject_classification()
     # analyse_nans()

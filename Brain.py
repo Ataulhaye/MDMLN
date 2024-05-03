@@ -3,7 +3,12 @@ import itertools
 
 import numpy as np
 import scipy
-from sklearn.impute import KNNImputer, SimpleImputer
+
+# explicitly require this experimental feature
+from sklearn.experimental import enable_iterative_imputer  # noqa
+
+# now you can import normally from sklearn.impute
+from sklearn.impute import IterativeImputer, KNNImputer, SimpleImputer
 
 from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
@@ -210,6 +215,14 @@ class Brain:
             return NotImplementedError
         elif strategy == None:
             return data_set
+        elif strategy == "mice":
+            mice_imput = IterativeImputer(keep_empty_features=True)
+            mice_imput.fit(data_set.X_train)
+            x_train = mice_imput.transform(data_set.X_train)
+            x_test = mice_imput.transform(data_set.X_test)
+            data_set.X_train = x_train
+            data_set.X_test = x_test
+            return data_set
         else:
             imputer = SimpleImputer(
                 missing_values=np.nan, strategy=strategy, keep_empty_features=True
@@ -293,7 +306,7 @@ class Brain:
             brain = copy.deepcopy(self)
             brain.voxels = voxels
             brain.voxel_label = label
-            
+
             unary_label = BrainDataLabel(
                 name=f"{self.current_labels.name}_unary_{label}",
                 popmean=config.unary_popmean,

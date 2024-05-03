@@ -508,7 +508,7 @@ class FMRIAnalyser:
         """
         Basic classification with image and subject labels
         """
-        self.brain.current_labels = self.brain.subject_labels_int
+        self.brain.current_labels = self.brain.subject_labels
 
         training = DataTraining()
 
@@ -520,7 +520,7 @@ class FMRIAnalyser:
             self.data_config,
         )
 
-        self.brain.current_labels = self.brain.image_labels_int
+        self.brain.current_labels = self.brain.image_labels
         e_data = training.brain_data_classification(
             self.brain,
             self.training_config,
@@ -530,17 +530,13 @@ class FMRIAnalyser:
         )
         export_data.extend(e_data)
 
-        split = "r_split"
-        if self.training_config.predefined_split:
-            split = "cr_split"
-
         self.training_config.brain_area = self.brain.area
         export = ExportData()
-        note = export.create_note([self.training_config])
+        note = export.create_note([self.training_config, ""])
         export.create_and_write_datasheet(
             data=export_data,
             sheet_name=f"{self.brain.area}-Results",
-            title=f"{self.brain.area}-{self.training_config.folds}-Folds-{split}-Clf",
+            title=f"{self.brain.area}-{self.training_config.folds}-Folds",
             notes=note,
             transpose=True,
         )
