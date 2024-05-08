@@ -913,9 +913,17 @@ def analyze_IFG():
 def main():
     analyser = FMRIAnalyser(Lobe.IFG)
     analyser.training_config.dimension_reduction = True
-    # analyser.strategies.insert(0, "mice")
-    analyser.strategies = ["mice"]
-    analyser.classifiers = ["SVM"]
+    analyser.strategies.insert(0, "mice")
+    # analyser.strategies = ["mice", "mean"]
+    # analyser.classifiers = ["SVM", "MLP"]
+    analyser.unary_subject_binary_image_classification()
+
+    analyser = FMRIAnalyser(Lobe.STG)
+    analyser.training_config.dimension_reduction = True
+    # analyser.training_config.folds = 1
+    analyser.strategies.insert(0, "mice")
+    # analyser.strategies = ["mice", "mean"]
+    # analyser.classifiers = ["SVM", "MLP"]
     analyser.unary_subject_binary_image_classification()
     # analyze_IFG()
     # analyze_STG()

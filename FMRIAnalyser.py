@@ -1,4 +1,8 @@
 import copy
+import statistics
+
+import matplotlib.pyplot as plt
+import numpy as np
 
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
@@ -195,6 +199,11 @@ class FMRIAnalyser:
             transpose=True,
             single_label=True,
         )
+
+        # this will groupby the mean, median,...
+        self.plot_images(all_export_data)
+
+        print("End")
 
     def binary_subject_concatenated_image_classification(self):
         """
@@ -540,6 +549,122 @@ class FMRIAnalyser:
             notes=note,
             transpose=True,
         )
+
+    def plot_images(self, all_export_data):
+        nested_dict = self.groupby_strategy(all_export_data)
+
+        N = self.data_config.neurotypical
+        D = self.data_config.depressive_disorder
+        S = self.data_config.schizophrenia_spectrum
+
+        for strategy, clasiifiers in nested_dict.items():
+            bar_dict = self.separate_results_by_patients(N, D, S, clasiifiers)
+
+            models, bar_dictc = self.merge_results(N, D, S, bar_dict)
+
+            for mod in models:
+                if "Linear" in mod:
+                    ind = models.index("LinearDiscriminantAnalysis")
+                    models[ind] = "LDA"
+
+            self.plot_diagram(strategy, models, bar_dictc)
+
+    def plot_diagram(self, strategy, models, bar_dictc):
+        barWidth = 0.25
+        i = 0
+        br_pre = None
+        colors = ["r", "g", "b"]
+        br_p = None
+        for key, br in bar_dictc.items():
+            if i > 0:
+                br_p = [x + barWidth for x in br_pre]
+                br_pre = br_p
+            else:
+                br_pre = np.arange(len(br))
+                br_p = np.arange(len(br))
+
+            plt.bar(
+                br_p,
+                br,
+                color=colors[i],
+                width=barWidth,
+                edgecolor="grey",
+                label=key,
+            )
+            i = i + 1
+            # Adding Xticks
+        name = f"{self.brain.area} Results, {strategy} as Norm."
+
+        plt.xlabel(name, fontweight="bold", fontsize=15)
+        plt.ylabel("Accuracy", fontweight="bold", fontsize=15)
+        plt.xticks(
+            [r + barWidth for r in range(len(br_p))],
+            models,
+        )
+        plt.legend()
+        gname = f"{self.brain.area}_{strategy}_{self.unary_subject_binary_image_classification.__name__}"
+        graph_name = ExportData.get_file_name(".png", gname)
+        plt.savefig(graph_name, dpi=1200)
+        # plt.show()
+        plt.close()
+
+    def merge_results(self, N, D, S, bar_dict):
+        models = []
+        bar_dictc = {
+            N: [],
+            D: [],
+            S: [],
+        }
+        for label, y in bar_dict.items():
+            for j, v in y.items():
+                if j not in models:
+                    models.append(j)
+                means_per_classi = [x.mean for x in v]
+                bar_dictc[label].append(statistics.mean(means_per_classi))
+        return models, bar_dictc
+
+    def separate_results_by_patients(self, N, D, S, clasiifiers):
+        bar_dict = {
+            N: {},
+            D: {},
+            S: {},
+        }
+        for classifier, list_per_classifier in clasiifiers.items():
+            for p in list_per_classifier:
+                if N in p.column_name:
+                    if bar_dict[N].get(classifier) is None:
+                        bar_dict[N][classifier] = [p]
+                    else:
+                        bar_dict[N][classifier].append(p)
+                if D in p.column_name:
+                    if bar_dict[D].get(classifier) is None:
+                        bar_dict[D][classifier] = [p]
+                    else:
+                        bar_dict[D][classifier].append(p)
+                if S in p.column_name:
+                    if bar_dict[S].get(classifier) is None:
+                        bar_dict[S][classifier] = [p]
+                    else:
+                        bar_dict[S][classifier].append(p)
+        return bar_dict
+
+    def groupby_strategy(self, all_export_data):
+        nested_dict = {}
+        for data in all_export_data:
+            if nested_dict.get(data.sub_column_name) is None:
+                nested_dict[data.sub_column_name] = [data]
+            else:
+                nested_dict[data.sub_column_name].append(data)
+
+        for strategy in nested_dict:
+            value = nested_dict.get(strategy)
+            nested_dict[strategy] = {}
+            for data in value:
+                if nested_dict[strategy].get(data.row_name) is None:
+                    nested_dict[strategy][data.row_name] = [data]
+                else:
+                    nested_dict[strategy][data.row_name].append(data)
+        return nested_dict
 
     def __modify_patients(self, config: BrainDataConfig, combination):
         config.patients = []

@@ -17,8 +17,28 @@ summary(stg)
 str(stg)
 md.pattern(stgm)
 
+rows = head(ifgm, 5)
+
+testmatrix <- matrix(c(rows), nrow = 5, ncol = 523)
+
+dataframetest = as.data.frame(ifgm) 
+
 # Multiple Imputation mit dem mice Paket
 #=========================================
+
+ifg_imput <- mice(data = testmatrix)
+
+pred_mat <- quickpred(dataframetest)
+ifg_frameImpute <- mice(data = dataframetest, predictorMatrix=pred_mat, method = "norm")
+
+ifg_imput <- mice(data = testmatrix)
+long <- complete(ifg_imput, "long")
+# Prüfen auf Konvergenz der Schätzung
+plot(ifg_imput)
+plot(long)
+# Prüfen, ob Imputation gültige Werte ergibt
+stripplot(ifg_imput)
+stripplot(ifg_imput)
 
 ifg_imput <- mice(data = ifgm, m = 2, maxit = 5)
 
