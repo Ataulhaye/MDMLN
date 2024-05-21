@@ -36,8 +36,6 @@ brain = Brain(
     area=area,
     # data_path=bd_config.STG_path,
     data_path=data_path,
-    load_labels=True,
-    load_int_labels=True,
 )
 brain.current_labels = brain.subject_labels_int
 

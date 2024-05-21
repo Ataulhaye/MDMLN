@@ -4,6 +4,7 @@ from enum import Enum
 class Lobe(Enum):
     STG = 1
     IFG = 2
+    ALL = 3
 
 
 class LabelType(Enum):

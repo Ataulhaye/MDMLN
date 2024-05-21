@@ -2,13 +2,22 @@ import copy
 import statistics
 
 import matplotlib.pyplot as plt
+import nilearn as ni
 import numpy as np
+import pandas as pd
+import scipy.io
+import seaborn as sns
+import torch
+from nilearn import image, plotting
+from scipy.spatial import KDTree
+from scipy.stats import spearmanr
 
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
 from DataTraining import DataTraining
 from Enums import Lobe
 from ExportData import ExportData
+from SearchLight import SearchLight
 from TrainingConfig import TrainingConfig
 
 
@@ -52,15 +61,10 @@ class FMRIAnalyser:
             self.brain = Brain(
                 area=self.data_config.STG,
                 data_path=self.data_config.STG_path,
-                load_labels=True,
-                load_int_labels=True,
             )
         elif lobe is Lobe.IFG:
             self.brain = Brain(
-                area=self.data_config.IFG,
-                data_path=self.data_config.IFG_path,
-                load_labels=True,
-                load_int_labels=True,
+                area=self.data_config.IFG, data_path=self.data_config.IFG_path
             )
         else:
             self.brain = brain
@@ -199,9 +203,9 @@ class FMRIAnalyser:
             transpose=True,
             single_label=True,
         )
-
+        # self.plot_images(all_export_data)
+        self.plot_detailed_bars(all_export_data)
         # this will groupby the mean, median,...
-        self.plot_images(all_export_data)
 
         print("End")
 
@@ -550,6 +554,117 @@ class FMRIAnalyser:
             transpose=True,
         )
 
+    def unary_subject_binary_image_classification_RSA_Test(self):
+        """
+        Unarize the fMRI data based on subjects, then for every unarized instance image wise binarization takes place
+        i.e unary_subject_labels_N_binary_AR-AU
+        """
+        all_export_data = []
+
+        audio_RDM = np.array(
+            [
+                [0, 0, 1, 1],
+                [0, 0, 1, 1],
+                [1, 1, 0, 0],
+                [1, 1, 0, 0],
+            ]
+        )
+
+        self.brain.current_labels = self.brain.subject_labels
+        subject_unary_data = self.brain.unary_fmri_subject_or_image(self.data_config)
+
+        sl = SearchLight()
+        radius = 100
+        # Creating the sphere centers with some radius
+        sphere_centers = sl.get_sphere_centers(self.brain.mni_space, radius)
+        # creating xyz points by providing the TALX, TALY, and TALZ
+        xyz_points = np.array(self.brain.mni_space[["TALX", "TALY", "TALZ"]])
+
+        kdtree = KDTree(xyz_points)
+        # getting the sphere voxels
+        sphere_vox = kdtree.query_ball_point(sphere_centers, radius)
+        # this will remove the empty spheres and map to the sphere centres and return the list of tuples (sphere_centre_dims, sphere_Voxels)
+        # (The voxel dimension in the brain and the voxel indices)
+        final_spheres = [
+            (sphere_centers[i].tolist(), j) for i, j in enumerate(sphere_vox) if j
+        ]
+
+        r_means = []
+        # subject_unary_data list conatins all three subject voxels. N, D, and S
+        for un_brain in subject_unary_data:
+            for sphere in final_spheres:
+                # combine voxels and sphere: voxels for a specific coordinates sphere[-1] has the voxels indices
+                voxels = un_brain.voxels[:, sphere[-1]]
+                new_shape = (
+                    int(voxels.shape[0] / 4),
+                    4,
+                    voxels.shape[1],
+                )
+                rvoxels = np.reshape(voxels, new_shape)
+                # make RDM from combined voxels and sphere
+                RDMs = sl.make_RDMs(rvoxels)
+                # calculating the rank
+                r = [
+                    spearmanr(audio_RDM.ravel(), RDMs[i].ravel()).statistic
+                    for i in range(RDMs.shape[0])
+                ]
+                # saving the rank per sphere as mean
+                r_means.append((un_brain.current_labels.name, np.nanmean(r)))
+
+        print("End")
+
+    def plot_detailed_bars(self, all_export_data):
+        nested_dict = self.groupby_strategy(all_export_data)
+
+        N = self.data_config.neurotypical
+        D = self.data_config.depressive_disorder
+        S = self.data_config.schizophrenia_spectrum
+
+        for strategy, clasiifiers in nested_dict.items():
+            bar_dict = self.separate_results_by_patients(N, D, S, clasiifiers)
+
+            models = []
+            for label, y in bar_dict.items():
+                for j, v in y.items():
+                    if j not in models:
+                        models.append(j)
+                    for i in v:
+                        i.column_name = i.column_name.split("_")[-1]
+
+            for mod in models:
+                if "Linear" in mod:
+                    ind = models.index("LinearDiscriminantAnalysis")
+                    models[ind] = "LDA"
+
+            penguin_means = {
+                f"{N}_AR-AU": [],
+                f"{N}_AR-CR": [],
+                f"{N}_AR-CU": [],
+                f"{N}_AU-CR": [],
+                f"{N}_AU-CU": [],
+                f"{N}_CR-CU": [],
+                f"{D}_AR-AU": [],
+                f"{D}_AR-CR": [],
+                f"{D}_AR-CU": [],
+                f"{D}_AU-CR": [],
+                f"{D}_AU-CU": [],
+                f"{D}_CR-CU": [],
+                f"{S}_AR-AU": [],
+                f"{S}_AR-CR": [],
+                f"{S}_AR-CU": [],
+                f"{S}_AU-CR": [],
+                f"{S}_AU-CU": [],
+                f"{S}_CR-CU": [],
+            }
+
+            for patient, resu in bar_dict.items():
+                for classi, res in resu.items():
+                    for it in res:
+                        k = f"{patient}_{it.column_name}"
+                        penguin_means[k].append(it.mean)
+
+            self.plot_diagram_per_strategy(strategy, models, penguin_means)
+
     def plot_images(self, all_export_data):
         nested_dict = self.groupby_strategy(all_export_data)
 
@@ -568,6 +683,71 @@ class FMRIAnalyser:
                     models[ind] = "LDA"
 
             self.plot_diagram(strategy, models, bar_dictc)
+
+    def plot_diagram_per_strategy(self, strategy, models, bar_dictc):
+        barWidth = 0.5
+        i = 0
+        br_pre_pos = None
+        all_br_positions = []
+        colors = [
+            "r",
+            "r",
+            "r",
+            "r",
+            "r",
+            "r",
+            "g",
+            "g",
+            "g",
+            "g",
+            "g",
+            "g",
+            "b",
+            "b",
+            "b",
+            "b",
+            "b",
+            "b",
+        ]
+        br_position = None
+        legend_bars = []
+        plt.subplots(figsize=(25, 10))
+        for key, br_data in bar_dictc.items():
+            if i > 0:
+                br_position = [x + barWidth for x in br_pre_pos]
+                br_pre_pos = br_position
+            else:
+                br_pre_pos = [0, int(len(bar_dictc) * barWidth) + 1]
+                br_position = [0, int(len(bar_dictc) * barWidth) + 1]
+            all_br_positions.extend(br_position)
+            a = plt.bar(
+                br_position,
+                br_data,
+                color=colors[i],
+                width=barWidth,
+                edgecolor="grey",
+                label=key,
+            )
+            if i % (int(len(bar_dictc) / 3)) == 0:
+                legend_bars.append(a)
+            i = i + 1
+            # Adding Xticks
+        name = f"{self.brain.area} Results, {strategy} as Norm."
+
+        plt.xlabel(name, fontweight="bold", fontsize=15)
+        plt.ylabel("Accuracy", fontweight="bold", fontsize=15)
+
+        bar_labels = [
+            j.split("_")[-1] for i in range(len(models)) for j in list(bar_dictc.keys())
+        ]
+        all_br_positions.sort()
+        plt.xticks(all_br_positions, bar_labels)
+        plt.legend(legend_bars, ["N", "D", "S"])
+        gname = f"{self.brain.area}_{strategy}_{self.unary_subject_binary_image_classification.__name__}"
+        graph_name = ExportData.get_file_name(".png", gname)
+        plt.savefig(graph_name, dpi=1200)
+        plt.show()
+        plt.close()
 
     def plot_diagram(self, strategy, models, bar_dictc):
         barWidth = 0.25

@@ -92,4 +92,11 @@ class BrainDataConfig:
         self.all_lobes_path = (
             Path("fmri_data/AAL_all_lobes_ROI.rex.mat").absolute().resolve()
         )
+
+        self.mni_dims_path = Path("fmri_data/converted2mni.csv").absolute().resolve()
+
         self.all_lobes = "all_lobes"
+
+        self.TALX = "TALX"
+        self.TALY = "TALY"
+        self.TALZ = "TALZ"

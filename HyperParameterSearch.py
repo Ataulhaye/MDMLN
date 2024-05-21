@@ -175,8 +175,6 @@ def get_voxel_tensor_datasets(brain_area):
         area=area,
         # data_path=bd_config.STG_path,
         data_path=data_path,
-        load_labels=True,
-        load_int_labels=True,
     )
     brain.current_labels = brain.subject_labels_int
 

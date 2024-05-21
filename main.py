@@ -103,14 +103,14 @@ def classify_iris():
 
 def analyse_nans():
     config = BrainDataConfig()
-    stg = Brain(area=config.STG, data_path=config.STG_path, load_labels=True)
+    stg = Brain(area=config.STG, data_path=config.STG_path)
     nans_column_wise = stg.calculate_nans_voxel_wise(stg.voxels)
     print("stg nans_column_wise", len(nans_column_wise))
     nans_voxel_wise = stg.calculate_nans_trail_wise(stg.voxels)
     print("stg nans_voxel_wise", len(nans_voxel_wise))
     print("------------")
 
-    ifg = Brain(area=config.IFG, data_path=config.IFG_path, load_labels=True)
+    ifg = Brain(area=config.IFG, data_path=config.IFG_path)
     nans_column_wise_ifg = ifg.calculate_nans_voxel_wise(ifg.voxels)
     print("IFG nans_column_wise", len(nans_column_wise_ifg))
     nans_voxel_wise_ifg = ifg.calculate_nans_trail_wise(ifg.voxels)
@@ -120,8 +120,8 @@ def analyse_nans():
 
 def visualize_nans():
     config = BrainDataConfig()
-    stg = Brain(area=config.STG, data_path=config.STG_path, load_labels=True)
-    ifg = Brain(area=config.IFG, data_path=config.IFG_path, load_labels=True)
+    stg = Brain(area=config.STG, data_path=config.STG_path)
+    ifg = Brain(area=config.IFG, data_path=config.IFG_path)
     data_list = [stg, ifg]
     for data in data_list:
         nans_column_wise = stg.calculate_nans_voxel_wise(data.voxels)
@@ -162,8 +162,6 @@ def ifg_classification(classifiers, strategies, t_config: TrainingConfig):
     brain = Brain(
         area=config.IFG,
         data_path=config.IFG_path,
-        load_labels=True,
-        load_int_labels=True,
     )
 
     training = DataTraining()
@@ -199,12 +197,7 @@ def stg_binary_classification_with_shap(
     classifiers, strategies, t_config: TrainingConfig
 ):
     config = BrainDataConfig()
-    brain = Brain(
-        area=config.STG,
-        data_path=config.STG_path,
-        load_labels=True,
-        load_int_labels=True,
-    )
+    brain = Brain(area=config.STG, data_path=config.STG_path)
 
     split = "r_split"
     if t_config.predefined_split:
@@ -263,12 +256,7 @@ def stg_subject_binary_classification(
     classifiers, strategies, t_config: TrainingConfig
 ):
     config = BrainDataConfig()
-    brain = Brain(
-        area=config.STG,
-        data_path=config.STG_path,
-        load_labels=True,
-        load_int_labels=True,
-    )
+    brain = Brain(area=config.STG, data_path=config.STG_path)
 
     split = "r_split"
     if t_config.predefined_split:
@@ -309,12 +297,7 @@ def ifg_binary_subject_classification(
     classifiers, strategies, t_config: TrainingConfig
 ):
     config = BrainDataConfig()
-    brain = Brain(
-        area=config.IFG,
-        data_path=config.IFG_path,
-        load_labels=True,
-        load_int_labels=True,
-    )
+    brain = Brain(area=config.IFG, data_path=config.IFG_path)
 
     split = "r_split"
     if t_config.predefined_split:
@@ -351,12 +334,7 @@ def ifg_binary_subject_classification(
 
 def stg_binary_trails_classification(classifiers, strategies, t_config: TrainingConfig):
     config = BrainDataConfig()
-    brain = Brain(
-        area=config.STG,
-        data_path=config.STG_path,
-        load_labels=True,
-        load_int_labels=True,
-    )
+    brain = Brain(area=config.STG, data_path=config.STG_path)
 
     brain.current_labels = brain.subject_labels
     split = "r_split"
@@ -397,12 +375,7 @@ def stg_concatenated_trails_classification(
     classifiers, strategies, t_config: TrainingConfig
 ):
     config = BrainDataConfig()
-    brain = Brain(
-        area=config.STG,
-        data_path=config.STG_path,
-        load_labels=True,
-        load_int_labels=True,
-    )
+    brain = Brain(area=config.STG, data_path=config.STG_path)
 
     brain.current_labels = brain.subject_labels
     split = "r_split"
@@ -442,12 +415,7 @@ def ifg_concatenated_trails_classification(
     classifiers, strategies, t_config: TrainingConfig
 ):
     config = BrainDataConfig()
-    brain = Brain(
-        area=config.IFG,
-        data_path=config.IFG_path,
-        load_labels=True,
-        load_int_labels=True,
-    )
+    brain = Brain(area=config.IFG, data_path=config.IFG_path)
 
     brain.current_labels = brain.subject_labels
     split = "r_split"
@@ -487,12 +455,7 @@ def ifg_concatenated_binary_subjects_trails_classification(
     classifiers, strategies, t_config: TrainingConfig
 ):
     config = BrainDataConfig()
-    brain = Brain(
-        area=config.IFG,
-        data_path=config.IFG_path,
-        load_labels=True,
-        load_int_labels=True,
-    )
+    brain = Brain(area=config.IFG, data_path=config.IFG_path)
 
     brain.current_labels = brain.subject_labels
     split = "r_split"
@@ -534,12 +497,7 @@ def stg_concatenated_binary_subjects_trails_classification(
     classifiers, strategies, t_config: TrainingConfig
 ):
     config = BrainDataConfig()
-    brain = Brain(
-        area=config.STG,
-        data_path=config.STG_path,
-        load_labels=True,
-        load_int_labels=True,
-    )
+    brain = Brain(area=config.STG, data_path=config.STG_path)
 
     brain.current_labels = brain.subject_labels
     split = "r_split"
@@ -579,12 +537,7 @@ def stg_concatenated_binary_subjects_trails_classification(
 
 def ifg_binary_trails_classification(classifiers, strategies, t_config: TrainingConfig):
     config = BrainDataConfig()
-    brain = Brain(
-        area=config.IFG,
-        data_path=config.IFG_path,
-        load_labels=True,
-        load_int_labels=True,
-    )
+    brain = Brain(area=config.IFG, data_path=config.IFG_path)
 
     brain.current_labels = brain.subject_labels
     split = "r_split"
@@ -623,12 +576,7 @@ def ifg_binary_trails_classification(classifiers, strategies, t_config: Training
 
 def stg_classification(classifiers, strategies, t_config: TrainingConfig):
     config = BrainDataConfig()
-    brain = Brain(
-        area=config.STG,
-        data_path=config.STG_path,
-        load_labels=True,
-        load_int_labels=True,
-    )
+    brain = Brain(area=config.STG, data_path=config.STG_path)
 
     brain.current_labels = brain.subject_labels_int
 
@@ -913,10 +861,17 @@ def analyze_IFG():
 def main():
     analyser = FMRIAnalyser(Lobe.IFG)
     analyser.training_config.dimension_reduction = True
-    analyser.strategies.insert(0, "mice")
-    # analyser.strategies = ["mice", "mean"]
-    # analyser.classifiers = ["SVM", "MLP"]
+    analyser.training_config.folds = 2
+    # analyser.strategies.insert(0, "mice")
+
+    analyser.strategies = ["mice", "mean"]
+    analyser.classifiers = ["SVM", "MLP"]
     analyser.unary_subject_binary_image_classification()
+
+    config = BrainDataConfig()
+    b = Brain(config.all_lobes, config.all_lobes_path)
+    analyser = FMRIAnalyser(Lobe.ALL, brain=b)
+    analyser.unary_subject_binary_image_classification_RSA_Test()
 
     analyser = FMRIAnalyser(Lobe.STG)
     analyser.training_config.dimension_reduction = True

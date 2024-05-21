@@ -2,6 +2,7 @@ import copy
 import itertools
 
 import numpy as np
+import pandas as pd
 import scipy
 
 # explicitly require this experimental feature
@@ -21,12 +22,11 @@ class Brain:
         self,
         area: str = None,
         data_path: str = None,
-        load_labels=False,
-        load_int_labels=False,
         current_labels: BrainDataLabel = None,
         mask: str = None,
         niimg: str = None,
         voxel_label=None,
+        mni_dims=None,
     ):
         self.area = area
         self.current_labels = current_labels
@@ -40,7 +40,7 @@ class Brain:
         if data_path is not None:
             data = scipy.io.loadmat(data_path)
             self.voxels: np.ndarray = data["R"]
-        if load_labels is True:
+
             # STG_data = scipy.io.loadmat("./left_STG_MTG_AALlable_ROI.rex.mat")
             # self.STG = tuple(("STG", STG_data["R"]))
 
@@ -53,100 +53,84 @@ class Brain:
             # self.subject_labels = np.array(["N"] * 4 * 43 + ["D"] * 4 * 33 + ["S"] * 4 * 46)
             # self.subject_labels_o = tuple(("subject_labels",np.array(["N"] * 4 * 43 + ["D"] * 4 * 33 + ["S"] * 4 * 46),))
 
-            config = BrainDataConfig()
+        bdc = BrainDataConfig()
 
-            self.subject_labels = BrainDataLabel(
-                name="subject_labels",
-                popmean=config.subject_label_popmean,
-                labels=np.array(
-                    [config.neurotypical]
-                    * config.conditions
-                    * config.neurotypical_patients
-                    + [config.depressive_disorder]
-                    * config.conditions
-                    * config.depressive_disorder_patients
-                    + [config.schizophrenia_spectrum]
-                    * config.conditions
-                    * config.schizophrenia_spectrum_patients
-                ),
-            )
-            # subject_labels 172=N, 132=D, 184=S sumup to 488
+        self.subject_labels = BrainDataLabel(
+            name="subject_labels",
+            popmean=bdc.subject_label_popmean,
+            labels=np.array(
+                [bdc.neurotypical] * bdc.conditions * bdc.neurotypical_patients
+                + [bdc.depressive_disorder]
+                * bdc.conditions
+                * bdc.depressive_disorder_patients
+                + [bdc.schizophrenia_spectrum]
+                * bdc.conditions
+                * bdc.schizophrenia_spectrum_patients
+            ),
+        )
+        # subject_labels 172=N, 132=D, 184=S sumup to 488
 
-            # self.image_labels = np.array(["AR", "AU", "CR", "CU"] * (43 + 33 + 46))
+        # self.image_labels = np.array(["AR", "AU", "CR", "CU"] * (43 + 33 + 46))
 
-            # self.image_labels_o = tuple(("image_labels", np.array(["AR", "AU", "CR", "CU"] * (43 + 33 + 46))))
-            self.image_labels = BrainDataLabel(
-                name="image_labels",
-                popmean=config.image_label_popmean,
-                labels=np.array(
-                    [
-                        config.abstract_related,
-                        config.abstract_unrelated,
-                        config.concrete_related,
-                        config.concrete_unrelated,
-                    ]
-                    * (
-                        config.neurotypical_patients
-                        + config.depressive_disorder_patients
-                        + config.schizophrenia_spectrum_patients
-                    )
-                ),
-            )
-
-        if load_int_labels:
-            config = BrainDataConfig()
-            self.subject_labels_int = BrainDataLabel(
-                name="subject_labels_int",
-                popmean=config.subject_label_popmean,
-                labels=np.array(
-                    [config.neurotypical_int]
-                    * config.conditions
-                    * config.neurotypical_patients
-                    + [config.depressive_disorder_int]
-                    * config.conditions
-                    * config.depressive_disorder_patients
-                    + [config.schizophrenia_spectrum_int]
-                    * config.conditions
-                    * config.schizophrenia_spectrum_patients
-                ),
-            )
-
-            self.image_labels_int = BrainDataLabel(
-                name="image_labels_int",
-                popmean=config.image_label_popmean,
-                labels=np.array(
-                    [
-                        config.abstract_related_int,
-                        config.abstract_unrelated_int,
-                        config.concrete_related_int,
-                        config.concrete_unrelated_int,
-                    ]
-                    * (
-                        config.neurotypical_patients
-                        + config.depressive_disorder_patients
-                        + config.schizophrenia_spectrum_patients
-                    )
-                ),
-            )
-            # self.all_labels = [
-            # sb + im for sb, im in zip(self.subject_labels, self.image_labels)
-            # ]
-            self.all_labels = tuple(
-                (
-                    "all_labels",
-                    np.array(
-                        [
-                            sb + im
-                            for sb, im in zip(
-                                # self.subject_labels[1],
-                                # self.image_labels[1],
-                                self.subject_labels.labels,
-                                self.image_labels.labels,
-                            )
-                        ]
-                    ),
+        # self.image_labels_o = tuple(("image_labels", np.array(["AR", "AU", "CR", "CU"] * (43 + 33 + 46))))
+        self.image_labels = BrainDataLabel(
+            name="image_labels",
+            popmean=bdc.image_label_popmean,
+            labels=np.array(
+                [
+                    bdc.abstract_related,
+                    bdc.abstract_unrelated,
+                    bdc.concrete_related,
+                    bdc.concrete_unrelated,
+                ]
+                * (
+                    bdc.neurotypical_patients
+                    + bdc.depressive_disorder_patients
+                    + bdc.schizophrenia_spectrum_patients
                 )
-            )
+            ),
+        )
+
+        bdc = BrainDataConfig()
+        self.subject_labels_int = BrainDataLabel(
+            name="subject_labels_int",
+            popmean=bdc.subject_label_popmean,
+            labels=np.array(
+                [bdc.neurotypical_int] * bdc.conditions * bdc.neurotypical_patients
+                + [bdc.depressive_disorder_int]
+                * bdc.conditions
+                * bdc.depressive_disorder_patients
+                + [bdc.schizophrenia_spectrum_int]
+                * bdc.conditions
+                * bdc.schizophrenia_spectrum_patients
+            ),
+        )
+
+        self.image_labels_int = BrainDataLabel(
+            name="image_labels_int",
+            popmean=bdc.image_label_popmean,
+            labels=np.array(
+                [
+                    bdc.abstract_related_int,
+                    bdc.abstract_unrelated_int,
+                    bdc.concrete_related_int,
+                    bdc.concrete_unrelated_int,
+                ]
+                * (
+                    bdc.neurotypical_patients
+                    + bdc.depressive_disorder_patients
+                    + bdc.schizophrenia_spectrum_patients
+                )
+            ),
+        )
+
+        self.mni_space = pd.read_csv(bdc.mni_dims_path)
+        """Talairach coordinates, also known as Talairach space, is a 3-dimensional coordinate system (known as an 'atlas') of the human brain"""
+
+        # self.all_labels = [
+        # sb + im for sb, im in zip(self.subject_labels, self.image_labels)
+        # ]
+        # self.all_labels = tuple(("all_labels",np.array([sb + im for sb, im in zip( self.subject_labels.labels,self.image_labels.labels,)]),))
 
     def normalize_data(self, data, strategy="mean"):
         """_summary_
