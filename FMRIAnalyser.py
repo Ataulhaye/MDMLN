@@ -31,6 +31,7 @@ class FMRIAnalyser:
         strategies=None,
         training_config: TrainingConfig = None,
         data_config: BrainDataConfig = None,
+        Talairach_space: pd.DataFrame = None,
     ):
         if lobe is None:
             raise Exception("Lobe of the brain must be defined.")
@@ -62,10 +63,18 @@ class FMRIAnalyser:
                 area=self.data_config.STG,
                 data_path=self.data_config.STG_path,
             )
+            self.Talairach_space = self.brain.STG_Talairach_space
         elif lobe is Lobe.IFG:
             self.brain = Brain(
                 area=self.data_config.IFG, data_path=self.data_config.IFG_path
             )
+            self.Talairach_space = self.brain.IFG_Talairach_space
+        elif lobe is Lobe.ALL:
+            self.brain = Brain(
+                area=self.data_config.ALL,
+                data_path=self.data_config.all_lobes_path,
+            )
+            self.Talairach_space = self.brain.All_lobes_Talairach_MNI_space
         else:
             self.brain = brain
 
@@ -576,9 +585,10 @@ class FMRIAnalyser:
         sl = SearchLight()
         radius = 100
         # Creating the sphere centers with some radius
-        sphere_centers = sl.get_sphere_centers(self.brain.mni_space, radius)
+
+        sphere_centers = sl.get_sphere_centers(self.Talairach_space, radius)
         # creating xyz points by providing the TALX, TALY, and TALZ
-        xyz_points = np.array(self.brain.mni_space[["TALX", "TALY", "TALZ"]])
+        xyz_points = np.array(self.Talairach_space[["TALX", "TALY", "TALZ"]])
 
         kdtree = KDTree(xyz_points)
         # getting the sphere voxels
@@ -637,31 +647,32 @@ class FMRIAnalyser:
                     models[ind] = "LDA"
 
             penguin_means = {
-                f"{N}_AR-AU": [],
-                f"{N}_AR-CR": [],
-                f"{N}_AR-CU": [],
-                f"{N}_AU-CR": [],
-                f"{N}_AU-CU": [],
-                f"{N}_CR-CU": [],
-                f"{D}_AR-AU": [],
-                f"{D}_AR-CR": [],
-                f"{D}_AR-CU": [],
-                f"{D}_AU-CR": [],
-                f"{D}_AU-CU": [],
-                f"{D}_CR-CU": [],
-                f"{S}_AR-AU": [],
-                f"{S}_AR-CR": [],
-                f"{S}_AR-CU": [],
-                f"{S}_AU-CR": [],
-                f"{S}_AU-CU": [],
-                f"{S}_CR-CU": [],
+                f"{N}_AR-AU": {"data": [], "std": []},
+                f"{N}_AR-CR": {"data": [], "std": []},
+                f"{N}_AR-CU": {"data": [], "std": []},
+                f"{N}_AU-CR": {"data": [], "std": []},
+                f"{N}_AU-CU": {"data": [], "std": []},
+                f"{N}_CR-CU": {"data": [], "std": []},
+                f"{D}_AR-AU": {"data": [], "std": []},
+                f"{D}_AR-CR": {"data": [], "std": []},
+                f"{D}_AR-CU": {"data": [], "std": []},
+                f"{D}_AU-CR": {"data": [], "std": []},
+                f"{D}_AU-CU": {"data": [], "std": []},
+                f"{D}_CR-CU": {"data": [], "std": []},
+                f"{S}_AR-AU": {"data": [], "std": []},
+                f"{S}_AR-CR": {"data": [], "std": []},
+                f"{S}_AR-CU": {"data": [], "std": []},
+                f"{S}_AU-CR": {"data": [], "std": []},
+                f"{S}_AU-CU": {"data": [], "std": []},
+                f"{S}_CR-CU": {"data": [], "std": []},
             }
 
             for patient, resu in bar_dict.items():
                 for classi, res in resu.items():
                     for it in res:
                         k = f"{patient}_{it.column_name}"
-                        penguin_means[k].append(it.mean)
+                        penguin_means[k]["std"].append(it.standard_deviation)
+                        penguin_means[k]["data"].append(it.mean)
 
             self.plot_diagram_per_strategy(strategy, models, penguin_means)
 
@@ -722,11 +733,15 @@ class FMRIAnalyser:
             all_br_positions.extend(br_position)
             a = plt.bar(
                 br_position,
-                br_data,
+                br_data["data"],
                 color=colors[i],
                 width=barWidth,
                 edgecolor="grey",
                 label=key,
+            )
+
+            plt.errorbar(
+                br_position, br_data["data"], yerr=br_data["std"], fmt="o", color="k"
             )
             if i % (int(len(bar_dictc) / 3)) == 0:
                 legend_bars.append(a)
@@ -742,7 +757,7 @@ class FMRIAnalyser:
         ]
         all_br_positions.sort()
         plt.xticks(all_br_positions, bar_labels)
-        plt.legend(legend_bars, ["N", "D", "S"])
+        plt.legend(legend_bars, ["N", "D", "S"], fontsize=12, title="Test")
         gname = f"{self.brain.area}_{strategy}_{self.unary_subject_binary_image_classification.__name__}"
         graph_name = ExportData.get_file_name(".png", gname)
         plt.savefig(graph_name, dpi=1200)

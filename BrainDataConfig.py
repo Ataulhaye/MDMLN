@@ -89,11 +89,22 @@ class BrainDataConfig:
         )
         self.IFG = "IFG"
 
+        self.ALL = "ALL"
         self.all_lobes_path = (
             Path("fmri_data/AAL_all_lobes_ROI.rex.mat").absolute().resolve()
         )
 
-        self.mni_dims_path = Path("fmri_data/converted2mni.csv").absolute().resolve()
+        self.All_lobes_Talairach_MNI_space = (
+            Path("fmri_data/All_lobes_Talairach_MNI_space.csv").absolute().resolve()
+        )
+
+        self.IFG_Talairach_space = (
+            Path("fmri_data/IFG_Talairach_space.csv").absolute().resolve()
+        )
+
+        self.STG_Talairach_space = (
+            Path("fmri_data/STG_Talairach_space.csv").absolute().resolve()
+        )
 
         self.all_lobes = "all_lobes"
 

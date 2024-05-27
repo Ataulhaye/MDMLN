@@ -124,7 +124,13 @@ class Brain:
             ),
         )
 
-        self.mni_space = pd.read_csv(bdc.mni_dims_path)
+        # to do provide the enum to area property then depending on the enum csv can be loaded
+        self.All_lobes_Talairach_MNI_space = pd.read_csv(
+            bdc.All_lobes_Talairach_MNI_space
+        )
+        self.IFG_Talairach_space = pd.read_csv(bdc.IFG_Talairach_space, delimiter=";")
+        self.STG_Talairach_space = pd.read_csv(bdc.STG_Talairach_space, delimiter=";")
+
         """Talairach coordinates, also known as Talairach space, is a 3-dimensional coordinate system (known as an 'atlas') of the human brain"""
 
         # self.all_labels = [
