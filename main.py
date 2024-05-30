@@ -864,9 +864,6 @@ def main():
     analyser.RSA_related_unrelated_RDM()
 
     analyser = FMRIAnalyser(Lobe.IFG)
-    analyser.unary_subject_binary_image_classification_RSA_Test()
-
-    analyser = FMRIAnalyser(Lobe.IFG)
     analyser.training_config.dimension_reduction = True
     analyser.training_config.folds = 2
     # analyser.strategies.insert(0, "mice")
