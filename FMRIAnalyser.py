@@ -1,4 +1,5 @@
 import copy
+import pickle
 import statistics
 
 import matplotlib.pyplot as plt
@@ -17,7 +18,8 @@ from BrainDataConfig import BrainDataConfig
 from DataTraining import DataTraining
 from Enums import Lobe
 from ExportData import ExportData
-from SearchLight import SearchLight
+from RepresentationalSimilarityAnalysis import RepresentationalSimilarityAnalysis
+from RSAConfig import RSAConfig
 from TrainingConfig import TrainingConfig
 
 
@@ -563,65 +565,57 @@ class FMRIAnalyser:
             transpose=True,
         )
 
-    def unary_subject_binary_image_classification_RSA_Test(self):
+    def RSA_Audio_RDM(self):
         """
-        Unarize the fMRI data based on subjects, then for every unarized instance image wise binarization takes place
-        i.e unary_subject_labels_N_binary_AR-AU
+        Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
+        i.e unary_subject_labels_N
         """
-        all_export_data = []
-
-        audio_RDM = np.array(
-            [
-                [0, 0, 1, 1],
-                [0, 0, 1, 1],
-                [1, 1, 0, 0],
-                [1, 1, 0, 0],
-            ]
-        )
-
         self.brain.current_labels = self.brain.subject_labels
         subject_unary_data = self.brain.unary_fmri_subject_or_image(self.data_config)
 
-        sl = SearchLight()
-        radius = 100
-        # Creating the sphere centers with some radius
+        rsa_config = RSAConfig()
+        rsa = RepresentationalSimilarityAnalysis()
 
-        sphere_centers = sl.get_sphere_centers(self.Talairach_space, radius)
-        # creating xyz points by providing the TALX, TALY, and TALZ
-        xyz_points = np.array(self.Talairach_space[["TALX", "TALY", "TALZ"]])
+        r_means = rsa.RSA(
+            subject_unary_data,
+            rsa_config.audio_RDM,
+            rsa_config.radius,
+            self.Talairach_space,
+        )
 
-        kdtree = KDTree(xyz_points)
-        # getting the sphere voxels
-        sphere_vox = kdtree.query_ball_point(sphere_centers, radius)
-        # this will remove the empty spheres and map to the sphere centres and return the list of tuples (sphere_centre_dims, sphere_Voxels)
-        # (The voxel dimension in the brain and the voxel indices)
-        final_spheres = [
-            (sphere_centers[i].tolist(), j) for i, j in enumerate(sphere_vox) if j
-        ]
+        k_max, max_from_pairs = rsa.generate_RSA_results(r_means)
 
-        r_means = []
-        # subject_unary_data list conatins all three subject voxels. N, D, and S
-        for un_brain in subject_unary_data:
-            for sphere in final_spheres:
-                # combine voxels and sphere: voxels for a specific coordinates sphere[-1] has the voxels indices
-                voxels = un_brain.voxels[:, sphere[-1]]
-                new_shape = (
-                    int(voxels.shape[0] / 4),
-                    4,
-                    voxels.shape[1],
-                )
-                rvoxels = np.reshape(voxels, new_shape)
-                # make RDM from combined voxels and sphere
-                RDMs = sl.make_RDMs(rvoxels)
-                # calculating the rank
-                r = [
-                    spearmanr(audio_RDM.ravel(), RDMs[i].ravel()).statistic
-                    for i in range(RDMs.shape[0])
-                ]
-                # saving the rank per sphere as mean
-                r_means.append((un_brain.current_labels.name, np.nanmean(r)))
+        file_name = f"{self.brain.area}_Radius-{rsa_config.radius}_AudioRDM_RSA.pickle"
+        with open(file_name, "wb") as output:
+            pickle.dump((k_max, max_from_pairs), output)
 
-        print("End")
+        return k_max, max_from_pairs
+
+    def RSA_related_unrelated_RDM(self):
+        """
+        Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
+        i.e unary_subject_labels_N
+        """
+        self.brain.current_labels = self.brain.subject_labels
+        subject_unary_data = self.brain.unary_fmri_subject_or_image(self.data_config)
+
+        rsa_config = RSAConfig()
+        rsa = RepresentationalSimilarityAnalysis()
+
+        r_means = rsa.RSA(
+            subject_unary_data,
+            rsa_config.related_unrelated_RDM,
+            rsa_config.radius,
+            self.Talairach_space,
+        )
+
+        k_max, max_from_pairs = rsa.generate_RSA_results(r_means)
+
+        file_name = f"{self.brain.area}_Radius-{rsa_config.radius}_related_unrelated_RDM_RSA.pickle"
+        with open(file_name, "wb") as output:
+            pickle.dump((k_max, max_from_pairs), output)
+
+        return k_max, max_from_pairs
 
     def plot_detailed_bars(self, all_export_data):
         nested_dict = self.groupby_strategy(all_export_data)
