@@ -863,6 +863,10 @@ def main():
     analyser.RSA_Audio_RDM()
     analyser.RSA_related_unrelated_RDM()
 
+    analyser = FMRIAnalyser(Lobe.STG)
+    analyser.RSA_Audio_RDM()
+    analyser.RSA_related_unrelated_RDM()
+
     analyser = FMRIAnalyser(Lobe.IFG)
     analyser.training_config.dimension_reduction = True
     analyser.training_config.folds = 2

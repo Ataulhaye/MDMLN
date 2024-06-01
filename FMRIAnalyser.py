@@ -33,7 +33,7 @@ class FMRIAnalyser:
         strategies=None,
         training_config: TrainingConfig = None,
         data_config: BrainDataConfig = None,
-        Talairach_space: pd.DataFrame = None,
+        Talairach_MNI_space: pd.DataFrame = None,
     ):
         if lobe is None:
             raise Exception("Lobe of the brain must be defined.")
@@ -65,20 +65,21 @@ class FMRIAnalyser:
                 area=self.data_config.STG,
                 data_path=self.data_config.STG_path,
             )
-            self.Talairach_space = self.brain.STG_Talairach_space
+            self.Talairach_MNI_space = self.brain.STG_Talairach_MNI_space
         elif lobe is Lobe.IFG:
             self.brain = Brain(
                 area=self.data_config.IFG, data_path=self.data_config.IFG_path
             )
-            self.Talairach_space = self.brain.IFG_Talairach_space
+            self.Talairach_MNI_space = self.brain.IFG_Talairach_MNI_space
         elif lobe is Lobe.ALL:
             self.brain = Brain(
                 area=self.data_config.ALL,
                 data_path=self.data_config.all_lobes_path,
             )
-            self.Talairach_space = self.brain.All_lobes_Talairach_MNI_space
+            self.Talairach_MNI_space = self.brain.All_lobes_Talairach_MNI_space
         else:
             self.brain = brain
+            self.Talairach_MNI_space = Talairach_MNI_space
 
     def binary_subject_classification(self):
         """
@@ -580,7 +581,7 @@ class FMRIAnalyser:
             subject_unary_data,
             rsa_config.audio_RDM,
             rsa_config.radius,
-            self.Talairach_space,
+            self.Talairach_MNI_space,
         )
 
         k_max, max_from_pairs = rsa.generate_RSA_results(r_means)
@@ -606,7 +607,7 @@ class FMRIAnalyser:
             subject_unary_data,
             rsa_config.related_unrelated_RDM,
             rsa_config.radius,
-            self.Talairach_space,
+            self.Talairach_MNI_space,
         )
 
         k_max, max_from_pairs = rsa.generate_RSA_results(r_means)

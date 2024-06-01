@@ -128,8 +128,8 @@ class Brain:
         self.All_lobes_Talairach_MNI_space = pd.read_csv(
             bdc.All_lobes_Talairach_MNI_space
         )
-        self.IFG_Talairach_space = pd.read_csv(bdc.IFG_Talairach_space, delimiter=";")
-        self.STG_Talairach_space = pd.read_csv(bdc.STG_Talairach_space, delimiter=";")
+        self.IFG_Talairach_MNI_space = pd.read_csv(bdc.IFG_Talairach_MNI_space)
+        self.STG_Talairach_MNI_space = pd.read_csv(bdc.STG_Talairach_MNI_space)
 
         """Talairach coordinates, also known as Talairach space, is a 3-dimensional coordinate system (known as an 'atlas') of the human brain"""
 
