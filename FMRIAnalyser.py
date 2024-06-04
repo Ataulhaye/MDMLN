@@ -3,6 +3,7 @@ import pickle
 import statistics
 
 import matplotlib.pyplot as plt
+import nibabel as nib
 import nilearn as ni
 import numpy as np
 import pandas as pd
@@ -592,6 +593,34 @@ class FMRIAnalyser:
 
         return k_max, max_from_pairs
 
+    def RSA_Audio_RDM_test(self):
+        """
+        Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
+        i.e unary_subject_labels_N
+        """
+        self.brain.current_labels = self.brain.subject_labels
+        subject_unary_data = self.brain.unary_fmri_subject_or_image(self.data_config)
+
+        rsa_config = RSAConfig()
+        rsa = RepresentationalSimilarityAnalysis()
+
+        data = np.array(
+            self.Talairach_MNI_space[["MNIX", "MNIY", "MNIZ"]], dtype=np.int8
+        )
+        new_image = nib.Nifti2Image(data, affine=np.eye(4))
+        fig = plotting.plot_glass_brain(new_image)
+
+        r_means = rsa.RSA(
+            subject_unary_data,
+            rsa_config.audio_RDM,
+            rsa_config.radius,
+            self.Talairach_MNI_space,
+        )
+
+        k_max, max_from_pairs = rsa.generate_RSA_results(r_means)
+
+        return k_max, max_from_pairs
+
     def RSA_related_unrelated_RDM(self):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
@@ -641,35 +670,36 @@ class FMRIAnalyser:
                     ind = models.index("LinearDiscriminantAnalysis")
                     models[ind] = "LDA"
 
-            penguin_means = {
-                f"{N}_AR-AU": {"data": [], "std": []},
-                f"{N}_AR-CR": {"data": [], "std": []},
-                f"{N}_AR-CU": {"data": [], "std": []},
-                f"{N}_AU-CR": {"data": [], "std": []},
-                f"{N}_AU-CU": {"data": [], "std": []},
-                f"{N}_CR-CU": {"data": [], "std": []},
-                f"{D}_AR-AU": {"data": [], "std": []},
-                f"{D}_AR-CR": {"data": [], "std": []},
-                f"{D}_AR-CU": {"data": [], "std": []},
-                f"{D}_AU-CR": {"data": [], "std": []},
-                f"{D}_AU-CU": {"data": [], "std": []},
-                f"{D}_CR-CU": {"data": [], "std": []},
-                f"{S}_AR-AU": {"data": [], "std": []},
-                f"{S}_AR-CR": {"data": [], "std": []},
-                f"{S}_AR-CU": {"data": [], "std": []},
-                f"{S}_AU-CR": {"data": [], "std": []},
-                f"{S}_AU-CU": {"data": [], "std": []},
-                f"{S}_CR-CU": {"data": [], "std": []},
+            data_stat = {
+                f"{N}_AR-AU": {"data": [], "std": [], "result": []},
+                f"{N}_AR-CR": {"data": [], "std": [], "result": []},
+                f"{N}_AR-CU": {"data": [], "std": [], "result": []},
+                f"{N}_AU-CR": {"data": [], "std": [], "result": []},
+                f"{N}_AU-CU": {"data": [], "std": [], "result": []},
+                f"{N}_CR-CU": {"data": [], "std": [], "result": []},
+                f"{D}_AR-AU": {"data": [], "std": [], "result": []},
+                f"{D}_AR-CR": {"data": [], "std": [], "result": []},
+                f"{D}_AR-CU": {"data": [], "std": [], "result": []},
+                f"{D}_AU-CR": {"data": [], "std": [], "result": []},
+                f"{D}_AU-CU": {"data": [], "std": [], "result": []},
+                f"{D}_CR-CU": {"data": [], "std": [], "result": []},
+                f"{S}_AR-AU": {"data": [], "std": [], "result": []},
+                f"{S}_AR-CR": {"data": [], "std": [], "result": []},
+                f"{S}_AR-CU": {"data": [], "std": [], "result": []},
+                f"{S}_AU-CR": {"data": [], "std": [], "result": []},
+                f"{S}_AU-CU": {"data": [], "std": [], "result": []},
+                f"{S}_CR-CU": {"data": [], "std": [], "result": []},
             }
 
             for patient, resu in bar_dict.items():
                 for classi, res in resu.items():
                     for it in res:
                         k = f"{patient}_{it.column_name}"
-                        penguin_means[k]["std"].append(it.standard_deviation)
-                        penguin_means[k]["data"].append(it.mean)
+                        data_stat[k]["std"].append(it.standard_deviation)
+                        data_stat[k]["data"].append(it.mean)
+                        data_stat[k]["result"].append(it.result[0])
 
-            self.plot_diagram_per_strategy(strategy, models, penguin_means)
+            self.plot_diagram_per_strategy(strategy, models, data_stat)
 
     def plot_images(self, all_export_data):
         nested_dict = self.groupby_strategy(all_export_data)
@@ -690,41 +720,38 @@ class FMRIAnalyser:
 
             self.plot_diagram(strategy, models, bar_dictc)
 
-    def plot_diagram_per_strategy(self, strategy, models, bar_dictc):
+    def plot_diagram_per_strategy(self, strategy, models, bar_data, patients=3):
         barWidth = 0.5
         i = 0
         br_pre_pos = None
         all_br_positions = []
-        colors = [
-            "r",
-            "r",
-            "r",
-            "r",
-            "r",
-            "r",
-            "g",
-            "g",
-            "g",
-            "g",
-            "g",
-            "g",
-            "b",
-            "b",
-            "b",
-            "b",
-            "b",
-            "b",
+        color_len = int(len(bar_data) / patients)
+        colors = ["tomato" for x in range(color_len)]
+        colors.extend(["limegreen" for x in range(color_len)])
+        colors.extend(["dodgerblue" for x in range(color_len)])
+
+        bar_labels = [
+            j.split("_")[-1] for i in range(len(models)) for j in list(bar_data.keys())
         ]
+
         br_position = None
         legend_bars = []
-        plt.subplots(figsize=(25, 10))
-        for key, br_data in bar_dictc.items():
+        fig, ax = plt.subplots(figsize=(25, 10))
+        for key, br_data in bar_data.items():
             if i > 0:
                 br_position = [x + barWidth for x in br_pre_pos]
                 br_pre_pos = br_position
             else:
-                br_pre_pos = [0, int(len(bar_dictc) * barWidth) + 1]
-                br_position = [0, int(len(bar_dictc) * barWidth) + 1]
+                nu = [0]
+                # br_pre_pos = [0, int(len(bar_data) * barWidth) + 1]
+                # br_position = [0, int(len(bar_data) * barWidth) + 1]
+                k = 0
+                for _ in range(len(br_data["data"]) - 1):
+                    k = int(len(bar_data) * barWidth) + k + 1
+                    nu.append(k)
+                br_pre_pos = nu
+                br_position = nu
+
             all_br_positions.extend(br_position)
             a = plt.bar(
                 br_position,
@@ -734,25 +761,54 @@ class FMRIAnalyser:
                 edgecolor="grey",
                 label=key,
             )
+            for index, d in enumerate(br_data["data"]):
+                plt.text(
+                    br_position[index],
+                    0.5 * d,
+                    bar_labels[i],
+                    ha="center",
+                    va="top",
+                    color="white",
+                    rotation="vertical",
+                )
+            for index, res in enumerate(br_data["result"]):
+                if "Not" not in res:
+                    plt.text(
+                        br_position[index],
+                        0,
+                        "*",
+                        ha="center",
+                        va="baseline",
+                        color="k",
+                        fontsize=20,
+                    )
 
             plt.errorbar(
                 br_position, br_data["data"], yerr=br_data["std"], fmt="o", color="k"
             )
-            if i % (int(len(bar_dictc) / 3)) == 0:
+            if i % (int(len(bar_data) / 3)) == 0:
                 legend_bars.append(a)
             i = i + 1
             # Adding Xticks
-        name = f"{self.brain.area} Results, {strategy} as Norm."
+        name = f"{self.brain.area} Results, {strategy} as data normalization"
 
         plt.xlabel(name, fontweight="bold", fontsize=15)
         plt.ylabel("Accuracy", fontweight="bold", fontsize=15)
 
-        bar_labels = [
-            j.split("_")[-1] for i in range(len(models)) for j in list(bar_dictc.keys())
-        ]
         all_br_positions.sort()
-        plt.xticks(all_br_positions, bar_labels)
-        plt.legend(legend_bars, ["N", "D", "S"], fontsize=12, title="Test")
+        tick_pos = []
+        bars_per_model = int((len(all_br_positions) / len(models)))
+        end = 0
+        start = 0
+        while end < len(all_br_positions):
+            end = end + bars_per_model
+            seg = all_br_positions[start:end]
+            tick_pos.append(seg[int(len(seg) / 2)] - barWidth / 2)
+            start = end
+
+        plt.xticks(tick_pos, models)
+
+        plt.legend(legend_bars, ["N", "D", "S"], fontsize=12, title="Mental Disorders")
         gname = f"{self.brain.area}_{strategy}_{self.unary_subject_binary_image_classification.__name__}"
         graph_name = ExportData.get_file_name(".png", gname)
         plt.savefig(graph_name, dpi=1200)
