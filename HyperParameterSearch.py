@@ -15,6 +15,7 @@ from Brain import Brain
 from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
 from DataTraining import DataTraining
+from Enums import Lobe
 from TestTrainingSet import TestTrainingSet, TestTrainingTensorDataset
 from TrainingConfig import TrainingConfig
 
@@ -160,22 +161,24 @@ def load_bestmodel_and_test(model_path, device, gpus_per_trial):
     print("Best trial test set accuracy: {}".format(test_acc))
 
 
-def get_voxel_tensor_datasets(brain_area):
+def get_voxel_tensor_datasets(lobe):
     bd_config = BrainDataConfig()
     data_path = ""
-    area = ""
-    if "IFG" in brain_area:
-        data_path = "C://Users//ataul//source//Uni//BachelorThesis//poc//ROI_aal_wfupick_left44_45.rex.mat"
-        area = bd_config.IFG
-    else:
-        data_path = "C://Users//ataul//source//Uni//BachelorThesis//poc//left_STG_MTG_AALlable_ROI.rex.mat"
-        area = bd_config.STG
+    lobe = None
+
+    match lobe:
+        case Lobe.STG:
+            data_path = bd_config.STG_path
+        case Lobe.IFG:
+            data_path = bd_config.IFG_path
+        case Lobe.ALL:
+            data_path = bd_config.all_lobes_path
 
     brain = Brain(
-        area=area,
-        # data_path=bd_config.STG_path,
+        lobe=lobe,
         data_path=data_path,
     )
+
     brain.current_labels = brain.subject_labels_int
 
     train_config = TrainingConfig()
@@ -185,14 +188,14 @@ def get_voxel_tensor_datasets(brain_area):
 
     brain.normalize_data_safely(strategy=train_config.strategy, data_set=tt_set)
 
-    # file_name = f"{brain.area}_{train_config.strategy}_static_wholeSet.pickle"
+    # file_name = f"{brain.lobe.name}_{train_config.strategy}_static_wholeSet.pickle"
     # with open(file_name, "wb") as output:
     # pickle.dump(tt_set, output)
 
     # with open(file_name, "rb") as data:
     # static_dataset = pickle.load(data)
 
-    # file_name = f"{brain.area}_{train_config.strategy}_static_subSet.pickle"
+    # file_name = f"{brain.lobe.name}_{train_config.strategy}_static_subSet.pickle"
     # with open(file_name, "wb") as output:
     # pickle.dump(modify_tt_set, output)
 
@@ -205,7 +208,7 @@ def get_voxel_tensor_datasets(brain_area):
 
     sets = TestTrainingTensorDataset(train_set=tr_set, test_set=ts_set)
 
-    file_name = f"{brain.area}_{train_config.strategy}_static_wholeSet.pickle"
+    file_name = f"{brain.lobe.name}_{train_config.strategy}_static_wholeSet.pickle"
     with open(file_name, "wb") as output:
         pickle.dump(sets, output)
 
@@ -246,7 +249,7 @@ def get_tensor_datasets(
 
     sets = TestTrainingTensorDataset(train_set=tr_set, val_set=vl_set, test_set=ts_set)
 
-    # file_name = f"{brain.area}_{train_config.strategy}_static_wholeSet.pickle"
+    # file_name = f"{brain.lobe.name}_{train_config.strategy}_static_wholeSet.pickle"
     # with open(file_name, "wb") as output:
     # pickle.dump(sets, output)
 

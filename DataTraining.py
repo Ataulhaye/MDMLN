@@ -117,8 +117,8 @@ class DataTraining:
                 tensor_datasets.train_set.tensors[0].shape[1]
             )
             print("Changed model config:", train_config.best_autoencoder_config)
-        train_config.best_autoencoder_config["brain_area"] = (
-            f"{brain.area}_{train_config.strategy}"
+        train_config.best_autoencoder_config["lobe"] = (
+            f"{brain.lobe.name}_{train_config.strategy}"
         )
         (
             autoencoder_model,
@@ -185,7 +185,7 @@ class DataTraining:
             legend="full",
         )
         fig = scatter_plot.get_figure()
-        name = f"{brain.area}_{brain.current_labels.name[:-4]}_{train_config.strategy}-{fold}th_fold-{model_name}"
+        name = f"{brain.lobe.name}_{brain.current_labels.name[:-4]}_{train_config.strategy}-{fold}th_fold-{model_name}"
         graph_name = ExportData.get_file_name(".png", name)
         plt.title(f"Using t-SNE {name}")
         fig.savefig(graph_name, dpi=1200)
@@ -407,49 +407,6 @@ class DataTraining:
             train_config.strategy,
         )
 
-    def classify_brain_data(
-        self,
-        classifiers: list[str],
-        labels: list[BrainDataLabel],
-        data,
-        strategies,
-        predefined_split,
-        folds,
-        test_size,
-        partially=False,
-        dimension_reduction=False,
-        explain=False,
-    ):
-        # data_dict = dict({})
-        data_list = list()
-        config = BrainDataConfig()
-        for strategy in strategies:
-            b = Brain()
-            X = b.normalize_data(data, strategy=strategy)
-            for label in labels:
-                if partially:
-                    subset = b.voxels_labels_subset(X, 25, config, label)
-                    X = subset[0]
-                    label = subset[1]
-                if dimension_reduction:
-                    pca = PCA(n_components=50)  # n_components=300
-                    X = pca.fit_transform(X)
-
-                for classifier in classifiers:
-                    results = self.train_and_test_model_accuracy(
-                        x=X,
-                        y=label,
-                        popmean=label.popmean,
-                        folds=folds,
-                        test_size=test_size,
-                        strategy=strategy,
-                        predefined_split=predefined_split,
-                        classifier=classifier,
-                        explaination=explain,
-                    )
-                    data_list.append(results)
-        return data_list
-
     def brain_data_classification(
         self,
         brain: Brain,
@@ -514,7 +471,7 @@ class DataTraining:
             train_set=tr_set, val_set=vl_set, test_set=ts_set
         )
 
-        # file_name = f"{brain.area}_{train_config.strategy}_static_wholeSet.pickle"
+        # file_name = f"{brain.lobe.name}_{train_config.strategy}_static_wholeSet.pickle"
         # with open(file_name, "wb") as output:
         # pickle.dump(sets, output)
 
@@ -531,7 +488,7 @@ class DataTraining:
         )
         sets = TestTrainingTensorDataset(train_set=tr_set, test_set=ts_set)
 
-        # file_name = f"{brain.area}_{train_config.strategy}_static_wholeSet.pickle"
+        # file_name = f"{brain.lobe.name}_{train_config.strategy}_static_wholeSet.pickle"
         # with open(file_name, "wb") as output:
         # pickle.dump(sets, output)
 

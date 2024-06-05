@@ -13,28 +13,24 @@ from sklearn.model_selection import KFold
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
 from DataTraining import DataTraining
+from Enums import Lobe
 from TrainingConfig import TrainingConfig
 
-brain_area = "all_lobes"
-
 bd_config = BrainDataConfig()
-data_path = ""
-area = ""
-if "IFG" in brain_area:
-    data_file = "ROI_aal_wfupick_left44_45.rex.mat"
-    area = bd_config.IFG
-elif "all_lobes" in brain_area:
-    data_file = r"AAL_all_lobes_ROI.rex.mat"
-    area = bd_config.all_lobes
-else:
-    data_file = "left_STG_MTG_AALlable_ROI.rex.mat"
-    area = bd_config.STG
+data_path = None
+lobe = None
 
-data_path = Path(data_file).absolute()
+match lobe:
+    case Lobe.STG:
+        data_path = bd_config.STG_path
+    case Lobe.IFG:
+        data_path = bd_config.IFG_path
+    case Lobe.ALL:
+        data_path = bd_config.all_lobes_path
+
 
 brain = Brain(
-    area=area,
-    # data_path=bd_config.STG_path,
+    lobe=lobe,
     data_path=data_path,
 )
 brain.current_labels = brain.subject_labels_int
@@ -45,7 +41,7 @@ nni_gz_path = Path("All_Brain_Data_Raw//m1.nii.gz").absolute()
 
 
 brain.mask = nni_gz_path
-brain.niimg = nni_path
+brain.NIfTI = nni_path
 # Prepare masks
 mask_img = load_img(brain.mask)
 

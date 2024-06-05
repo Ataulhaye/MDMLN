@@ -11,6 +11,7 @@ from AutoEncoder import Autoencoder
 from Brain import Brain
 from BrainDataLabel import BrainDataLabel
 from DataTraining import DataTraining
+from Enums import Lobe
 from ExportData import ExportData
 from TrainingConfig import TrainingConfig
 
@@ -149,7 +150,7 @@ def test_model(model, device, testing_data, epochs=39):
 
 
 def mnist_classification(classifiers, strategies, t_config: TrainingConfig, X, y):
-    brain = Brain(area="MNIST")
+    brain = Brain(lobe=Lobe.Other)
     brain.voxels = np.array(X)
     la = BrainDataLabel(name="mnist_labels", popmean=(1 / 9), labels=np.array(y))
     brain.current_labels = la
@@ -168,8 +169,8 @@ def mnist_classification(classifiers, strategies, t_config: TrainingConfig, X, y
     note = export.create_note(t_config)
     export.create_and_write_datasheet(
         data=export_data,
-        sheet_name=f"{brain.area}-Results",
-        title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+        sheet_name=f"{brain.lobe.name}-Results",
+        title=f"{brain.lobe.name}-{t_config.folds}-Folds-{split}-Clf",
         notes=note,
         transpose=True,
     )

@@ -13,6 +13,7 @@ from sklearn.impute import IterativeImputer, KNNImputer, SimpleImputer
 
 from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
+from Enums import Lobe
 from TestTrainingSet import TestTrainingSet
 
 
@@ -20,23 +21,25 @@ class Brain:
 
     def __init__(
         self,
-        area: str = None,
+        lobe: Lobe = None,
         data_path: str = None,
         current_labels: BrainDataLabel = None,
         mask: str = None,
-        niimg: str = None,
+        NIfTI: str = None,
         voxel_label=None,
-        mni_dims=None,
+        Talairach_MNI_space=None,
     ):
-        self.area = area
+        if lobe is not None:
+            self.lobe = lobe
         self.current_labels = current_labels
         if voxel_label is not None:
             self.voxel_label = voxel_label
-        if niimg is not None:
-            self.niimg = niimg
+        if NIfTI is not None:
+            self.NIfTI = NIfTI
         if mask is not None:
             self.mask = mask
-        # self.binary_labels = None
+        if Talairach_MNI_space is not None:
+            self.Talairach_MNI_space = Talairach_MNI_space
         if data_path is not None:
             data = scipy.io.loadmat(data_path)
             self.voxels: np.ndarray = data["R"]
@@ -124,12 +127,23 @@ class Brain:
             ),
         )
 
-        # to do provide the enum to area property then depending on the enum csv can be loaded
-        self.All_lobes_Talairach_MNI_space = pd.read_csv(
-            bdc.All_lobes_Talairach_MNI_space
-        )
-        self.IFG_Talairach_MNI_space = pd.read_csv(bdc.IFG_Talairach_MNI_space)
-        self.STG_Talairach_MNI_space = pd.read_csv(bdc.STG_Talairach_MNI_space)
+        match lobe:
+            case Lobe.STG:
+                self.NIfTI = bdc.nii_STG
+                self.Talairach_MNI_space = pd.read_csv(bdc.STG_Talairach_MNI_space)
+            case Lobe.IFG:
+                self.NIfTI = bdc.nii_IFG
+                self.Talairach_MNI_space = pd.read_csv(bdc.IFG_Talairach_MNI_space)
+            case Lobe.ALL:
+                self.NIfTI = bdc.nii_ALL
+                self.Talairach_MNI_space = pd.read_csv(
+                    bdc.All_lobes_Talairach_MNI_space
+                )
+            case _:
+                if NIfTI is not None:
+                    self.NIfTI = NIfTI
+                if Talairach_MNI_space is not None:
+                    self.Talairach_MNI_space = Talairach_MNI_space
 
         """Talairach coordinates, also known as Talairach space, is a 3-dimensional coordinate system (known as an 'atlas') of the human brain"""
 
@@ -347,8 +361,7 @@ class Brain:
                     self.current_labels.labels, trail_pos1, trail_pos2
                 )
 
-            brain = Brain()
-            brain.area = self.area
+            brain = Brain(lobe=self.lobe)
             brain.voxel_label = combination
             brain.voxels = voxels
             binary_label = BrainDataLabel(
@@ -401,8 +414,7 @@ class Brain:
                 self.current_labels.labels, config, combination
             )
 
-            brain = Brain()
-            brain.area = self.area
+            brain = Brain(lobe=self.lobe)
             brain.voxels = voxels
             name = (
                 f"{self.current_labels.name}-Binary_{combination[0]}-{combination[1]}"
@@ -438,8 +450,7 @@ class Brain:
                 self.current_labels.labels, trail_pos1, trail_pos2
             )
 
-            brain = Brain()
-            brain.area = self.area
+            brain = Brain(lobe=self.lobe)
             brain.voxels = voxels
             name = f"{self.current_labels.name}-{combination[0]}_{combination[1]}"
 
@@ -476,8 +487,7 @@ class Brain:
                 self.current_labels.labels, trail_pos1, trail_pos2
             )
 
-            brain = Brain()
-            brain.area = self.area
+            brain = Brain(lobe=self.lobe)
             brain.voxels = voxels
             brain.voxel_label = combination
             name = f"{self.current_labels.name}-{combination[0]}_{combination[1]}"
@@ -710,7 +720,9 @@ class Brain:
         return subset
 
     def __repr__(self) -> str:
-        return f"Area:{self.area}, Voxels:{self.voxels.shape}, {self.current_labels}"
+        return (
+            f"Lobe:{self.lobe.name}, Voxels:{self.voxels.shape}, {self.current_labels}"
+        )
 
 
 # Ata:

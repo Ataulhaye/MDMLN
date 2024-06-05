@@ -111,3 +111,9 @@ class BrainDataConfig:
         self.TALX = "TALX"
         self.TALY = "TALY"
         self.TALZ = "TALZ"
+
+        self.nii_STG = (
+            Path("fmri_data/left_STG_MTG_AALlable_ROI.nii").absolute().resolve()
+        )
+        self.nii_IFG = None
+        self.nii_ALL = Path("fmri_data/AAL_all_lobes_ROI.nii").absolute().resolve()

@@ -61,26 +61,28 @@ class FMRIAnalyser:
         else:
             self.data_config = data_config
 
-        if lobe is Lobe.STG:
-            self.brain = Brain(
-                area=self.data_config.STG,
-                data_path=self.data_config.STG_path,
-            )
-            self.Talairach_MNI_space = self.brain.STG_Talairach_MNI_space
-        elif lobe is Lobe.IFG:
-            self.brain = Brain(
-                area=self.data_config.IFG, data_path=self.data_config.IFG_path
-            )
-            self.Talairach_MNI_space = self.brain.IFG_Talairach_MNI_space
-        elif lobe is Lobe.ALL:
-            self.brain = Brain(
-                area=self.data_config.ALL,
-                data_path=self.data_config.all_lobes_path,
-            )
-            self.Talairach_MNI_space = self.brain.All_lobes_Talairach_MNI_space
-        else:
-            self.brain = brain
-            self.Talairach_MNI_space = Talairach_MNI_space
+        match lobe:
+            case Lobe.STG:
+                self.brain = Brain(
+                    lobe=lobe,
+                    data_path=self.data_config.STG_path,
+                )
+                self.Talairach_MNI_space = self.brain.Talairach_MNI_space
+            case Lobe.IFG:
+                self.brain = Brain(
+                    lobe=lobe,
+                    data_path=self.data_config.IFG_path,
+                )
+                self.Talairach_MNI_space = self.brain.Talairach_MNI_space
+            case Lobe.ALL:
+                self.brain = Brain(
+                    lobe=lobe,
+                    data_path=self.data_config.all_lobes_path,
+                )
+                self.Talairach_MNI_space = self.brain.Talairach_MNI_space
+            case _:
+                self.brain = brain
+                self.Talairach_MNI_space = Talairach_MNI_space
 
     def binary_subject_classification(self):
         """
@@ -109,7 +111,7 @@ class FMRIAnalyser:
                 self.data_config,
             )
             all_export_data.extend(export_data)
-        self.training_config.brain_area = self.brain.area
+        self.training_config.lobe = self.brain.lobe.name
         export = ExportData()
 
         print_config = self.__get_note(
@@ -119,8 +121,8 @@ class FMRIAnalyser:
         note = export.create_note([self.training_config, print_config])
         export.create_and_write_datasheet(
             data=all_export_data,
-            sheet_name=f"{self.brain.area}-Results",
-            title=f"{self.brain.area}-{self.training_config.folds}-Folds",
+            sheet_name=f"{self.brain.lobe.name}-Results",
+            title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds",
             notes=note,
             transpose=True,
             single_label=True,
@@ -151,7 +153,7 @@ class FMRIAnalyser:
                 self.data_config,
             )
             all_export_data.extend(export_data)
-        self.training_config.brain_area = self.brain.area
+        self.training_config.lobe = self.brain.lobe.name
         export = ExportData()
 
         print_config = self.__get_note(
@@ -161,8 +163,8 @@ class FMRIAnalyser:
         note = export.create_note([self.training_config, print_config])
         export.create_and_write_datasheet(
             data=all_export_data,
-            sheet_name=f"{self.brain.area}-Results",
-            title=f"{self.brain.area}-{self.training_config.folds}-Folds",
+            sheet_name=f"{self.brain.lobe.name}-Results",
+            title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds",
             notes=note,
             transpose=True,
             single_label=True,
@@ -202,7 +204,7 @@ class FMRIAnalyser:
                     self.data_config,
                 )
                 all_export_data.extend(export_data)
-        self.training_config.brain_area = self.brain.area
+        self.training_config.lobe = self.brain.lobe.name
         export = ExportData()
         print_config = self.__get_note(
             mean, self.unary_subject_binary_image_classification
@@ -210,8 +212,8 @@ class FMRIAnalyser:
         note = export.create_note([self.training_config, print_config])
         export.create_and_write_datasheet(
             data=all_export_data,
-            sheet_name=f"{self.brain.area}-Results",
-            title=f"{self.brain.area}-{self.training_config.folds}-Folds",
+            sheet_name=f"{self.brain.lobe.name}-Results",
+            title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds",
             notes=note,
             transpose=True,
             single_label=True,
@@ -255,7 +257,7 @@ class FMRIAnalyser:
                 )
                 all_data.extend(export_data)
 
-        self.training_config.brain_area = self.brain.area
+        self.training_config.lobe = self.brain.lobe.name
         export = ExportData()
         print_config = self.__get_note(
             mean, self.binary_subject_concatenated_image_classification
@@ -263,8 +265,8 @@ class FMRIAnalyser:
         note = export.create_note([self.training_config, print_config])
         export.create_and_write_datasheet(
             data=all_data,
-            sheet_name=f"{self.brain.area}-Results",
-            title=f"{self.brain.area}-{self.training_config.folds}-Folds",
+            sheet_name=f"{self.brain.lobe.name}-Results",
+            title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds",
             notes=note,
             transpose=True,
             single_label=True,
@@ -304,7 +306,7 @@ class FMRIAnalyser:
                 )
                 all_data.extend(export_data)
 
-        self.training_config.brain_area = self.brain.area
+        self.training_config.lobe = self.brain.lobe.name
         export = ExportData()
         print_config = self.__get_note(
             mean, self.binary_subject_binary_image_classification
@@ -312,8 +314,8 @@ class FMRIAnalyser:
         note = export.create_note([self.training_config, print_config])
         export.create_and_write_datasheet(
             data=all_data,
-            sheet_name=f"{self.brain.area}-Results",
-            title=f"{self.brain.area}-{self.training_config.folds}-Folds",
+            sheet_name=f"{self.brain.lobe.name}-Results",
+            title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds",
             notes=note,
             transpose=True,
             single_label=True,
@@ -362,7 +364,7 @@ class FMRIAnalyser:
                 )
                 all_data.extend(export_data)
 
-        self.training_config.brain_area = self.brain.area
+        self.training_config.lobe = self.brain.lobe.name
         export = ExportData()
         print_config = self.__get_note(
             mean, self.binary_subject_unary_image_classification
@@ -370,8 +372,8 @@ class FMRIAnalyser:
         note = export.create_note([self.training_config, print_config])
         export.create_and_write_datasheet(
             data=all_data,
-            sheet_name=f"{self.brain.area}-Results",
-            title=f"{self.brain.area}-{self.training_config.folds}-Folds",
+            sheet_name=f"{self.brain.lobe.name}-Results",
+            title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds",
             notes=note,
             transpose=True,
             single_label=True,
@@ -408,7 +410,7 @@ class FMRIAnalyser:
                 self.data_config,
             )
             all_data.extend(export_data)
-        self.training_config.brain_area = self.brain.area
+        self.training_config.lobe = self.brain.lobe.name
         export = ExportData()
         print_config = self.__get_note(
             mean, self.subject_concatenated_image_classification
@@ -416,8 +418,8 @@ class FMRIAnalyser:
         note = export.create_note([self.training_config, print_config])
         export.create_and_write_datasheet(
             data=all_data,
-            sheet_name=f"{self.brain.area}-Results",
-            title=f"{self.brain.area}-{self.training_config.folds}-Folds",
+            sheet_name=f"{self.brain.lobe.name}-Results",
+            title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds",
             notes=note,
             transpose=True,
             single_label=True,
@@ -457,14 +459,14 @@ class FMRIAnalyser:
             )
             all_data.extend(export_data)
 
-        self.training_config.brain_area = self.brain.area
+        self.training_config.lobe = self.brain.lobe.name
         export = ExportData()
         print_config = self.__get_note(mean, self.subject_binary_image_classification)
         note = export.create_note([self.training_config, print_config])
         export.create_and_write_datasheet(
             data=all_data,
-            sheet_name=f"{self.brain.area}-Results",
-            title=f"{self.brain.area}-{self.training_config.folds}-Folds",
+            sheet_name=f"{self.brain.lobe.name}-Results",
+            title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds",
             notes=note,
             transpose=True,
             single_label=True,
@@ -495,13 +497,13 @@ class FMRIAnalyser:
                 self.classifiers,
                 self.data_config,
             )
-            self.training_config.brain_area = self.brain.area
+            self.training_config.lobe = self.brain.lobe.name
             export = ExportData()
             note = export.create_note([self.training_config])
             export.create_and_write_datasheet(
                 data=export_data,
-                sheet_name=f"{self.brain.area}-Results",
-                title=f"{self.brain.area}-{self.training_config.folds}-Folds-{split}-Clf",
+                sheet_name=f"{self.brain.lobe.name}-Results",
+                title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds-{split}-Clf",
                 notes=note,
                 transpose=True,
             )
@@ -519,13 +521,13 @@ class FMRIAnalyser:
                 self.classifiers,
                 self.data_config,
             )
-            self.training_config.brain_area = self.brain.area
+            self.training_config.lobe = self.brain.lobe.name
             export = ExportData()
             note = export.create_note([self.training_config])
             export.create_and_write_datasheet(
                 data=export_data,
-                sheet_name=f"{self.brain.area}-Results",
-                title=f"{self.brain.area}-{self.training_config.folds}-Folds-{split}-Clf",
+                sheet_name=f"{self.brain.lobe.name}-Results",
+                title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds-{split}-Clf",
                 notes=note,
                 transpose=True,
             )
@@ -556,13 +558,13 @@ class FMRIAnalyser:
         )
         export_data.extend(e_data)
 
-        self.training_config.brain_area = self.brain.area
+        self.training_config.lobe = self.brain.lobe.name
         export = ExportData()
         note = export.create_note([self.training_config, ""])
         export.create_and_write_datasheet(
             data=export_data,
-            sheet_name=f"{self.brain.area}-Results",
-            title=f"{self.brain.area}-{self.training_config.folds}-Folds",
+            sheet_name=f"{self.brain.lobe.name}-Results",
+            title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds",
             notes=note,
             transpose=True,
         )
@@ -587,7 +589,9 @@ class FMRIAnalyser:
 
         k_max, max_from_pairs = rsa.generate_RSA_results(r_means)
 
-        file_name = f"{self.brain.area}_Radius-{rsa_config.radius}_AudioRDM_RSA.pickle"
+        file_name = (
+            f"{self.brain.lobe.name}_Radius-{rsa_config.radius}_AudioRDM_RSA.pickle"
+        )
         with open(file_name, "wb") as output:
             pickle.dump((k_max, max_from_pairs), output)
 
@@ -607,6 +611,7 @@ class FMRIAnalyser:
         data = np.array(
             self.Talairach_MNI_space[["MNIX", "MNIY", "MNIZ"]], dtype=np.int8
         )
+        # still in progress
         new_image = nib.Nifti2Image(data, affine=np.eye(4))
         fig = plotting.plot_glass_brain(new_image)
 
@@ -641,7 +646,7 @@ class FMRIAnalyser:
 
         k_max, max_from_pairs = rsa.generate_RSA_results(r_means)
 
-        file_name = f"{self.brain.area}_Radius-{rsa_config.radius}_related_unrelated_RDM_RSA.pickle"
+        file_name = f"{self.brain.lobe.name}_Radius-{rsa_config.radius}_related_unrelated_RDM_RSA.pickle"
         with open(file_name, "wb") as output:
             pickle.dump((k_max, max_from_pairs), output)
 
@@ -790,7 +795,7 @@ class FMRIAnalyser:
                 legend_bars.append(a)
             i = i + 1
             # Adding Xticks
-        name = f"{self.brain.area} Results, {strategy} as data normalization"
+        name = f"{self.brain.lobe.name} Results, {strategy} as data normalization"
 
         plt.xlabel(name, fontweight="bold", fontsize=15)
         plt.ylabel("Accuracy", fontweight="bold", fontsize=15)
@@ -806,10 +811,10 @@ class FMRIAnalyser:
             tick_pos.append(seg[int(len(seg) / 2)] - barWidth / 2)
             start = end
 
-        plt.xticks(tick_pos, models)
+        plt.xticks(tick_pos, models, fontsize=20)
 
         plt.legend(legend_bars, ["N", "D", "S"], fontsize=12, title="Mental Disorders")
-        gname = f"{self.brain.area}_{strategy}_{self.unary_subject_binary_image_classification.__name__}"
+        gname = f"{self.brain.lobe.name}_{strategy}_{self.unary_subject_binary_image_classification.__name__}"
         graph_name = ExportData.get_file_name(".png", gname)
         plt.savefig(graph_name, dpi=1200)
         plt.show()
@@ -839,7 +844,7 @@ class FMRIAnalyser:
             )
             i = i + 1
             # Adding Xticks
-        name = f"{self.brain.area} Results, {strategy} as Norm."
+        name = f"{self.brain.lobe.name} Results, {strategy} as Norm."
 
         plt.xlabel(name, fontweight="bold", fontsize=15)
         plt.ylabel("Accuracy", fontweight="bold", fontsize=15)
@@ -848,7 +853,7 @@ class FMRIAnalyser:
             models,
         )
         plt.legend()
-        gname = f"{self.brain.area}_{strategy}_{self.unary_subject_binary_image_classification.__name__}"
+        gname = f"{self.brain.lobe.name}_{strategy}_{self.unary_subject_binary_image_classification.__name__}"
         graph_name = ExportData.get_file_name(".png", gname)
         plt.savefig(graph_name, dpi=1200)
         # plt.show()

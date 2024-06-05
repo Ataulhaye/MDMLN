@@ -32,7 +32,7 @@ class TrainingConfig:
         use_autoencoder=False,
         analyze_concatenated_trails=False,
         analyze_binary_trails=False,
-        brain_area="",
+        lobe="",
         tsne=False,
         has_fix_components=(False, 75),
         # pca_fix_components=75,
@@ -44,7 +44,7 @@ class TrainingConfig:
             "lr": 0.07539378759292441,
             "batch_size": 128,
             "epochs": 10,
-            "brain_area": "STG",
+            "lobe": "STG",
         },
         # ----------------------------------------
         # -------------IFG-----------------------
@@ -61,7 +61,7 @@ class TrainingConfig:
             "lr": 0.0016028928095361706,
             "batch_size": 384,
             "epochs": 25,
-            "brain_area": "IFG",
+            "lobe": "IFG",
         },
         best_autoencoder_config={
             "input_dim": 523,
@@ -71,7 +71,7 @@ class TrainingConfig:
             "lr": 0.023394330747395223,
             "batch_size": 128,
             "epochs": 10,
-            "brain_area": "",
+            "lobe": "",
         },
     ):
         self.strategy = strategy
@@ -85,7 +85,7 @@ class TrainingConfig:
         self.nan_classifiers = nan_classifiers
         self.use_autoencoder = use_autoencoder
         self.best_autoencoder_config = best_autoencoder_config
-        self.brain_area = brain_area
+        self.lobe = lobe
         self.tsne = tsne
         self.has_fix_components = has_fix_components
         # self.pca_fix_components = pca_fix_components
@@ -93,4 +93,4 @@ class TrainingConfig:
         self.analyze_binary_trails = analyze_binary_trails
 
     def __repr__(self) -> str:
-        return f"Folds:{self.folds}, Test size:{self.test_size}, Conditional split:{self.predefined_split} , Dimension reduction:{self.dimension_reduction}, use_autoencoder:{self.use_autoencoder}, brain_area:{self.brain_area}, concatenated_trails:{self.analyze_concatenated_trails}, binary_trails:{self.analyze_binary_trails}"
+        return f"Folds:{self.folds}, Test size:{self.test_size}, Conditional split:{self.predefined_split} , Dimension reduction:{self.dimension_reduction}, use_autoencoder:{self.use_autoencoder}, lobe:{self.lobe}, concatenated_trails:{self.analyze_concatenated_trails}, binary_trails:{self.analyze_binary_trails}"

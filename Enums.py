@@ -5,6 +5,7 @@ class Lobe(Enum):
     STG = 1
     IFG = 2
     ALL = 3
+    Other = 4
 
 
 class LabelType(Enum):

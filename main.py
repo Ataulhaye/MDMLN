@@ -103,14 +103,14 @@ def classify_iris():
 
 def analyse_nans():
     config = BrainDataConfig()
-    stg = Brain(area=config.STG, data_path=config.STG_path)
+    stg = Brain(lobe=Lobe.STG, data_path=config.STG_path)
     nans_column_wise = stg.calculate_nans_voxel_wise(stg.voxels)
     print("stg nans_column_wise", len(nans_column_wise))
     nans_voxel_wise = stg.calculate_nans_trail_wise(stg.voxels)
     print("stg nans_voxel_wise", len(nans_voxel_wise))
     print("------------")
 
-    ifg = Brain(area=config.IFG, data_path=config.IFG_path)
+    ifg = Brain(lobe=Lobe.IFG, data_path=config.IFG_path)
     nans_column_wise_ifg = ifg.calculate_nans_voxel_wise(ifg.voxels)
     print("IFG nans_column_wise", len(nans_column_wise_ifg))
     nans_voxel_wise_ifg = ifg.calculate_nans_trail_wise(ifg.voxels)
@@ -120,14 +120,14 @@ def analyse_nans():
 
 def visualize_nans():
     config = BrainDataConfig()
-    stg = Brain(area=config.STG, data_path=config.STG_path)
-    ifg = Brain(area=config.IFG, data_path=config.IFG_path)
+    stg = Brain(lobe=Lobe.STG, data_path=config.STG_path)
+    ifg = Brain(lobe=Lobe.IFG, data_path=config.IFG_path)
     data_list = [stg, ifg]
     for data in data_list:
         nans_column_wise = stg.calculate_nans_voxel_wise(data.voxels)
         print("---------------------------------------------------------")
         print(
-            f"Indexes of {data.area} where whole column is NAN: ",
+            f"Indexes of {data.lobe.name} where whole column is NAN: ",
             nans_column_wise.count(488),
         )
         total_nans = sum(nans_column_wise)
@@ -142,7 +142,7 @@ def visualize_nans():
         VisualizeData.plot_bar_graph(
             ("Columns", columns),
             ("nans-length-column-wise", nans_column_wise),
-            title=data.area,
+            title=data.lobe.name,
         )
 
         nans_voxel_wise = stg.calculate_nans_trail_wise(data.voxels)
@@ -151,7 +151,7 @@ def visualize_nans():
             ("nans-length-voxel-wise", nans_voxel_wise),
             ("rows", rows),
             bar_color="red",
-            title=data.area,
+            title=data.lobe.name,
         )
 
     # VisualizeData.plot_data_bar(np.array(x), np.array(nans_column_wise))
@@ -160,7 +160,7 @@ def visualize_nans():
 def ifg_classification(classifiers, strategies, t_config: TrainingConfig):
     config = BrainDataConfig()
     brain = Brain(
-        area=config.IFG,
+        lobe=Lobe.IFG,
         data_path=config.IFG_path,
     )
 
@@ -181,13 +181,13 @@ def ifg_classification(classifiers, strategies, t_config: TrainingConfig):
     if t_config.predefined_split:
         split = "cr_split"
 
-    t_config.brain_area = brain.area
+    t_config.lobe = brain.lobe.name
     export = ExportData()
     note = export.create_note(t_config)
     export.create_and_write_datasheet(
         data=export_data,
-        sheet_name=f"{brain.area}-Results",
-        title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+        sheet_name=f"{brain.lobe.name}-Results",
+        title=f"{brain.lobe.name}-{t_config.folds}-Folds-{split}-Clf",
         notes=note,
         transpose=True,
     )
@@ -197,7 +197,7 @@ def stg_binary_classification_with_shap(
     classifiers, strategies, t_config: TrainingConfig
 ):
     config = BrainDataConfig()
-    brain = Brain(area=config.STG, data_path=config.STG_path)
+    brain = Brain(lobe=Lobe.STG, data_path=config.STG_path)
 
     split = "r_split"
     if t_config.predefined_split:
@@ -219,13 +219,13 @@ def stg_binary_classification_with_shap(
             strategies,
             classifiers,
         )
-        t_config.brain_area = brain.area
+        t_config.lobe = brain.lobe.name
         export = ExportData()
         note = export.create_note(t_config)
         export.create_and_write_datasheet(
             data=export_data,
-            sheet_name=f"{brain.area}-Results",
-            title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+            sheet_name=f"{brain.lobe.name}-Results",
+            title=f"{brain.lobe.name}-{t_config.folds}-Folds-{split}-Clf",
             notes=note,
             transpose=True,
         )
@@ -240,13 +240,13 @@ def stg_binary_classification_with_shap(
             strategies,
             classifiers,
         )
-        t_config.brain_area = brain.area
+        t_config.lobe = brain.lobe.name
         export = ExportData()
         note = export.create_note(t_config)
         export.create_and_write_datasheet(
             data=export_data,
-            sheet_name=f"{brain.area}-Results",
-            title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+            sheet_name=f"{brain.lobe.name}-Results",
+            title=f"{brain.lobe.name}-{t_config.folds}-Folds-{split}-Clf",
             notes=note,
             transpose=True,
         )
@@ -256,7 +256,7 @@ def stg_subject_binary_classification(
     classifiers, strategies, t_config: TrainingConfig
 ):
     config = BrainDataConfig()
-    brain = Brain(area=config.STG, data_path=config.STG_path)
+    brain = Brain(lobe=Lobe.STG, data_path=config.STG_path)
 
     split = "r_split"
     if t_config.predefined_split:
@@ -280,13 +280,13 @@ def stg_subject_binary_classification(
             classifiers,
         )
         all_export_data.extend(export_data)
-    t_config.brain_area = brain.area
+    t_config.lobe = brain.lobe.name
     export = ExportData()
     note = export.create_note(t_config)
     export.create_and_write_datasheet(
         data=all_export_data,
-        sheet_name=f"{brain.area}-Results",
-        title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+        sheet_name=f"{brain.lobe.name}-Results",
+        title=f"{brain.lobe.name}-{t_config.folds}-Folds-{split}-Clf",
         notes=note,
         transpose=True,
         single_label=True,
@@ -297,7 +297,7 @@ def ifg_binary_subject_classification(
     classifiers, strategies, t_config: TrainingConfig
 ):
     config = BrainDataConfig()
-    brain = Brain(area=config.IFG, data_path=config.IFG_path)
+    brain = Brain(lobe=Lobe.IFG, data_path=config.IFG_path)
 
     split = "r_split"
     if t_config.predefined_split:
@@ -319,13 +319,13 @@ def ifg_binary_subject_classification(
             classifiers,
         )
         all_export_data.extend(export_data)
-    t_config.brain_area = brain.area
+    t_config.lobe = brain.lobe.name
     export = ExportData()
     note = export.create_note(t_config)
     export.create_and_write_datasheet(
         data=all_export_data,
-        sheet_name=f"{brain.area}-Results",
-        title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+        sheet_name=f"{brain.lobe.name}-Results",
+        title=f"{brain.lobe.name}-{t_config.folds}-Folds-{split}-Clf",
         notes=note,
         transpose=True,
         single_label=True,
@@ -334,7 +334,7 @@ def ifg_binary_subject_classification(
 
 def stg_binary_trails_classification(classifiers, strategies, t_config: TrainingConfig):
     config = BrainDataConfig()
-    brain = Brain(area=config.STG, data_path=config.STG_path)
+    brain = Brain(lobe=Lobe.STG, data_path=config.STG_path)
 
     brain.current_labels = brain.subject_labels
     split = "r_split"
@@ -358,13 +358,13 @@ def stg_binary_trails_classification(classifiers, strategies, t_config: Training
         )
         all_data.extend(export_data)
 
-    t_config.brain_area = brain.area
+    t_config.lobe = brain.lobe.name
     export = ExportData()
     note = export.create_note(t_config)
     export.create_and_write_datasheet(
         data=all_data,
-        sheet_name=f"{brain.area}-Results",
-        title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+        sheet_name=f"{brain.lobe.name}-Results",
+        title=f"{brain.lobe.name}-{t_config.folds}-Folds-{split}-Clf",
         notes=note,
         transpose=True,
         single_label=True,
@@ -375,7 +375,7 @@ def stg_concatenated_trails_classification(
     classifiers, strategies, t_config: TrainingConfig
 ):
     config = BrainDataConfig()
-    brain = Brain(area=config.STG, data_path=config.STG_path)
+    brain = Brain(lobe=Lobe.STG, data_path=config.STG_path)
 
     brain.current_labels = brain.subject_labels
     split = "r_split"
@@ -398,13 +398,13 @@ def stg_concatenated_trails_classification(
             classifiers,
         )
         all_data.extend(export_data)
-    t_config.brain_area = brain.area
+    t_config.lobe = brain.lobe.name
     export = ExportData()
     note = export.create_note(t_config)
     export.create_and_write_datasheet(
         data=all_data,
-        sheet_name=f"{brain.area}-Results",
-        title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+        sheet_name=f"{brain.lobe.name}-Results",
+        title=f"{brain.lobe.name}-{t_config.folds}-Folds-{split}-Clf",
         notes=note,
         transpose=True,
         single_label=True,
@@ -415,7 +415,7 @@ def ifg_concatenated_trails_classification(
     classifiers, strategies, t_config: TrainingConfig
 ):
     config = BrainDataConfig()
-    brain = Brain(area=config.IFG, data_path=config.IFG_path)
+    brain = Brain(lobe=Lobe.IFG, data_path=config.IFG_path)
 
     brain.current_labels = brain.subject_labels
     split = "r_split"
@@ -438,13 +438,13 @@ def ifg_concatenated_trails_classification(
             classifiers,
         )
         all_data.extend(export_data)
-    t_config.brain_area = brain.area
+    t_config.lobe = brain.lobe.name
     export = ExportData()
     note = export.create_note(t_config)
     export.create_and_write_datasheet(
         data=all_data,
-        sheet_name=f"{brain.area}-Results",
-        title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+        sheet_name=f"{brain.lobe.name}-Results",
+        title=f"{brain.lobe.name}-{t_config.folds}-Folds-{split}-Clf",
         notes=note,
         transpose=True,
         single_label=True,
@@ -455,7 +455,7 @@ def ifg_concatenated_binary_subjects_trails_classification(
     classifiers, strategies, t_config: TrainingConfig
 ):
     config = BrainDataConfig()
-    brain = Brain(area=config.IFG, data_path=config.IFG_path)
+    brain = Brain(lobe=Lobe.IFG, data_path=config.IFG_path)
 
     brain.current_labels = brain.subject_labels
     split = "r_split"
@@ -480,13 +480,13 @@ def ifg_concatenated_binary_subjects_trails_classification(
                 classifiers,
             )
             all_data.extend(export_data)
-        t_config.brain_area = brain.area
+        t_config.lobe = brain.lobe.name
         export = ExportData()
         note = export.create_note(t_config)
         export.create_and_write_datasheet(
             data=all_data,
-            sheet_name=f"{brain.area}-Results",
-            title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+            sheet_name=f"{brain.lobe.name}-Results",
+            title=f"{brain.lobe.name}-{t_config.folds}-Folds-{split}-Clf",
             notes=note,
             transpose=True,
             single_label=True,
@@ -497,7 +497,7 @@ def stg_concatenated_binary_subjects_trails_classification(
     classifiers, strategies, t_config: TrainingConfig
 ):
     config = BrainDataConfig()
-    brain = Brain(area=config.STG, data_path=config.STG_path)
+    brain = Brain(lobe=Lobe.STG, data_path=config.STG_path)
 
     brain.current_labels = brain.subject_labels
     split = "r_split"
@@ -522,13 +522,13 @@ def stg_concatenated_binary_subjects_trails_classification(
                 classifiers,
             )
             all_data.extend(export_data)
-        t_config.brain_area = brain.area
+        t_config.lobe = brain.lobe.name
         export = ExportData()
         note = export.create_note(t_config)
         export.create_and_write_datasheet(
             data=all_data,
-            sheet_name=f"{brain.area}-Results",
-            title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+            sheet_name=f"{brain.lobe.name}-Results",
+            title=f"{brain.lobe.name}-{t_config.folds}-Folds-{split}-Clf",
             notes=note,
             transpose=True,
             single_label=True,
@@ -537,7 +537,7 @@ def stg_concatenated_binary_subjects_trails_classification(
 
 def ifg_binary_trails_classification(classifiers, strategies, t_config: TrainingConfig):
     config = BrainDataConfig()
-    brain = Brain(area=config.IFG, data_path=config.IFG_path)
+    brain = Brain(lobe=Lobe.IFG, data_path=config.IFG_path)
 
     brain.current_labels = brain.subject_labels
     split = "r_split"
@@ -561,13 +561,13 @@ def ifg_binary_trails_classification(classifiers, strategies, t_config: Training
         )
         all_data.extend(export_data)
 
-    t_config.brain_area = brain.area
+    t_config.lobe = brain.lobe.name
     export = ExportData()
     note = export.create_note(t_config)
     export.create_and_write_datasheet(
         data=all_data,
-        sheet_name=f"{brain.area}-Results",
-        title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+        sheet_name=f"{brain.lobe.name}-Results",
+        title=f"{brain.lobe.name}-{t_config.folds}-Folds-{split}-Clf",
         notes=note,
         transpose=True,
         single_label=True,
@@ -576,7 +576,7 @@ def ifg_binary_trails_classification(classifiers, strategies, t_config: Training
 
 def stg_classification(classifiers, strategies, t_config: TrainingConfig):
     config = BrainDataConfig()
-    brain = Brain(area=config.STG, data_path=config.STG_path)
+    brain = Brain(lobe=Lobe.STG, data_path=config.STG_path)
 
     brain.current_labels = brain.subject_labels_int
 
@@ -596,13 +596,13 @@ def stg_classification(classifiers, strategies, t_config: TrainingConfig):
     if t_config.predefined_split:
         split = "cr_split"
 
-    t_config.brain_area = brain.area
+    t_config.lobe = brain.lobe.name
     export = ExportData()
     note = export.create_note(t_config)
     export.create_and_write_datasheet(
         data=export_data,
-        sheet_name=f"{brain.area}-Results",
-        title=f"{brain.area}-{t_config.folds}-Folds-{split}-Clf",
+        sheet_name=f"{brain.lobe.name}-Results",
+        title=f"{brain.lobe.name}-{t_config.folds}-Folds-{split}-Clf",
         notes=note,
         transpose=True,
     )
@@ -682,7 +682,7 @@ def train_valid_mnist(num_samples=10, max_num_epochs=10, gpus_per_trial=1):
 
 
 def hyper_parameter_search_braindata(
-    area,
+    lobe,
     num_samples=25,
     max_num_epochs=30,
     gpus_per_trial=1,
@@ -693,7 +693,7 @@ def hyper_parameter_search_braindata(
 
     for i in range(5):
 
-        voxel_sets = get_voxel_tensor_datasets(area)
+        voxel_sets = get_voxel_tensor_datasets(lobe)
 
         config = {
             "input_dim": voxel_sets.train_set.tensors[0].shape[1],
@@ -753,7 +753,7 @@ def hyper_parameter_search_braindata(
         print("Best trial epoch: {}".format(best_result.metrics["epoch"]))
         print("Best model path", best_result.path)
 
-        file_name = ExportData.get_file_name(".txt", f"BestTrainConfig-{area}")
+        file_name = ExportData.get_file_name(".txt", f"BestTrainConfig-{lobe}")
         file_path = f"C://Users//ataul//source//Uni//BachelorThesis//poc//{file_name}"
         with open(file_path, "w") as text_file:
             text_file.write("----------------------------------------\n")
@@ -797,9 +797,9 @@ def test_load_model():
     # path = r"C:\Users\ataul\source\Uni\BachelorThesis\poc\STG_BestModel_With_TSNE\STG_mean_18-03-2024_09-57-37_209122_model.pt"
     # path = r"C:\Users\ataul\source\Uni\BachelorThesis\poc\STG_BestModel_With_TSNE\STG_mean_18-03-2024_14-02-01_780484_model.pt"
     model_path = path.replace(os.sep, "/")
-    # brain_area = "IFG"
-    brain_area = "STG"
-    load_bestmodel_and_test(brain_area, model_path, device, gpus_per_trial=1)
+    # lobe = "IFG"
+    lobe = "STG"
+    load_bestmodel_and_test(lobe, model_path, device, gpus_per_trial=1)
 
 
 def analyze_STG():
@@ -859,27 +859,23 @@ def analyze_IFG():
 
 
 def main():
-    analyser = FMRIAnalyser(Lobe.IFG)
-    analyser.RSA_Audio_RDM()
-    analyser.RSA_related_unrelated_RDM()
+    # analyser = FMRIAnalyser(Lobe.IFG)
+    # analyser.RSA_Audio_RDM_test()
+    # analyser.RSA_Audio_RDM()
+    # analyser.RSA_related_unrelated_RDM()
 
-    analyser = FMRIAnalyser(Lobe.STG)
-    analyser.RSA_Audio_RDM()
-    analyser.RSA_related_unrelated_RDM()
+    # analyser = FMRIAnalyser(Lobe.STG)
+    # analyser.RSA_Audio_RDM()
+    # analyser.RSA_related_unrelated_RDM()
 
     analyser = FMRIAnalyser(Lobe.IFG)
     analyser.training_config.dimension_reduction = True
     analyser.training_config.folds = 2
-    # analyser.strategies.insert(0, "mice")
+    analyser.strategies.insert(0, "mice")
 
     analyser.strategies = ["mice", "mean"]
     analyser.classifiers = ["SVM", "MLP"]
     analyser.unary_subject_binary_image_classification()
-
-    config = BrainDataConfig()
-    b = Brain(config.all_lobes, config.all_lobes_path)
-    analyser = FMRIAnalyser(Lobe.ALL, brain=b)
-    analyser.unary_subject_binary_image_classification_RSA_Test()
 
     analyser = FMRIAnalyser(Lobe.STG)
     analyser.training_config.dimension_reduction = True
@@ -900,9 +896,9 @@ def main():
     # train_valid_voxels()
     # train_valid_voxels_test()
     # train_valid_mnist(num_samples=2, max_num_epochs=1, gpus_per_trial=1)
-    area = "STG"
-    # area = "IFG"
-    # hyper_parameter_search_braindata(area)
+    lobe = "STG"
+    # lobe = "IFG"
+    # hyper_parameter_search_braindata(lobe)
 
     strategies = [
         None,
@@ -977,7 +973,7 @@ def main():
         "lr": 0.00024641847887259374,
         "batch_size": 384,
         "epochs": 25,
-        "brain_area": "STG",
+        "lobe": "STG",
     }
     # t_config.best_autoencoder_config["epochs"] = 1
     # t_config.folds = 2
@@ -992,7 +988,7 @@ def main():
         "lr": 0.0016028928095361706,
         "batch_size": 384,
         "epochs": 25,
-        "brain_area": "IFG",
+        "lobe": "IFG",
     }
 
     # ifg_classification(classifiers, strategies, t_config)
