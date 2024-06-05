@@ -775,6 +775,7 @@ class FMRIAnalyser:
                     va="top",
                     color="white",
                     rotation="vertical",
+                    fontsize=17,
                 )
             for index, res in enumerate(br_data["result"]):
                 if "Not" not in res:
@@ -785,13 +786,13 @@ class FMRIAnalyser:
                         ha="center",
                         va="baseline",
                         color="k",
-                        fontsize=20,
+                        fontsize=25,
                     )
 
             plt.errorbar(
                 br_position, br_data["data"], yerr=br_data["std"], fmt="o", color="k"
             )
-            if i % (int(len(bar_data) / 3)) == 0:
+            if i % (int(len(bar_data) / patients)) == 0:
                 legend_bars.append(a)
             i = i + 1
             # Adding Xticks
@@ -813,10 +814,12 @@ class FMRIAnalyser:
 
         plt.xticks(tick_pos, models, fontsize=20)
 
-        plt.legend(legend_bars, ["N", "D", "S"], fontsize=12, title="Mental Disorders")
+        plt.legend(legend_bars, ["N", "D", "S"], fontsize=18, title="Mental Disorders")
+        # plt.legend(legend_bars, ["N", "D", "S"], fontsize=18, loc='upper left', bbox_to_anchor=(1, 1) ,title_fontsize=14,title="Mental Disorders")
         gname = f"{self.brain.lobe.name}_{strategy}_{self.unary_subject_binary_image_classification.__name__}"
         graph_name = ExportData.get_file_name(".png", gname)
-        plt.savefig(graph_name, dpi=1200)
+        # plt.savefig(graph_name, dpi=1200)
+        plt.savefig(graph_name)
         plt.show()
         plt.close()
 
