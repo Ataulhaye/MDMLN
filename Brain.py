@@ -239,6 +239,48 @@ class Brain:
             data_set.X_test = x_test
             return data_set
 
+    def normalize_whole_data(self, X, strategy="mean"):
+        """_summary_
+
+        Args:
+        data (_type_): numpy.ndarray
+        strategy (str, optional):The imputation strategy. Defaults to "mean".
+        If "mean", then replace missing values using the mean along each column. Can only be used with numeric data.
+        If "median", then replace missing values using the median along each column. Can only be used with numeric data.
+        If "most_frequent", then replace missing using the most frequent value along each column. Can be used with strings or numeric data. If there is more than one such value, only the smallest is returned.
+        If "constant", then replace missing values with fill_value. Can be used with strings or numeric data.
+        if "remove-trails", then all trails contains nans will be removed
+        if "remove-voxels", will remove all (Columns) in which nans are present
+        if "n_neighbors", nearest neighbour approach, default is 2 neighbours
+
+        Returns:
+            TestTrainingSet
+        """
+        if strategy == "n_neighbors":
+            imputer = KNNImputer(n_neighbors=2, keep_empty_features=True)
+            imputer.fit(X)
+            x = imputer.transform(X)
+            return x
+        elif strategy == "remove-voxels":
+            X_r = X[:, ~np.isnan(X).any(axis=0)]
+            return X_r
+        elif strategy == "remove-trails":
+            return NotImplementedError
+        elif strategy == None:
+            return X
+        elif strategy == "mice":
+            mice_imput = IterativeImputer(keep_empty_features=True)
+            mice_imput.fit(X)
+            x = mice_imput.transform(X)
+            return x
+        else:
+            imputer = SimpleImputer(
+                missing_values=np.nan, strategy=strategy, keep_empty_features=True
+            )
+            imputer.fit(X)
+            x = imputer.transform(X)
+            return x
+
     def calculate_nans_trail_wise(self, data):
         # lis = [sum(np.isnan(x)) for x in zip(*data)]
         nans_len_list = []

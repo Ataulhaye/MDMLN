@@ -603,17 +603,63 @@ class FMRIAnalyser:
         i.e unary_subject_labels_N
         """
         self.brain.current_labels = self.brain.subject_labels
+        # x = self.brain.normalize_whole_data(self.brain.voxels)
+        # self.brain.voxels = x
+
         subject_unary_data = self.brain.unary_fmri_subject_or_image(self.data_config)
 
         rsa_config = RSAConfig()
         rsa = RepresentationalSimilarityAnalysis()
 
-        data = np.array(
-            self.Talairach_MNI_space[["MNIX", "MNIY", "MNIZ"]], dtype=np.int8
+        rsa.run_RSA(
+            subject_unary_data,
+            rsa_config.audio_RDM,
+            rsa_config.radius,
+            self.Talairach_MNI_space,
+            self.brain.NIfTI,
         )
+
         # still in progress
-        new_image = nib.Nifti2Image(data, affine=np.eye(4))
-        fig = plotting.plot_glass_brain(new_image)
+        smoothed_img = image.smooth_img(self.brain.NIfTI, None)
+        new_nii = copy.deepcopy(smoothed_img)
+
+        coord2xyz_dict = {}
+        xlen, ylen, zlen = smoothed_img._dataobj.shape
+        for i in range(xlen):
+            for j in range(ylen):
+                for k in range(zlen):
+                    # matmul Matrix product of two arrays
+                    x, y, z, __ = np.matmul(smoothed_img.affine, np.array([i, j, k, 1]))
+                    coord2xyz_dict[(x, y, z)] = [i, j, k]
+
+        finalSpheres = rsa.get_spheres(rsa_config.radius, self.Talairach_MNI_space)
+        sph_ii = 1
+        num_sph = len(finalSpheres)
+        # (The voxel dimension in the brain(sphere) and the voxel indices)
+
+        fmri_data = subject_unary_data
+
+        for un_brain in fmri_data:
+            for sph_cntr, vox_indices in finalSpheres:
+                for vox_index in vox_indices:
+                    xyz_coo = (
+                        self.Talairach_MNI_space.iloc[vox_index]["TALX"],
+                        self.Talairach_MNI_space.iloc[vox_index]["TALY"],
+                        self.Talairach_MNI_space.iloc[vox_index]["TALZ"],
+                    )
+                    aal_coo = coord2xyz_dict[xyz_coo]
+
+                    new_nii._dataobj[tuple(aal_coo)] = sph_ii / num_sph
+                sph_ii += 1
+
+            new_nii._data_cache = new_nii._dataobj
+
+            plotting.plot_glass_brain(new_nii, threshold=0)
+            plotting.show()
+
+        # data = np.array(self.Talairach_MNI_space[["MNIX", "MNIY", "MNIZ"]], dtype=np.int8)
+        # new_image = nib.Nifti2Image(data, affine=np.eye(4))
+        # fig = plotting.plot_glass_brain(new_image)
 
         r_means = rsa.RSA(
             subject_unary_data,
