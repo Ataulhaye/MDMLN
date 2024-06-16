@@ -34,6 +34,7 @@ class FMRIAnalyser:
         strategies=None,
         training_config: TrainingConfig = None,
         data_config: BrainDataConfig = None,
+        rsa_config: RSAConfig = None,
         Talairach_MNI_space: pd.DataFrame = None,
     ):
         if lobe is None:
@@ -60,6 +61,11 @@ class FMRIAnalyser:
             self.data_config = BrainDataConfig()
         else:
             self.data_config = data_config
+
+        if rsa_config is None:
+            self.rsa_config = RSAConfig()
+        else:
+            self.rsa_config = rsa_config
 
         match lobe:
             case Lobe.STG:
@@ -569,110 +575,137 @@ class FMRIAnalyser:
             transpose=True,
         )
 
+    def RSA_Audio_RDM_old(self):
+        """
+        Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
+        i.e unary_subject_labels_N
+        """
+        self.brain.current_labels = self.brain.subject_labels
+        subject_unary_data = self.brain.unary_fmri_subject_or_image(self.data_config)
+
+        rsa = RepresentationalSimilarityAnalysis()
+
+        r_means = rsa.RSA(
+            subject_unary_data,
+            self.rsa_config.audio_RDM,
+            self.rsa_config.radius,
+            self.Talairach_MNI_space,
+        )
+
+        k_max, max_from_pairs = rsa.generate_RSA_results(r_means)
+
+        file_name = f"{self.brain.lobe.name}_Radius-{self.rsa_config.radius}_AudioRDM_RSA.pickle"
+        with open(file_name, "wb") as output:
+            pickle.dump((k_max, max_from_pairs), output)
+
+        return k_max, max_from_pairs
+
     def RSA_Audio_RDM(self):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
         """
         self.brain.current_labels = self.brain.subject_labels
-        subject_unary_data = self.brain.unary_fmri_subject_or_image(self.data_config)
 
-        rsa_config = RSAConfig()
-        rsa = RepresentationalSimilarityAnalysis()
+        if self.rsa_config.normalize:
+            x = self.brain.normalize_whole_data(self.brain.voxels)
+            self.brain.voxels = x
 
-        r_means = rsa.RSA(
-            subject_unary_data,
-            rsa_config.audio_RDM,
-            rsa_config.radius,
-            self.Talairach_MNI_space,
-        )
+        file_name = f"{self.RSA_Audio_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_Normalized-{str(self.rsa_config.normalize)}.pickle"
 
-        k_max, max_from_pairs = rsa.generate_RSA_results(r_means)
+        results = None
+        try:
+            results = pickle.load(open(file_name, "rb"))
+        except FileNotFoundError as err:
+            print("There are no saved RSA results. RSA function will be executed.", err)
 
-        file_name = (
-            f"{self.brain.lobe.name}_Radius-{rsa_config.radius}_AudioRDM_RSA.pickle"
-        )
-        with open(file_name, "wb") as output:
-            pickle.dump((k_max, max_from_pairs), output)
+        if results is None:
+            subject_unary_data = self.brain.unary_fmri_subject_or_image(
+                self.data_config
+            )
+            results = RepresentationalSimilarityAnalysis().run_RSA(
+                subject_unary_data,
+                self.rsa_config.audio_RDM,
+                self.rsa_config.radius,
+                self.Talairach_MNI_space,
+                self.brain.NIfTI,
+            )
+            with open(file_name, "wb") as output:
+                pickle.dump(results, output)
 
-        return k_max, max_from_pairs
+        for brain, smoothed_img, rsa_result in results:
+            title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} Audio RDM".replace(
+                "  ", " "
+            )
+            self.plot_brain_image(smoothed_img, title)
 
-    def RSA_Audio_RDM_test(self):
+    def RSA_related_unrelated_RDM(self):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
         """
         self.brain.current_labels = self.brain.subject_labels
-        # x = self.brain.normalize_whole_data(self.brain.voxels)
-        # self.brain.voxels = x
 
-        subject_unary_data = self.brain.unary_fmri_subject_or_image(self.data_config)
+        if self.rsa_config.normalize:
+            x = self.brain.normalize_whole_data(self.brain.voxels)
+            self.brain.voxels = x
 
-        rsa_config = RSAConfig()
-        rsa = RepresentationalSimilarityAnalysis()
+        file_name = f"{self.RSA_related_unrelated_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_Normalized-{str(self.rsa_config.normalize)}.pickle"
 
-        rsa.run_RSA(
-            subject_unary_data,
-            rsa_config.audio_RDM,
-            rsa_config.radius,
-            self.Talairach_MNI_space,
-            self.brain.NIfTI,
+        results = None
+        try:
+            results = pickle.load(open(file_name, "rb"))
+        except FileNotFoundError as err:
+            print("There are no saved RSA results. RSA function will be executed.", err)
+
+        if results is None:
+            subject_unary_data = self.brain.unary_fmri_subject_or_image(
+                self.data_config
+            )
+            results = RepresentationalSimilarityAnalysis().run_RSA(
+                subject_unary_data,
+                self.rsa_config.audio_RDM,
+                self.rsa_config.radius,
+                self.Talairach_MNI_space,
+                self.brain.NIfTI,
+            )
+            with open(file_name, "wb") as output:
+                pickle.dump(results, output)
+
+        for brain, smoothed_img, rsa_result in results:
+            title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} Related Unrelated RDM".replace(
+                "  ", " "
+            )
+            self.plot_brain_image(smoothed_img, title)
+
+    def plot_brain_image(self, smoothed_img, title):
+        # rdm_typ = f"{self.rsa_config.related_unrelated_RDM=}".split("=")[0].split(".")[2]
+        display = plotting.plot_glass_brain(
+            smoothed_img, threshold=0, title=title, display_mode="lzry"
         )
+        # display = plotting.plot_stat_map(smoothed_img, threshold=0)
+        # display.savefig("pretty_brain.png")
+        # plotting.plot_glass_brain(smoothed_img, threshold=0)
+        plotting.show()
 
-        # still in progress
-        smoothed_img = image.smooth_img(self.brain.NIfTI, None)
-        new_nii = copy.deepcopy(smoothed_img)
+        graph_name = ExportData.get_file_name(".png", title.replace(" ", "_"))
+        plt.savefig(graph_name)
+        display.close()
+        plt.close()
 
-        coord2xyz_dict = {}
-        xlen, ylen, zlen = smoothed_img._dataobj.shape
-        for i in range(xlen):
-            for j in range(ylen):
-                for k in range(zlen):
-                    # matmul Matrix product of two arrays
-                    x, y, z, __ = np.matmul(smoothed_img.affine, np.array([i, j, k, 1]))
-                    coord2xyz_dict[(x, y, z)] = [i, j, k]
+    def is_normalized(self):
+        normalized = ""
+        if self.rsa_config.normalize:
+            normalized = "Normalized"
+        return normalized
 
-        finalSpheres = rsa.get_spheres(rsa_config.radius, self.Talairach_MNI_space)
-        sph_ii = 1
-        num_sph = len(finalSpheres)
-        # (The voxel dimension in the brain(sphere) and the voxel indices)
+    def lobe_name(self, brain):
+        lobe = brain.lobe.name
+        if brain.lobe == Lobe.ALL:
+            lobe = f"{lobe} Lobes"
+        return lobe
 
-        fmri_data = subject_unary_data
-
-        for un_brain in fmri_data:
-            for sph_cntr, vox_indices in finalSpheres:
-                for vox_index in vox_indices:
-                    xyz_coo = (
-                        self.Talairach_MNI_space.iloc[vox_index]["TALX"],
-                        self.Talairach_MNI_space.iloc[vox_index]["TALY"],
-                        self.Talairach_MNI_space.iloc[vox_index]["TALZ"],
-                    )
-                    aal_coo = coord2xyz_dict[xyz_coo]
-
-                    new_nii._dataobj[tuple(aal_coo)] = sph_ii / num_sph
-                sph_ii += 1
-
-            new_nii._data_cache = new_nii._dataobj
-
-            plotting.plot_glass_brain(new_nii, threshold=0)
-            plotting.show()
-
-        # data = np.array(self.Talairach_MNI_space[["MNIX", "MNIY", "MNIZ"]], dtype=np.int8)
-        # new_image = nib.Nifti2Image(data, affine=np.eye(4))
-        # fig = plotting.plot_glass_brain(new_image)
-
-        r_means = rsa.RSA(
-            subject_unary_data,
-            rsa_config.audio_RDM,
-            rsa_config.radius,
-            self.Talairach_MNI_space,
-        )
-
-        k_max, max_from_pairs = rsa.generate_RSA_results(r_means)
-
-        return k_max, max_from_pairs
-
-    def RSA_related_unrelated_RDM(self):
+    def RSA_related_unrelated_RDM_old(self):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N

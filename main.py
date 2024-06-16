@@ -28,6 +28,7 @@ from HyperParameterSearch import (
     train_and_validate_brain_voxels_ray,
 )
 from PlotData import VisualizeData
+from RSAConfig import RSAConfig
 from TrainingConfig import TrainingConfig
 from TrainUtlis import load_data, test_accuracy, train_and_validate_mnist_ray_tune
 
@@ -859,14 +860,27 @@ def analyze_IFG():
 
 
 def main():
-    # analyser = FMRIAnalyser(Lobe.IFG)
-    # analyser.RSA_Audio_RDM_test()
-    # analyser.RSA_Audio_RDM()
-    # analyser.RSA_related_unrelated_RDM()
+    rsa_con = RSAConfig()
+    rsa_con.normalize = True
+    analyser = FMRIAnalyser(Lobe.ALL, rsa_config=rsa_con)
+    analyser.RSA_related_unrelated_RDM()
 
-    # analyser = FMRIAnalyser(Lobe.STG)
-    # analyser.RSA_Audio_RDM()
-    # analyser.RSA_related_unrelated_RDM()
+    analyser = FMRIAnalyser(Lobe.STG, rsa_config=rsa_con)
+    analyser.RSA_related_unrelated_RDM()
+
+    analyser = FMRIAnalyser(Lobe.ALL)
+    analyser.RSA_related_unrelated_RDM()
+
+    analyser = FMRIAnalyser(Lobe.STG)
+    analyser.RSA_related_unrelated_RDM()
+
+    rsa_con = RSAConfig()
+    rsa_con.normalize = True
+    analyser = FMRIAnalyser(Lobe.ALL, rsa_config=rsa_con)
+    analyser.RSA_Audio_RDM()
+
+    analyser = FMRIAnalyser(Lobe.STG, rsa_config=rsa_con)
+    analyser.RSA_Audio_RDM()
 
     analyser = FMRIAnalyser(Lobe.IFG)
     analyser.training_config.dimension_reduction = True

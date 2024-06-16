@@ -100,18 +100,17 @@ class RepresentationalSimilarityAnalysis:
             (sphere_centers[i].tolist(), j) for i, j in enumerate(sphere_vox) if j
         ]
 
-        all_r_means = []
+        rsa_results = []
         # subject_unary_data list conatins all three subject voxels. N, D, and S
-        for data in fmri_data:
-            all_data = []
+        for brain in fmri_data:
+            rsa_result = []
             smoothed_img = image.smooth_img(NIfTI, None)
-            new_nii = copy.deepcopy(smoothed_img)
-            new_nii._dataobj = np.zeros(new_nii._dataobj.shape)
+            smoothed_img._dataobj = np.zeros(smoothed_img._dataobj.shape)
             coord2xyz_dict = self.get_xyz_coordinates(smoothed_img)
 
             for sph_cntr, vox_indices in final_spheres:
-                r = self.calculate_spermanr(data, vox_indices, RDM)
-                all_data.append((sph_cntr, vox_indices, r))
+                r = self.calculate_spermanr(brain, vox_indices, RDM)
+                rsa_result.append((sph_cntr, vox_indices, r))
                 for vox_index in vox_indices:
                     xyz_coo = (
                         tal_MNI_space.iloc[vox_index]["TALX"],
@@ -120,25 +119,13 @@ class RepresentationalSimilarityAnalysis:
                     )
                     aal_coo = coord2xyz_dict[xyz_coo]
 
-                    new_nii._dataobj[tuple(aal_coo)] = r
+                    smoothed_img._dataobj[tuple(aal_coo)] = r
 
-            new_nii._data_cache = new_nii._dataobj
-            all_r_means.append(all_data)
+            smoothed_img._data_cache = smoothed_img._dataobj
 
-            # file_name = f"{data.lobe.name}_{data.current_labels.name}-sph_cntr-vox_indices-R-audio_RDM_RSA.pickle"
-            # with open(file_name, "wb") as output:
-            # pickle.dump(all_data, output)
+            rsa_results.append((brain, smoothed_img, rsa_result))
 
-            # new_nii = image.smooth_img(new_nii, "fast")
-            plotting.plot_glass_brain(new_nii, threshold=0)
-            gname = (
-                f"{data.lobe.name}_{data.current_labels.name}-{self.run_RSA.__name__}"
-            )
-            graph_name = ExportData.get_file_name(".png", gname)
-            plt.savefig(graph_name)
-            # plotting.show()
-
-        return all_r_means
+        return rsa_results
 
     def get_xyz_coordinates(self, smoothed_img):
         coord2xyz_dict = {}
