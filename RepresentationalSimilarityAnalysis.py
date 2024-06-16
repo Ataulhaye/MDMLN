@@ -39,50 +39,6 @@ class RepresentationalSimilarityAnalysis:
         ]
         return final_spheres
 
-    def RSA(self, fmri_data: list[Brain], RDM, radius, coordinates):
-        # Creating the sphere centers with some radius
-
-        # sphere_centers = self.get_sphere_centers(coordinates, radius)
-        sphere_centers = self.get_sphere_centers(coordinates, radius)
-        # creating xyz points by providing the TALX, TALY, and TALZ
-        xyz_points = np.array(coordinates[["TALX", "TALY", "TALZ"]])
-
-        kdtree = KDTree(xyz_points)
-        # getting the sphere voxels
-        sphere_vox = kdtree.query_ball_point(sphere_centers, radius)
-        # this will remove the empty spheres and map to the sphere centres and return the list of tuples (sphere_centre_dims, sphere_Voxels)
-        # (The voxel dimension in the brain and the voxel indices)
-        final_spheres = [
-            (sphere_centers[i].tolist(), j) for i, j in enumerate(sphere_vox) if j
-        ]
-
-        all_r_means = []
-        # subject_unary_data list conatins all three subject voxels. N, D, and S
-        for un_brain in fmri_data:
-            r_means = []
-            for sphere in final_spheres:
-                # combine voxels and sphere: voxels for a specific coordinates sphere[-1] has the voxels indices
-                voxels = un_brain.voxels[:, sphere[-1]]
-                new_shape = (
-                    int(voxels.shape[0] / 4),
-                    4,
-                    voxels.shape[1],
-                )
-                rvoxels = np.reshape(voxels, new_shape)
-                # make RDM from combined voxels and sphere
-                RDMs = self.make_RDMs(rvoxels)
-                # calculating the rank
-                r = [
-                    spearmanr(RDM.ravel(), RDMs[i].ravel()).statistic
-                    for i in range(RDMs.shape[0])
-                ]
-                # saving the rank per sphere as mean
-                r_means.append(
-                    (un_brain.current_labels.name, np.nanmean(r), sphere, rvoxels)
-                )
-            all_r_means.append(r_means)
-        return all_r_means
-
     def run_RSA(self, fmri_data: list[Brain], RDM, radius, tal_MNI_space, NIfTI):
         # Creating the sphere centers with some radius
 

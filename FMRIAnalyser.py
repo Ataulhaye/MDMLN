@@ -575,31 +575,6 @@ class FMRIAnalyser:
             transpose=True,
         )
 
-    def RSA_Audio_RDM_old(self):
-        """
-        Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
-        i.e unary_subject_labels_N
-        """
-        self.brain.current_labels = self.brain.subject_labels
-        subject_unary_data = self.brain.unary_fmri_subject_or_image(self.data_config)
-
-        rsa = RepresentationalSimilarityAnalysis()
-
-        r_means = rsa.RSA(
-            subject_unary_data,
-            self.rsa_config.audio_RDM,
-            self.rsa_config.radius,
-            self.Talairach_MNI_space,
-        )
-
-        k_max, max_from_pairs = rsa.generate_RSA_results(r_means)
-
-        file_name = f"{self.brain.lobe.name}_Radius-{self.rsa_config.radius}_AudioRDM_RSA.pickle"
-        with open(file_name, "wb") as output:
-            pickle.dump((k_max, max_from_pairs), output)
-
-        return k_max, max_from_pairs
-
     def RSA_Audio_RDM(self):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
@@ -704,32 +679,6 @@ class FMRIAnalyser:
         if brain.lobe == Lobe.ALL:
             lobe = f"{lobe} Lobes"
         return lobe
-
-    def RSA_related_unrelated_RDM_old(self):
-        """
-        Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
-        i.e unary_subject_labels_N
-        """
-        self.brain.current_labels = self.brain.subject_labels
-        subject_unary_data = self.brain.unary_fmri_subject_or_image(self.data_config)
-
-        rsa_config = RSAConfig()
-        rsa = RepresentationalSimilarityAnalysis()
-
-        r_means = rsa.RSA(
-            subject_unary_data,
-            rsa_config.related_unrelated_RDM,
-            rsa_config.radius,
-            self.Talairach_MNI_space,
-        )
-
-        k_max, max_from_pairs = rsa.generate_RSA_results(r_means)
-
-        file_name = f"{self.brain.lobe.name}_Radius-{rsa_config.radius}_related_unrelated_RDM_RSA.pickle"
-        with open(file_name, "wb") as output:
-            pickle.dump((k_max, max_from_pairs), output)
-
-        return k_max, max_from_pairs
 
     def plot_detailed_bars(self, all_export_data):
         nested_dict = self.groupby_strategy(all_export_data)
