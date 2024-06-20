@@ -66,7 +66,8 @@ class RepresentationalSimilarityAnalysis:
 
             for sph_cntr, vox_indices in final_spheres:
                 r = self.calculate_spermanr(brain, vox_indices, RDM)
-                rsa_result.append((sph_cntr, vox_indices, r))
+                # rsa_result.append((sph_cntr, vox_indices, r))
+                aal_coors = []
                 for vox_index in vox_indices:
                     xyz_coo = (
                         tal_MNI_space.iloc[vox_index]["TALX"],
@@ -76,6 +77,9 @@ class RepresentationalSimilarityAnalysis:
                     aal_coo = coord2xyz_dict[xyz_coo]
 
                     smoothed_img._dataobj[tuple(aal_coo)] = r
+                    aal_coors.append(tuple(aal_coo))
+
+                rsa_result.append((sph_cntr, vox_indices, r, aal_coors))
 
             smoothed_img._data_cache = smoothed_img._dataobj
 

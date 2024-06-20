@@ -1,4 +1,5 @@
 import copy
+import itertools
 import pickle
 import statistics
 
@@ -10,7 +11,7 @@ import pandas as pd
 import scipy.io
 import seaborn as sns
 import torch
-from nilearn import image, plotting
+from nilearn import datasets, image, plotting
 from scipy.spatial import KDTree
 from scipy.stats import spearmanr
 
@@ -575,7 +576,7 @@ class FMRIAnalyser:
             transpose=True,
         )
 
-    def RSA_Audio_RDM(self):
+    def RSA_Audio_RDM(self, plotting=True):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
@@ -609,12 +610,89 @@ class FMRIAnalyser:
                 pickle.dump(results, output)
 
         for brain, smoothed_img, rsa_result in results:
-            title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} Audio RDM".replace(
+            if plotting:
+                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} Audio RDM".replace(
+                    "  ", " "
+                )
+                self.plot_brain_image(smoothed_img, title)
+
+        return results
+
+    def RSA_brain_difference_Audio_RDM(self):
+        """
+        Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
+        i.e unary_subject_labels_N
+        """
+
+        results = self.RSA_Audio_RDM(plotting=False)
+
+        combinations = itertools.combinations(list(range(len(results))), 2)
+        for k, l in combinations:
+            smoothed_img = image.smooth_img(self.brain.NIfTI, None)
+            smoothed_img._dataobj = np.zeros(smoothed_img._dataobj.shape)
+            brain_k, smoothed_img_k, rsa_result_k = results[k]
+            brain_l, smoothed_img_l, rsa_result_l = results[l]
+            assert len(rsa_result_k) == len(rsa_result_l)
+            i = 0
+            while i < len(rsa_result_k):
+                sph_cntr_k, vox_indices_k, r_k, aal_coors_k = rsa_result_k[i]
+                sph_cntr_l, vox_indices_l, r_l, aal_coors_l = rsa_result_l[i]
+
+                assert sph_cntr_k == sph_cntr_l
+                assert vox_indices_k == vox_indices_l
+                assert aal_coors_k == aal_coors_l
+
+                for vox_index in vox_indices_k:
+                    for aal_coo in aal_coors_k:
+                        smoothed_img._dataobj[aal_coo] = abs(r_k - r_l)
+
+                i += 1
+
+            smoothed_img._data_cache = smoothed_img._dataobj
+
+            title = f"{self.lobe_name(self.brain)} difference of {self.is_normalized()} {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} on top of Audio RDM".replace(
                 "  ", " "
             )
             self.plot_brain_image(smoothed_img, title)
 
-    def RSA_related_unrelated_RDM(self):
+    def RSA_brain_difference_related_unrelated_RDM(self):
+        """
+        Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
+        i.e unary_subject_labels_N
+        """
+
+        results = self.RSA_related_unrelated_RDM(plotting=False)
+
+        combinations = itertools.combinations(list(range(len(results))), 2)
+        for k, l in combinations:
+            smoothed_img = image.smooth_img(self.brain.NIfTI, None)
+            smoothed_img._dataobj = np.zeros(smoothed_img._dataobj.shape)
+            brain_k, smoothed_img_k, rsa_result_k = results[k]
+            brain_l, smoothed_img_l, rsa_result_l = results[l]
+            assert len(rsa_result_k) == len(rsa_result_l)
+            i = 0
+            while i < len(rsa_result_k):
+                sph_cntr_k, vox_indices_k, r_k, aal_coors_k = rsa_result_k[i]
+                sph_cntr_l, vox_indices_l, r_l, aal_coors_l = rsa_result_l[i]
+
+                assert sph_cntr_k == sph_cntr_l
+                assert vox_indices_k == vox_indices_l
+                assert aal_coors_k == aal_coors_l
+
+                for vox_index in vox_indices_k:
+                    for aal_coo in aal_coors_k:
+                        smoothed_img._dataobj[aal_coo] = abs(r_k - r_l)
+
+                i += 1
+
+            smoothed_img._data_cache = smoothed_img._dataobj
+
+            title = f"{self.lobe_name(self.brain)} difference of {self.is_normalized()} {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} on top of related unrelated RDM".replace(
+                "  ", " "
+            )
+            self.plot_brain_image(smoothed_img, title)
+
+    def RSA_related_unrelated_RDM(self, plotting=False):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
@@ -648,13 +726,18 @@ class FMRIAnalyser:
                 pickle.dump(results, output)
 
         for brain, smoothed_img, rsa_result in results:
-            title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} Related Unrelated RDM".replace(
-                "  ", " "
-            )
-            self.plot_brain_image(smoothed_img, title)
+            if plotting:
+                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} Related Unrelated RDM".replace(
+                    "  ", " "
+                )
+                self.plot_brain_image(smoothed_img, title)
+
+        return results
 
     def plot_brain_image(self, smoothed_img, title):
         # rdm_typ = f"{self.rsa_config.related_unrelated_RDM=}".split("=")[0].split(".")[2]
+        # atlas = datasets.fetch_atlas_talairach("ba")
+
         display = plotting.plot_glass_brain(
             smoothed_img, threshold=0, title=title, display_mode="lzry"
         )
@@ -667,6 +750,14 @@ class FMRIAnalyser:
         plt.savefig(graph_name)
         display.close()
         plt.close()
+        # display = plotting.plot_glass_brain(None, plot_abs=False, display_mode="lzry", title=title)
+        # display.add_contours(smoothed_img, filled=True)
+        # plotting.show()
+
+        # graph_name = ExportData.get_file_name(".png", title.replace(" ", "_"))
+        # plt.savefig(graph_name)
+        # display.close()
+        # plt.close()
 
     def is_normalized(self):
         normalized = ""

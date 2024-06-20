@@ -863,6 +863,10 @@ def main():
     rsa_con = RSAConfig()
     rsa_con.normalize = True
     analyser = FMRIAnalyser(Lobe.ALL, rsa_config=rsa_con)
+    #analyser = FMRIAnalyser(Lobe.ALL)
+    analyser.RSA_brain_difference_related_unrelated_RDM()
+    analyser.RSA_brain_difference_Audio_RDM()
+    analyser.RSA_Audio_RDM()
     analyser.RSA_related_unrelated_RDM()
 
     analyser = FMRIAnalyser(Lobe.STG, rsa_config=rsa_con)
