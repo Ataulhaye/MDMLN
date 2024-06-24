@@ -50,7 +50,7 @@ class VideoToText:
 
         if text_dic is None:
             text_dic = self.extract_audio_transcript()
-        with open("SpeechToText.csv", "w", newline="") as csv_file:
+        with open("AudioTranscripts.csv", "w", newline="") as csv_file:
             writer = csv.writer(csv_file, delimiter=";", quoting=csv.QUOTE_ALL)
             for key, value in text_dic.items():
                 writer.writerow([key, value])
