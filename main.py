@@ -862,11 +862,11 @@ def analyze_IFG():
 
 def generate_text_file_from_videos():
     vt = VideoToText()
-    vt.video_to_text()
+    vt.video_to_audio_transcript()
 
 
 def main():
-    #generate_text_file_from_videos()
+    # generate_text_file_from_videos()
 
     rsa_con = RSAConfig()
     rsa_con.normalize = True

@@ -22,7 +22,7 @@ class VideoToText:
         self.audio_format = audio_format
         self.path = path
 
-    def extract_text(
+    def extract_audio_transcript(
         self,
         path=Path("Stimuli").absolute().resolve(),
     ):
@@ -38,7 +38,7 @@ class VideoToText:
             pickle.dump(text_dic, output)
         return text_dic
 
-    def video_to_text(self):
+    def video_to_audio_transcript(self):
         text_dic = None
         try:
             text_dic = pickle.load(open("SpeechToTextDic.pickle", "rb"))
@@ -49,7 +49,7 @@ class VideoToText:
             )
 
         if text_dic is None:
-            text_dic = self.extract_text()
+            text_dic = self.extract_audio_transcript()
         with open("SpeechToText.csv", "w", newline="") as csv_file:
             writer = csv.writer(csv_file, delimiter=";", quoting=csv.QUOTE_ALL)
             for key, value in text_dic.items():
