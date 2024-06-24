@@ -31,6 +31,7 @@ from PlotData import VisualizeData
 from RSAConfig import RSAConfig
 from TrainingConfig import TrainingConfig
 from TrainUtlis import load_data, test_accuracy, train_and_validate_mnist_ray_tune
+from VideoToText import VideoToText
 
 
 def run_evaluation():
@@ -859,11 +860,18 @@ def analyze_IFG():
     analyser.subject_binary_image_classification()
 
 
+def generate_text_file_from_videos():
+    vt = VideoToText()
+    vt.video_to_text()
+
+
 def main():
+    #generate_text_file_from_videos()
+
     rsa_con = RSAConfig()
     rsa_con.normalize = True
     analyser = FMRIAnalyser(Lobe.ALL, rsa_config=rsa_con)
-    #analyser = FMRIAnalyser(Lobe.ALL)
+    # analyser = FMRIAnalyser(Lobe.ALL)
     analyser.RSA_brain_difference_related_unrelated_RDM()
     analyser.RSA_brain_difference_Audio_RDM()
     analyser.RSA_Audio_RDM()
