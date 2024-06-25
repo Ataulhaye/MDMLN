@@ -2,6 +2,7 @@ import copy
 import itertools
 import pickle
 import statistics
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import nibabel as nib
@@ -49,7 +50,7 @@ class FMRIAnalyser:
             self.classifiers = classifiers
 
         if strategies is None:
-            self.strategies = ["mean", "remove-voxels", "median"]
+            self.strategies = ["mean", "remove_voxels", "median"]
         else:
             self.strategies = strategies
 
@@ -576,7 +577,7 @@ class FMRIAnalyser:
             transpose=True,
         )
 
-    def RSA_Audio_RDM(self, plotting=True):
+    def RSA_Abstract_Concrete_RDM(self, plotting=True):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
@@ -584,14 +585,14 @@ class FMRIAnalyser:
         self.brain.current_labels = self.brain.subject_labels
 
         if self.rsa_config.normalize:
-            x = self.brain.normalize_whole_data(self.brain.voxels)
+            x = self.brain.normalize_data(self.brain.voxels, self.rsa_config.strategy)
             self.brain.voxels = x
 
-        file_name = f"{self.RSA_Audio_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_Normalized-{str(self.rsa_config.normalize)}.pickle"
-
+        file_name = f"{self.RSA_Abstract_Concrete_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_RadiusAdjus{str(self.rsa_config.radius_adjustment)}_{self.is_normalized().replace(' ', '_')}.pickle"
+        file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
         results = None
         try:
-            results = pickle.load(open(file_name, "rb"))
+            results = pickle.load(open(file_path, "rb"))
         except FileNotFoundError as err:
             print("There are no saved RSA results. RSA function will be executed.", err)
 
@@ -601,30 +602,31 @@ class FMRIAnalyser:
             )
             results = RepresentationalSimilarityAnalysis().run_RSA(
                 subject_unary_data,
-                self.rsa_config.audio_RDM,
+                self.rsa_config.abstract_concrete_RDM,
                 self.rsa_config.radius,
+                self.rsa_config.radius_adjustment,
                 self.Talairach_MNI_space,
                 self.brain.NIfTI,
             )
-            with open(file_name, "wb") as output:
+            with open(file_path, "wb") as output:
                 pickle.dump(results, output)
 
         for brain, smoothed_img, rsa_result in results:
             if plotting:
-                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} Audio RDM".replace(
+                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} radius adjus {str(self.rsa_config.radius_adjustment)} on top of Abstract Concrete RDM".replace(
                     "  ", " "
                 )
                 self.plot_brain_image(smoothed_img, title)
 
         return results
 
-    def RSA_brain_difference_Audio_RDM(self):
+    def RSA_brain_difference_Abstract_Concrete_RDM(self):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
         """
 
-        results = self.RSA_Audio_RDM(plotting=False)
+        results = self.RSA_Abstract_Concrete_RDM(plotting=False)
 
         combinations = itertools.combinations(list(range(len(results))), 2)
         for k, l in combinations:
@@ -650,18 +652,18 @@ class FMRIAnalyser:
 
             smoothed_img._data_cache = smoothed_img._dataobj
 
-            title = f"{self.lobe_name(self.brain)} difference of {self.is_normalized()} {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} on top of Audio RDM".replace(
+            title = f"{self.lobe_name(self.brain)} diff of {self.is_normalized()} {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} radius adjus {str(self.rsa_config.radius_adjustment)} on top of Abstract Concrete RDM".replace(
                 "  ", " "
             )
             self.plot_brain_image(smoothed_img, title)
 
-    def RSA_brain_difference_related_unrelated_RDM(self):
+    def RSA_brain_difference_Related_Unrelated_RDM(self):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
         """
 
-        results = self.RSA_related_unrelated_RDM(plotting=False)
+        results = self.RSA_Related_Unrelated_RDM(plotting=False)
 
         combinations = itertools.combinations(list(range(len(results))), 2)
         for k, l in combinations:
@@ -687,12 +689,12 @@ class FMRIAnalyser:
 
             smoothed_img._data_cache = smoothed_img._dataobj
 
-            title = f"{self.lobe_name(self.brain)} difference of {self.is_normalized()} {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} on top of related unrelated RDM".replace(
+            title = f"{self.lobe_name(self.brain)} diff of {self.is_normalized()} {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} radius adjus {str(self.rsa_config.radius_adjustment)} on top of Related Unrelated RDM".replace(
                 "  ", " "
             )
             self.plot_brain_image(smoothed_img, title)
 
-    def RSA_related_unrelated_RDM(self, plotting=False):
+    def RSA_Related_Unrelated_RDM(self, plotting=False):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
@@ -700,14 +702,15 @@ class FMRIAnalyser:
         self.brain.current_labels = self.brain.subject_labels
 
         if self.rsa_config.normalize:
-            x = self.brain.normalize_whole_data(self.brain.voxels)
+            x = self.brain.normalize_data(self.brain.voxels, self.rsa_config.strategy)
             self.brain.voxels = x
 
-        file_name = f"{self.RSA_related_unrelated_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_Normalized-{str(self.rsa_config.normalize)}.pickle"
+        file_name = f"{self.RSA_Related_Unrelated_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_RadiusAdjus{str(self.rsa_config.radius_adjustment)}_{self.is_normalized().replace(' ', '_')}.pickle"
 
+        file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
         results = None
         try:
-            results = pickle.load(open(file_name, "rb"))
+            results = pickle.load(open(file_path, "rb"))
         except FileNotFoundError as err:
             print("There are no saved RSA results. RSA function will be executed.", err)
 
@@ -717,17 +720,18 @@ class FMRIAnalyser:
             )
             results = RepresentationalSimilarityAnalysis().run_RSA(
                 subject_unary_data,
-                self.rsa_config.audio_RDM,
+                self.rsa_config.abstract_concrete_RDM,
                 self.rsa_config.radius,
+                self.rsa_config.radius_adjustment,
                 self.Talairach_MNI_space,
                 self.brain.NIfTI,
             )
-            with open(file_name, "wb") as output:
+            with open(file_path, "wb") as output:
                 pickle.dump(results, output)
 
         for brain, smoothed_img, rsa_result in results:
             if plotting:
-                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} Related Unrelated RDM".replace(
+                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} radius adjus {str(self.rsa_config.radius_adjustment)} on to of Related Unrelated RDM".replace(
                     "  ", " "
                 )
                 self.plot_brain_image(smoothed_img, title)
@@ -762,7 +766,7 @@ class FMRIAnalyser:
     def is_normalized(self):
         normalized = ""
         if self.rsa_config.normalize:
-            normalized = "Normalized"
+            normalized = f"{self.rsa_config.strategy} imputation"
         return normalized
 
     def lobe_name(self, brain):

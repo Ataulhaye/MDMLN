@@ -41,7 +41,8 @@ class VideoToText:
     def video_to_audio_transcript(self):
         text_dic = None
         try:
-            text_dic = pickle.load(open("SpeechToTextDic.pickle", "rb"))
+            file_path = Path(f"PickleFiles/SpeechToTextDic.pickle").absolute().resolve()
+            text_dic = pickle.load(open(file_path, "rb"))
         except FileNotFoundError as err:
             print(
                 "There is no saved speech to text data. SpeechToText function will be executed.",

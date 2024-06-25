@@ -1,49 +1,33 @@
 import copy
 import itertools
-import pickle
 from heapq import nlargest
 
-import nilearn as ni
 import numpy as np
 import pandas as pd
-import scipy.io
 import scipy.special as special
 import torch
-from matplotlib import pyplot as plt
-from nilearn import image, plotting
-from scipy._lib._bunch import _make_tuple_bunch
+from nilearn import image
 from scipy.spatial import KDTree
 from scipy.stats import spearmanr
 
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
-from ExportData import ExportData
-from RSAConfig import RSAConfig
 
 
 class RepresentationalSimilarityAnalysis:
 
-    def get_spheres(self, radius, coordinates: pd.DataFrame):
-
-        sphere_centers = self.get_sphere_centers(coordinates, radius)
-        # creating xyz points by providing the TALX, TALY, and TALZ
-        xyz_points = np.array(coordinates[["TALX", "TALY", "TALZ"]])
-
-        kdtree = KDTree(xyz_points)
-        # getting the sphere voxels
-        sphere_vox = kdtree.query_ball_point(sphere_centers, radius)
-        # this will remove the empty spheres and map to the sphere centres and return the list of tuples (sphere_centre_dims, sphere_Voxels)
-        # (The voxel dimension in the brain and the voxel indices)
-        final_spheres = [
-            (sphere_centers[i].tolist(), j) for i, j in enumerate(sphere_vox) if j
-        ]
-        return final_spheres
-
-    def run_RSA(self, fmri_data: list[Brain], RDM, radius, tal_MNI_space, NIfTI):
-        # Creating the sphere centers with some radius
-
-        # sphere_centers = self.get_sphere_centers(coordinates, radius)
-        sphere_centers = self.get_sphere_centers(tal_MNI_space, radius)
+    def run_RSA(
+        self,
+        fmri_data: list[Brain],
+        RDM,
+        radius,
+        radius_adjustment,
+        tal_MNI_space,
+        NIfTI,
+    ):
+        sphere_centers = self.get_sphere_centers(
+            tal_MNI_space, radius_adjustment, radius
+        )
         # creating xyz points by providing the TALX, TALY, and TALZ
         xyz_points = np.array(tal_MNI_space[["TALX", "TALY", "TALZ"]])
 
@@ -171,7 +155,7 @@ class RepresentationalSimilarityAnalysis:
         # print(f"Difference  Constant-RDMS - RDMS: {diff}")
         return np.stack(rdms, axis=0)
 
-    def get_sphere_centers(self, df, radius=7):
+    def get_sphere_centers(self, df, radius_adjustment=1.5, radius=7):
 
         bdc = BrainDataConfig()
 
@@ -185,12 +169,12 @@ class RepresentationalSimilarityAnalysis:
         minz = min(talz)
         maxz = max(talz)
 
-        radis_adjus = int(1.5 * radius)
+        final_radius = int(radius_adjustment * radius)
 
         sphere_centers = []
-        for x in range(minx, maxx, radis_adjus):
-            for y in range(miny, maxy, radis_adjus):
-                for z in range(minz, maxz, radis_adjus):
+        for x in range(minx, maxx, final_radius):
+            for y in range(miny, maxy, final_radius):
+                for z in range(minz, maxz, final_radius):
                     sphere_centers.append(np.array([x, y, z]))
 
         return np.array(sphere_centers)

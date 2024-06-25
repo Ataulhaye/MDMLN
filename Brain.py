@@ -152,37 +152,6 @@ class Brain:
         # ]
         # self.all_labels = tuple(("all_labels",np.array([sb + im for sb, im in zip( self.subject_labels.labels,self.image_labels.labels,)]),))
 
-    def normalize_data(self, data, strategy="mean"):
-        """_summary_
-
-        Args:
-        data (_type_): numpy.ndarray
-        strategy (str, optional):The imputation strategy. Defaults to "mean".
-        If "mean", then replace missing values using the mean along each column. Can only be used with numeric data.
-        If "median", then replace missing values using the median along each column. Can only be used with numeric data.
-        If "most_frequent", then replace missing using the most frequent value along each column. Can be used with strings or numeric data. If there is more than one such value, only the smallest is returned.
-        If "constant", then replace missing values with fill_value. Can be used with strings or numeric data.
-        if "remove-trails", then all trails contains nans will be removed
-        if "remove-voxels", will remove all (Columns) in which nans are present
-        if "n_neighbors", nearest neighbour approach, default is 2 neighbours
-
-        Returns:
-            numpy.ndarray
-        """
-        if strategy == "n_neighbors":
-            imputer = KNNImputer(n_neighbors=2)
-            return imputer.fit_transform(data)
-        elif strategy == "remove-voxels":
-            return data[:, ~np.isnan(data).any(axis=0)]
-        elif strategy == "remove-trails":
-            return NotImplementedError
-        elif strategy == None:
-            return data
-        else:
-            imputer = SimpleImputer(missing_values=np.nan, strategy=strategy)
-            imputer.fit(data)
-            return imputer.transform(data)
-
     def normalize_data_safely(self, data_set: TestTrainingSet, strategy="mean"):
         """_summary_
 
@@ -193,53 +162,50 @@ class Brain:
         If "median", then replace missing values using the median along each column. Can only be used with numeric data.
         If "most_frequent", then replace missing using the most frequent value along each column. Can be used with strings or numeric data. If there is more than one such value, only the smallest is returned.
         If "constant", then replace missing values with fill_value. Can be used with strings or numeric data.
-        if "remove-trails", then all trails contains nans will be removed
-        if "remove-voxels", will remove all (Columns) in which nans are present
+        if "remove_voxels", will remove all (Columns) in which nans are present
         if "n_neighbors", nearest neighbour approach, default is 2 neighbours
 
         Returns:
-            TestTrainingSet
+            Imputed TestTrainingSet
         """
-        if strategy == "n_neighbors":
-            imputer = KNNImputer(n_neighbors=2, keep_empty_features=True)
-            imputer.fit(data_set.X_train)
-            x_train = imputer.transform(data_set.X_train)
-            data_set.X_train = x_train
-            x_test = imputer.transform(data_set.X_test)
-            data_set.X_test = x_test
-            return data_set
-        elif strategy == "remove-voxels":
-            X = np.concatenate((data_set.X_train, data_set.X_test))
-            train_len = data_set.X_train.shape[0]
-            X_r = X[:, ~np.isnan(X).any(axis=0)]
-            data_set.X_train = X_r[0:train_len]
-            data_set.X_test = X_r[train_len:]
-            return data_set
-        elif strategy == "remove-trails":
-            return NotImplementedError
-        elif strategy == None:
-            return data_set
-        elif strategy == "mice":
-            mice_imput = IterativeImputer(keep_empty_features=True)
-            mice_imput.fit(data_set.X_train)
-            x_train = mice_imput.transform(data_set.X_train)
-            x_test = mice_imput.transform(data_set.X_test)
-            data_set.X_train = x_train
-            data_set.X_test = x_test
-            return data_set
-        else:
-            imputer = SimpleImputer(
-                missing_values=np.nan, strategy=strategy, keep_empty_features=True
-            )
-            # , keep_empty_features=True
-            imputer.fit(data_set.X_train)
-            x_train = imputer.transform(data_set.X_train)
-            data_set.X_train = x_train
-            x_test = imputer.transform(data_set.X_test)
-            data_set.X_test = x_test
-            return data_set
+        match strategy:
+            case "mean" | "median" | "most_frequent" | "constant":
+                imputer = SimpleImputer(
+                    missing_values=np.nan, strategy=strategy, keep_empty_features=True
+                )
+                imputer.fit(data_set.X_train)
+                x_train = imputer.transform(data_set.X_train)
+                data_set.X_train = x_train
+                x_test = imputer.transform(data_set.X_test)
+                data_set.X_test = x_test
+                return data_set
+            case "remove_voxels":
+                X = np.concatenate((data_set.X_train, data_set.X_test))
+                train_len = data_set.X_train.shape[0]
+                X_r = X[:, ~np.isnan(X).any(axis=0)]
+                data_set.X_train = X_r[0:train_len]
+                data_set.X_test = X_r[train_len:]
+                return data_set
+            case "mice":
+                mice_imput = IterativeImputer(keep_empty_features=True)
+                mice_imput.fit(data_set.X_train)
+                x_train = mice_imput.transform(data_set.X_train)
+                x_test = mice_imput.transform(data_set.X_test)
+                data_set.X_train = x_train
+                data_set.X_test = x_test
+                return data_set
+            case "n_neighbors":
+                imputer = KNNImputer(n_neighbors=2, keep_empty_features=True)
+                imputer.fit(data_set.X_train)
+                x_train = imputer.transform(data_set.X_train)
+                data_set.X_train = x_train
+                x_test = imputer.transform(data_set.X_test)
+                data_set.X_test = x_test
+                return data_set
+            case None:
+                return data_set
 
-    def normalize_whole_data(self, X, strategy="mean"):
+    def normalize_data(self, X, strategy="mean"):
         """_summary_
 
         Args:
@@ -249,37 +215,35 @@ class Brain:
         If "median", then replace missing values using the median along each column. Can only be used with numeric data.
         If "most_frequent", then replace missing using the most frequent value along each column. Can be used with strings or numeric data. If there is more than one such value, only the smallest is returned.
         If "constant", then replace missing values with fill_value. Can be used with strings or numeric data.
-        if "remove-trails", then all trails contains nans will be removed
-        if "remove-voxels", will remove all (Columns) in which nans are present
+        if "remove_voxels", will remove all (Columns) in which nans are present
         if "n_neighbors", nearest neighbour approach, default is 2 neighbours
 
         Returns:
-            TestTrainingSet
+            imputed X
         """
-        if strategy == "n_neighbors":
-            imputer = KNNImputer(n_neighbors=2, keep_empty_features=True)
-            imputer.fit(X)
-            x = imputer.transform(X)
-            return x
-        elif strategy == "remove-voxels":
-            X_r = X[:, ~np.isnan(X).any(axis=0)]
-            return X_r
-        elif strategy == "remove-trails":
-            return NotImplementedError
-        elif strategy == None:
-            return X
-        elif strategy == "mice":
-            mice_imput = IterativeImputer(keep_empty_features=True)
-            mice_imput.fit(X)
-            x = mice_imput.transform(X)
-            return x
-        else:
-            imputer = SimpleImputer(
-                missing_values=np.nan, strategy=strategy, keep_empty_features=True
-            )
-            imputer.fit(X)
-            x = imputer.transform(X)
-            return x
+        match strategy:
+            case "mean" | "median" | "most_frequent" | "constant":
+                imputer = SimpleImputer(
+                    missing_values=np.nan, strategy=strategy, keep_empty_features=True
+                )
+                imputer.fit(X)
+                x = imputer.transform(X)
+                return x
+            case "remove_voxels":
+                X_r = X[:, ~np.isnan(X).any(axis=0)]
+                return X_r
+            case "mice":
+                mice_imput = IterativeImputer(keep_empty_features=True)
+                mice_imput.fit(X)
+                x = mice_imput.transform(X)
+                return x
+            case "n_neighbors":
+                imputer = KNNImputer(n_neighbors=2, keep_empty_features=True)
+                imputer.fit(X)
+                x = imputer.transform(X)
+                return x
+            case None:
+                return X
 
     def calculate_nans_trail_wise(self, data):
         # lis = [sum(np.isnan(x)) for x in zip(*data)]

@@ -13,3 +13,13 @@ class LabelType(Enum):
     Image = 2
     Subject_int = 3
     Image_int = 4
+
+
+class Strategy(Enum):
+    mean = 1
+    median = 2
+    most_frequent = 3
+    constant = 4
+    remove_voxels = 5
+    n_neighbors = 6
+    mice = 7

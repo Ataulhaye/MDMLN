@@ -19,7 +19,7 @@ from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
 from BrainTrainUtils import load_bestmodel_and_test
 from DataTraining import DataTraining
-from Enums import Lobe
+from Enums import Lobe, Strategy
 from EvaluateTrainingModel import EvaluateTrainingModel
 from ExportData import ExportData
 from FMRIAnalyser import FMRIAnalyser
@@ -869,30 +869,32 @@ def main():
     # generate_text_file_from_videos()
 
     rsa_con = RSAConfig()
-    rsa_con.normalize = True
+    rsa_con.strategy = Strategy.mice.name
+    rsa_con.radius_adjustment = 1.5
     analyser = FMRIAnalyser(Lobe.ALL, rsa_config=rsa_con)
-    # analyser = FMRIAnalyser(Lobe.ALL)
-    analyser.RSA_brain_difference_related_unrelated_RDM()
-    analyser.RSA_brain_difference_Audio_RDM()
-    analyser.RSA_Audio_RDM()
-    analyser.RSA_related_unrelated_RDM()
+    # analyser = FMRIAnalyser(Lobe.ALL    analyser.RSA_Abstract_Concrete_RDM()
+    analyser.RSA_Abstract_Concrete_RDM()
+    analyser.RSA_Related_Unrelated_RDM()
+
+    analyser.RSA_brain_difference_Related_Unrelated_RDM()
+    analyser.RSA_brain_difference_Abstract_Concrete_RDM()
 
     analyser = FMRIAnalyser(Lobe.STG, rsa_config=rsa_con)
-    analyser.RSA_related_unrelated_RDM()
+    analyser.RSA_Related_Unrelated_RDM()
 
     analyser = FMRIAnalyser(Lobe.ALL)
-    analyser.RSA_related_unrelated_RDM()
+    analyser.RSA_Related_Unrelated_RDM()
 
     analyser = FMRIAnalyser(Lobe.STG)
-    analyser.RSA_related_unrelated_RDM()
+    analyser.RSA_Related_Unrelated_RDM()
 
     rsa_con = RSAConfig()
     rsa_con.normalize = True
     analyser = FMRIAnalyser(Lobe.ALL, rsa_config=rsa_con)
-    analyser.RSA_Audio_RDM()
+    analyser.RSA_Abstract_Concrete_RDM()
 
     analyser = FMRIAnalyser(Lobe.STG, rsa_config=rsa_con)
-    analyser.RSA_Audio_RDM()
+    analyser.RSA_Abstract_Concrete_RDM()
 
     analyser = FMRIAnalyser(Lobe.IFG)
     analyser.training_config.dimension_reduction = True
@@ -932,7 +934,7 @@ def main():
         "median",
         "most_frequent",
         "constant",
-        "remove-voxels",
+        "remove_voxels",
         "n_neighbors",
     ]
     classifiers = [
@@ -949,7 +951,7 @@ def main():
         "LogisticRegression",
         "RandomForest",
     ]
-    strategies = ["mean", "remove-voxels", "median"]
+    strategies = ["mean", "remove_voxels", "median"]
     # classifiers = ["SVM", "MLP", "LinearDiscriminant"]
     classifiers = ["SVM", "MLP", "LinearDiscriminant", "LGBM"]
     # classifiers = ["LinearDiscriminant"]
