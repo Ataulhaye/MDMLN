@@ -1,20 +1,15 @@
 import copy
 import itertools
+import os
 import pickle
 import statistics
+import time
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-import nibabel as nib
-import nilearn as ni
 import numpy as np
 import pandas as pd
-import scipy.io
-import seaborn as sns
-import torch
-from nilearn import datasets, image, plotting
-from scipy.spatial import KDTree
-from scipy.stats import spearmanr
+from nilearn import image, plotting
 
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
@@ -584,19 +579,21 @@ class FMRIAnalyser:
         """
         self.brain.current_labels = self.brain.subject_labels
 
-        if self.rsa_config.normalize:
-            x = self.brain.normalize_data(self.brain.voxels, self.rsa_config.strategy)
-            self.brain.voxels = x
-
-        file_name = f"{self.RSA_Abstract_Concrete_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_RadiusAdjus{str(self.rsa_config.radius_adjustment)}_{self.is_normalized().replace(' ', '_')}.pickle"
+        file_name = f"{self.RSA_Abstract_Concrete_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}.pickle"
         file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
-        results = None
-        try:
-            results = pickle.load(open(file_path, "rb"))
-        except FileNotFoundError as err:
-            print("There are no saved RSA results. RSA function will be executed.", err)
 
-        if results is None:
+        results = None
+
+        if file_path.is_file():
+            results = pickle.load(open(file_path, "rb"))
+        else:
+            print(f"There are no saved RSA results {file_path}. Executing results.")
+            if self.rsa_config.normalize:
+                x = self.brain.normalize_data(
+                    self.brain.voxels, self.rsa_config.strategy
+                )
+                self.brain.voxels = x
+
             subject_unary_data = self.brain.unary_fmri_subject_or_image(
                 self.data_config
             )
@@ -613,10 +610,12 @@ class FMRIAnalyser:
 
         for brain, smoothed_img, rsa_result in results:
             if plotting:
-                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} radius adjus {str(self.rsa_config.radius_adjustment)} on top of Abstract Concrete RDM".replace(
+                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Abstract Concrete RDM".replace(
                     "  ", " "
                 )
-                self.plot_brain_image(smoothed_img, title)
+                self.plot_brain_image(
+                    smoothed_img, title, self.RSA_Abstract_Concrete_RDM.__name__
+                )
 
         return results
 
@@ -628,34 +627,29 @@ class FMRIAnalyser:
 
         results = self.RSA_Abstract_Concrete_RDM(plotting=False)
 
-        combinations = itertools.combinations(list(range(len(results))), 2)
-        for k, l in combinations:
-            smoothed_img = image.smooth_img(self.brain.NIfTI, None)
-            smoothed_img._dataobj = np.zeros(smoothed_img._dataobj.shape)
-            brain_k, smoothed_img_k, rsa_result_k = results[k]
-            brain_l, smoothed_img_l, rsa_result_l = results[l]
-            assert len(rsa_result_k) == len(rsa_result_l)
-            i = 0
-            while i < len(rsa_result_k):
-                sph_cntr_k, vox_indices_k, r_k, aal_coors_k = rsa_result_k[i]
-                sph_cntr_l, vox_indices_l, r_l, aal_coors_l = rsa_result_l[i]
+        file_name = f"{self.RSA_brain_difference_Abstract_Concrete_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}.pickle"
 
-                assert sph_cntr_k == sph_cntr_l
-                assert vox_indices_k == vox_indices_l
-                assert aal_coors_k == aal_coors_l
+        file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
 
-                for vox_index in vox_indices_k:
-                    for aal_coo in aal_coors_k:
-                        smoothed_img._dataobj[aal_coo] = abs(r_k - r_l)
+        difference_results = None
 
-                i += 1
+        if file_path.is_file():
+            difference_results = pickle.load(open(file_path, "rb"))
+        else:
+            print(f"There are no saved RSA results {file_path}. Executing results.")
+            difference_results = self.RSA_brain_difference(results)
+            with open(file_path, "wb") as output:
+                pickle.dump(difference_results, output)
 
-            smoothed_img._data_cache = smoothed_img._dataobj
-
-            title = f"{self.lobe_name(self.brain)} diff of {self.is_normalized()} {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} radius adjus {str(self.rsa_config.radius_adjustment)} on top of Abstract Concrete RDM".replace(
+        for smoothed_img, brain_k, brain_l in difference_results:
+            title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Abstract Concrete RDM".replace(
                 "  ", " "
             )
-            self.plot_brain_image(smoothed_img, title)
+            self.plot_brain_image(
+                smoothed_img,
+                title,
+                self.RSA_brain_difference_Abstract_Concrete_RDM.__name__,
+            )
 
     def RSA_brain_difference_Related_Unrelated_RDM(self):
         """
@@ -665,6 +659,32 @@ class FMRIAnalyser:
 
         results = self.RSA_Related_Unrelated_RDM(plotting=False)
 
+        file_name = f"{self.RSA_brain_difference_Related_Unrelated_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}.pickle"
+
+        file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
+
+        difference_results = None
+
+        if file_path.is_file():
+            difference_results = pickle.load(open(file_path, "rb"))
+        else:
+            print(f"There are no saved RSA results {file_path}. Executing results.")
+            difference_results = self.RSA_brain_difference(results)
+            with open(file_path, "wb") as output:
+                pickle.dump(difference_results, output)
+
+        for smoothed_img, brain_k, brain_l in difference_results:
+            title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Related Unrelated RDM".replace(
+                "  ", " "
+            )
+            self.plot_brain_image(
+                smoothed_img,
+                title,
+                self.RSA_brain_difference_Related_Unrelated_RDM.__name__,
+            )
+
+    def RSA_brain_difference(self, results):
+        difference_results = []
         combinations = itertools.combinations(list(range(len(results))), 2)
         for k, l in combinations:
             smoothed_img = image.smooth_img(self.brain.NIfTI, None)
@@ -688,33 +708,39 @@ class FMRIAnalyser:
                 i += 1
 
             smoothed_img._data_cache = smoothed_img._dataobj
-
-            title = f"{self.lobe_name(self.brain)} diff of {self.is_normalized()} {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} radius adjus {str(self.rsa_config.radius_adjustment)} on top of Related Unrelated RDM".replace(
-                "  ", " "
+            difference_results.append(
+                (
+                    smoothed_img,
+                    brain_k,
+                    brain_l,
+                )
             )
-            self.plot_brain_image(smoothed_img, title)
+        return difference_results
 
-    def RSA_Related_Unrelated_RDM(self, plotting=False):
+    def RSA_Related_Unrelated_RDM(self, plotting=True):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
         """
         self.brain.current_labels = self.brain.subject_labels
 
-        if self.rsa_config.normalize:
-            x = self.brain.normalize_data(self.brain.voxels, self.rsa_config.strategy)
-            self.brain.voxels = x
-
-        file_name = f"{self.RSA_Related_Unrelated_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_RadiusAdjus{str(self.rsa_config.radius_adjustment)}_{self.is_normalized().replace(' ', '_')}.pickle"
+        file_name = f"{self.RSA_Related_Unrelated_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}.pickle"
 
         file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
         results = None
-        try:
-            results = pickle.load(open(file_path, "rb"))
-        except FileNotFoundError as err:
-            print("There are no saved RSA results. RSA function will be executed.", err)
 
-        if results is None:
+        if file_path.is_file():
+            results = pickle.load(open(file_path, "rb"))
+        else:
+            print(
+                f"There are no saved RSA results {file_path}. RSA function will be executed."
+            )
+            if self.rsa_config.normalize:
+                x = self.brain.normalize_data(
+                    self.brain.voxels, self.rsa_config.strategy
+                )
+                self.brain.voxels = x
+
             subject_unary_data = self.brain.unary_fmri_subject_or_image(
                 self.data_config
             )
@@ -731,29 +757,42 @@ class FMRIAnalyser:
 
         for brain, smoothed_img, rsa_result in results:
             if plotting:
-                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} radius adjus {str(self.rsa_config.radius_adjustment)} on to of Related Unrelated RDM".replace(
+                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Related Unrelated RDM".replace(
                     "  ", " "
                 )
-                self.plot_brain_image(smoothed_img, title)
+                self.plot_brain_image(
+                    smoothed_img, title, self.RSA_Related_Unrelated_RDM.__name__
+                )
 
         return results
 
-    def plot_brain_image(self, smoothed_img, title):
+    def plot_brain_image(self, smoothed_img, title, directory, show=False):
         # rdm_typ = f"{self.rsa_config.related_unrelated_RDM=}".split("=")[0].split(".")[2]
         # atlas = datasets.fetch_atlas_talairach("ba")
-
+        # build the path base on directory
+        # RSA_Results/directory/
+        directory_path = Path(f"RSA_Results/{directory}").absolute().resolve()
+        Path(directory_path).mkdir(parents=True, exist_ok=True)
         display = plotting.plot_glass_brain(
-            smoothed_img, threshold=0, title=title, display_mode="lzry"
+            smoothed_img, threshold=0, title=title, display_mode="lzry", colorbar=True
         )
         # display = plotting.plot_stat_map(smoothed_img, threshold=0)
         # display.savefig("pretty_brain.png")
         # plotting.plot_glass_brain(smoothed_img, threshold=0)
-        plotting.show()
+        time.sleep(1)
 
-        graph_name = ExportData.get_file_name(".png", title.replace(" ", "_"))
-        plt.savefig(graph_name)
-        display.close()
-        plt.close()
+        if show:
+            plotting.show()
+
+        graph_name = ExportData.get_graph_name(".png", title.replace(" ", "_"))
+
+        file_path = Path(directory_path).joinpath(graph_name)
+
+        plt.savefig(file_path)
+
+        if show:
+            display.close()
+            plt.close()
         # display = plotting.plot_glass_brain(None, plot_abs=False, display_mode="lzry", title=title)
         # display.add_contours(smoothed_img, filled=True)
         # plotting.show()

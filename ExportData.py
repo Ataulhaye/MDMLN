@@ -267,6 +267,12 @@ class ExportData:
         sheet_name = f"{sheet_name}_{dt}{extension}"
         return sheet_name
 
+    @staticmethod
+    def get_graph_name(extension, name):
+        dt = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+        name = f"{name}_{dt}{extension}"
+        return name
+
     def prepare_data_matrix(self, data: list[ExportEntity]):
         for scn in data:
             if scn.sub_column_name is None:

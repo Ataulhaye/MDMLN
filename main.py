@@ -870,14 +870,16 @@ def main():
 
     rsa_con = RSAConfig()
     rsa_con.strategy = Strategy.mice.name
-    rsa_con.radius_adjustment = 1.5
     analyser = FMRIAnalyser(Lobe.ALL, rsa_config=rsa_con)
-    # analyser = FMRIAnalyser(Lobe.ALL    analyser.RSA_Abstract_Concrete_RDM()
     analyser.RSA_Abstract_Concrete_RDM()
+    analyser = FMRIAnalyser(Lobe.ALL, rsa_config=rsa_con)
     analyser.RSA_Related_Unrelated_RDM()
-
+    analyser = FMRIAnalyser(Lobe.ALL, rsa_config=rsa_con)
     analyser.RSA_brain_difference_Related_Unrelated_RDM()
+    analyser = FMRIAnalyser(Lobe.ALL, rsa_config=rsa_con)
     analyser.RSA_brain_difference_Abstract_Concrete_RDM()
+
+    # analyser.RSA_brain_difference_Abstract_Concrete_RDM()
 
     analyser = FMRIAnalyser(Lobe.STG, rsa_config=rsa_con)
     analyser.RSA_Related_Unrelated_RDM()
