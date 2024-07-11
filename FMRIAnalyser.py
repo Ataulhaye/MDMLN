@@ -9,7 +9,9 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import torch
 from nilearn import image, plotting
+from sklearn.decomposition import PCA
 
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
@@ -572,6 +574,335 @@ class FMRIAnalyser:
             transpose=True,
         )
 
+    def Searchlight_Text_Embeddings(self, set_name, plotting=True):
+        """
+        Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
+        i.e unary_subject_labels_N
+        """
+        self.brain.current_labels = self.brain.subject_labels
+
+        file_name = f"{self.Searchlight_Text_Embeddings.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}_{set_name}.pickle"
+        file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
+
+        results = None
+
+        if file_path.is_file():
+            results = pickle.load(open(file_path, "rb"))
+        else:
+            print(f"There are no saved RSA results {file_path}. Executing results.")
+
+            if self.rsa_config.normalize:
+                x = self.brain.normalize_data(
+                    self.brain.voxels, self.rsa_config.strategy
+                )
+                self.brain.voxels = x
+
+            subject_unary_data = self.brain.unary_fmri_subject_or_image(
+                self.data_config
+            )
+
+            embeddings = pickle.load(
+                open(
+                    Path(f"PickleFiles/MCQ_Embeddings_{set_name}.pickle")
+                    .absolute()
+                    .resolve(),
+                    "rb",
+                )
+            )
+
+            txt_embeddings = self.average_embeddings(embeddings, 1)
+            del embeddings
+            txt_rdm = RepresentationalSimilarityAnalysis().create_embedding_RDM(
+                txt_embeddings
+            )
+            results = RepresentationalSimilarityAnalysis().run_RSA(
+                subject_unary_data,
+                txt_rdm,
+                self.rsa_config.radius,
+                self.rsa_config.radius_adjustment,
+                self.Talairach_MNI_space,
+                self.brain.NIfTI,
+            )
+            with open(file_path, "wb") as output:
+                pickle.dump(results, output)
+
+        for brain, smoothed_img, rsa_result in results:
+            if plotting:
+                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Text Embeddings RDM, {set_name}".replace(
+                    "  ", " "
+                )
+                self.plot_brain_image(
+                    smoothed_img, title, self.Searchlight_Text_Embeddings.__name__
+                )
+
+        return results
+
+    def Searchlight_brain_difference_Text_Embeddings_RDM(self, set_name):
+        """
+        Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
+        i.e unary_subject_labels_N
+        """
+
+        results = self.Searchlight_Text_Embeddings(set_name, plotting=False)
+
+        file_name = f"{self.Searchlight_brain_difference_Text_Embeddings_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}_{set_name}.pickle"
+
+        file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
+
+        difference_results = None
+
+        if file_path.is_file():
+            difference_results = pickle.load(open(file_path, "rb"))
+        else:
+            print(f"There are no saved RSA results {file_path}. Executing results.")
+            difference_results = self.RSA_brain_difference(results)
+            with open(file_path, "wb") as output:
+                pickle.dump(difference_results, output)
+
+        for smoothed_img, brain_k, brain_l in difference_results:
+            title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Text Embeddings RDM, {set_name}".replace(
+                "  ", " "
+            )
+            self.plot_brain_image(
+                smoothed_img,
+                title,
+                self.Searchlight_brain_difference_Text_Embeddings_RDM.__name__,
+            )
+
+    def Searchlight_Video_Embeddings(self, set_name, plotting=True):
+        """
+        Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
+        i.e unary_subject_labels_N
+        """
+        self.brain.current_labels = self.brain.subject_labels
+
+        file_name = f"{self.Searchlight_Video_Embeddings.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}_{set_name}.pickle"
+        file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
+
+        results = None
+
+        if file_path.is_file():
+            results = pickle.load(open(file_path, "rb"))
+        else:
+            print(f"There are no saved RSA results {file_path}. Executing results.")
+
+            if self.rsa_config.normalize:
+                x = self.brain.normalize_data(
+                    self.brain.voxels, self.rsa_config.strategy
+                )
+                self.brain.voxels = x
+
+            subject_unary_data = self.brain.unary_fmri_subject_or_image(
+                self.data_config
+            )
+
+            embeddings = pickle.load(
+                open(
+                    Path(f"PickleFiles/MCQ_Embeddings_{set_name}.pickle")
+                    .absolute()
+                    .resolve(),
+                    "rb",
+                )
+            )
+
+            video_embeddings = self.average_embeddings(embeddings, 4)
+            del embeddings
+            video_rdm = RepresentationalSimilarityAnalysis().create_embedding_RDM(
+                video_embeddings
+            )
+            results = RepresentationalSimilarityAnalysis().run_RSA(
+                subject_unary_data,
+                video_rdm,
+                self.rsa_config.radius,
+                self.rsa_config.radius_adjustment,
+                self.Talairach_MNI_space,
+                self.brain.NIfTI,
+            )
+            with open(file_path, "wb") as output:
+                pickle.dump(results, output)
+
+        for brain, smoothed_img, rsa_result in results:
+            if plotting:
+                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Video Embeddings RDM, {set_name}".replace(
+                    "  ", " "
+                )
+                self.plot_brain_image(
+                    smoothed_img, title, self.Searchlight_Video_Embeddings.__name__
+                )
+
+        return results
+
+    def Searchlight_brain_difference_Video_Embeddings_RDM(self, set_name):
+        """
+        Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
+        i.e unary_subject_labels_N
+        """
+
+        results = self.Searchlight_Video_Embeddings(set_name, plotting=False)
+
+        file_name = f"{self.Searchlight_brain_difference_Video_Embeddings_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}_{set_name}.pickle"
+
+        file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
+
+        difference_results = None
+
+        if file_path.is_file():
+            difference_results = pickle.load(open(file_path, "rb"))
+        else:
+            print(f"There are no saved RSA results {file_path}. Executing results.")
+            difference_results = self.RSA_brain_difference(results)
+            with open(file_path, "wb") as output:
+                pickle.dump(difference_results, output)
+
+        for smoothed_img, brain_k, brain_l in difference_results:
+            title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Video Embeddings RDM, {set_name}".replace(
+                "  ", " "
+            )
+            self.plot_brain_image(
+                smoothed_img,
+                title,
+                self.Searchlight_brain_difference_Video_Embeddings_RDM.__name__,
+            )
+
+    def Searchlight_Bridge_Embeddings(self, set_name, plotting=True):
+        """
+        Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
+        i.e unary_subject_labels_N
+        """
+        self.brain.current_labels = self.brain.subject_labels
+
+        file_name = f"{self.Searchlight_Bridge_Embeddings.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}_{set_name}.pickle"
+        file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
+
+        results = None
+
+        if file_path.is_file():
+            results = pickle.load(open(file_path, "rb"))
+        else:
+            print(f"There are no saved RSA results {file_path}. Executing results.")
+
+            if self.rsa_config.normalize:
+                x = self.brain.normalize_data(
+                    self.brain.voxels, self.rsa_config.strategy
+                )
+                self.brain.voxels = x
+
+            subject_unary_data = self.brain.unary_fmri_subject_or_image(
+                self.data_config
+            )
+
+            embeddings = pickle.load(
+                open(
+                    Path(f"PickleFiles/MCQ_Embeddings_{set_name}.pickle")
+                    .absolute()
+                    .resolve(),
+                    "rb",
+                )
+            )
+
+            bridge_embeddings = self.average_embeddings(embeddings, 3)
+            del embeddings
+            bridge_rdm = RepresentationalSimilarityAnalysis().create_embedding_RDM(
+                bridge_embeddings
+            )
+            results = RepresentationalSimilarityAnalysis().run_RSA(
+                subject_unary_data,
+                bridge_rdm,
+                self.rsa_config.radius,
+                self.rsa_config.radius_adjustment,
+                self.Talairach_MNI_space,
+                self.brain.NIfTI,
+            )
+            with open(file_path, "wb") as output:
+                pickle.dump(results, output)
+
+        for brain, smoothed_img, rsa_result in results:
+            if plotting:
+                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Bridge Embeddings RDM, {set_name}".replace(
+                    "  ", " "
+                )
+                self.plot_brain_image(
+                    smoothed_img, title, self.Searchlight_Bridge_Embeddings.__name__
+                )
+
+        return results
+
+    def Searchlight_brain_difference_Bridge_Embeddings_RDM(self, set_name):
+        """
+        Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
+        i.e unary_subject_labels_N
+        """
+
+        results = self.Searchlight_Bridge_Embeddings(set_name, plotting=False)
+
+        file_name = f"{self.Searchlight_brain_difference_Bridge_Embeddings_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}_{set_name}.pickle"
+
+        file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
+
+        difference_results = None
+
+        if file_path.is_file():
+            difference_results = pickle.load(open(file_path, "rb"))
+        else:
+            print(f"There are no saved RSA results {file_path}. Executing results.")
+            difference_results = self.RSA_brain_difference(results)
+            with open(file_path, "wb") as output:
+                pickle.dump(difference_results, output)
+
+        for smoothed_img, brain_k, brain_l in difference_results:
+            title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Bridge Embeddings RDM, {set_name}".replace(
+                "  ", " "
+            )
+            self.plot_brain_image(
+                smoothed_img,
+                title,
+                self.Searchlight_brain_difference_Bridge_Embeddings_RDM.__name__,
+            )
+
+    def average_embeddings(self, embeddings, index):
+        """
+        key => 0;
+        text_embed => 1;
+        answer_embed => 2;
+        bridge_embed => 3;
+        vid_embed => 4;
+        en_de_txt => 5;
+        """
+        if index < 1 or index > 4:
+            raise IndexError("To process embeddings index range is [1-4]")
+
+        abstract_related = "mp_dt"
+        abstract_unrelated = "fm_dt"
+        concrete_related = "ik_dt"
+        concrete_unrelated = "fi_dt"
+        ar_embed = []
+        au_embed = []
+        cr_embed = []
+        cu_embed = []
+        for embed in embeddings:
+            # key,text_embed,answer_embed,bridge_embed,vid_embed,en_de_txt = embed
+            if abstract_related in embed[0]:
+                ar_embed.append(embed[index].cpu())
+            elif abstract_unrelated in embed[0]:
+                au_embed.append(embed[index].cpu())
+            elif concrete_related in embed[0]:
+                cr_embed.append(embed[index].cpu())
+            elif concrete_unrelated in embed[0]:
+                cu_embed.append(embed[index].cpu())
+
+        # a = [1.0, 2.0, 3.0, 4.0]
+        # ta = torch.tensor(a)
+        # b = [5.0, 6.0, 7.0, 8.0]
+        # tb = torch.tensor(b)
+        # f = torch.stack([ta, tb]).mean(dim=0)
+        ar_embed_m = torch.stack(ar_embed).mean(dim=0)
+        au_embed_m = torch.stack(au_embed).mean(dim=0)
+        cr_embed_m = torch.stack(cr_embed).mean(dim=0)
+        cu_embed_m = torch.stack(cu_embed).mean(dim=0)
+        avg_embeddings = np.array([ar_embed_m, au_embed_m, cr_embed_m, cu_embed_m])
+
+        return avg_embeddings
+
     def RSA_Abstract_Concrete_RDM(self, plotting=True):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
@@ -768,11 +1099,11 @@ class FMRIAnalyser:
 
     def plot_brain_image(self, smoothed_img, title, directory, show=False):
         # rdm_typ = f"{self.rsa_config.related_unrelated_RDM=}".split("=")[0].split(".")[2]
-        # atlas = datasets.fetch_atlas_talairach("ba")
-        # build the path base on directory
-        # RSA_Results/directory/
+
         directory_path = Path(f"RSA_Results/{directory}").absolute().resolve()
         Path(directory_path).mkdir(parents=True, exist_ok=True)
+
+        # display, axes = plotting.plot_img_on_surf( smoothed_img,surf_mesh="fsaverage", views=["lateral", "medial"],hemispheres=["left", "right"],inflate=False,colorbar=True,bg_on_data=True,cmap="hsv_r")
         display = plotting.plot_glass_brain(
             smoothed_img, threshold=0, title=title, display_mode="lzry", colorbar=True
         )
@@ -781,9 +1112,6 @@ class FMRIAnalyser:
         # plotting.plot_glass_brain(smoothed_img, threshold=0)
         time.sleep(1)
 
-        if show:
-            plotting.show()
-
         graph_name = ExportData.get_graph_name(".png", title.replace(" ", "_"))
 
         file_path = Path(directory_path).joinpath(graph_name)
@@ -791,6 +1119,7 @@ class FMRIAnalyser:
         plt.savefig(file_path)
 
         if show:
+            plotting.show()
             display.close()
             plt.close()
         # display = plotting.plot_glass_brain(None, plot_abs=False, display_mode="lzry", title=title)
@@ -801,6 +1130,120 @@ class FMRIAnalyser:
         # plt.savefig(graph_name)
         # display.close()
         # plt.close()
+
+    def plot_brain_image_test(self, smoothed_img, title, directory, show=False):
+        # rdm_typ = f"{self.rsa_config.related_unrelated_RDM=}".split("=")[0].split(".")[2]
+        from nilearn import datasets, surface
+
+        atlas = datasets.fetch_atlas_talairach("ba")
+
+        directory_path = Path(f"RSA_Results/{directory}").absolute().resolve()
+        Path(directory_path).mkdir(parents=True, exist_ok=True)
+
+        # display, axes = plotting.plot_img_on_surf( smoothed_img,surf_mesh="fsaverage", views=["lateral", "medial"],hemispheres=["left", "right"],inflate=False,colorbar=True,bg_on_data=True,cmap="hsv_r")
+        display = plotting.plot_glass_brain(
+            smoothed_img, threshold=0, title=title, display_mode="lzry", colorbar=True
+        )
+        # display = plotting.plot_stat_map(smoothed_img, threshold=0)
+        # display.savefig("pretty_brain.png")
+        # plotting.plot_glass_brain(smoothed_img, threshold=0)
+        time.sleep(1)
+
+        graph_name = ExportData.get_graph_name(".png", title.replace(" ", "_"))
+
+        file_path = Path(directory_path).joinpath(graph_name)
+
+        plt.savefig(file_path)
+
+        if show:
+            plotting.show()
+            display.close()
+            plt.close()
+        # display = plotting.plot_glass_brain(None, plot_abs=False, display_mode="lzry", title=title)
+        # display.add_contours(smoothed_img, filled=True)
+        # plotting.show()
+
+        # graph_name = ExportData.get_file_name(".png", title.replace(" ", "_"))
+        # plt.savefig(graph_name)
+        # display.close()
+        # plt.close()
+
+    def tes(
+        self,
+    ):
+        import cmasher as cmr
+        import nilearn
+        import numpy as np
+        from matplotlib import cm
+        from matplotlib.colors import LinearSegmentedColormap, ListedColormap
+        from nilearn import datasets, plotting, surface
+
+        # Initialization
+        color = "hsv_r"
+        range_cmap = cmr.get_sub_cmap(color, 0.3, 1)
+
+        # Custom colormap
+
+        upper = cm.get_cmap(range_cmap, 999)
+        lower = cm.get_cmap(range_cmap, 999)
+
+        combine = np.vstack(
+            (upper(np.linspace(0, 1, 999)), lower(np.linspace(0, 1, 999)))
+        )
+        custom_cmap = ListedColormap(combine, name="custom_map")
+
+        # Data
+        nifti = nilearn.image.load_img("load-your-nifti-file")
+
+        # Cortical mesh
+        fsaverage = datasets.fetch_surf_fsaverage(mesh="fsaverage")
+
+        # Sample the 3D data around each node of the mesh
+        texture = surface.vol_to_surf(nifti, fsaverage.pial_right)
+
+        # Plot
+        fig = plotting.plot_surf_stat_map(
+            surf_mesh=fsaverage.pial_right,
+            stat_map=texture,
+            bg_map=fsaverage.sulc_right,
+            bg_on_data=True,
+            alpha=1,
+            vmax=8.64,
+            threshold=False,
+            hemi="right",
+            title="Surface right hemisphere",
+            colorbar=True,
+            symmetric_cbar=False,
+            cmap=custom_cmap,
+        )
+        fig.show()
+
+    """
+    'Accent', 'Accent_r', 'Blues', 'Blues_r', 'BrBG', 'BrBG_r', 'BuGn', 'BuGn_r', 'BuPu', 'BuPu_r', 'CMRmap',
+    'CMRmap_r', 'Dark2', 'Dark2_r', 'GnBu', 'GnBu_r', 'Grays', 'Greens', 'Greens_r', 'Greys', 'Greys_r', 'OrRd', 
+    'OrRd_r', 'Oranges', 'Oranges_r', 'PRGn', 'PRGn_r', 'Paired', 'Paired_r', 'Pastel1', 'Pastel1_r', 'Pastel2', 
+    'Pastel2_r', 'PiYG', 'PiYG_r', 'PuBu', 'PuBuGn', 'PuBuGn_r', 'PuBu_r', 'PuOr', 'PuOr_r', 'PuRd', 'PuRd_r', 
+    'Purples', 'Purples_r', 'RdBu', 'RdBu_r', 'RdGy', 'RdGy_r', 'RdPu', 'RdPu_r', 'RdYlBu', 'RdYlBu_r', 'RdYlGn',
+    'RdYlGn_r', 'Reds', 'Reds_r', 'Set1', 'Set1_r', 'Set2', 'Set2_r', 'Set3', 'Set3_r', 'Spectral', 'Spectral_r',
+    'Wistia', 'Wistia_r', 'YlGn', 'YlGnBu', 'YlGnBu_r', 'YlGn_r', 'YlOrBr', 'YlOrBr_r', 'YlOrRd', 'YlOrRd_r', 'afmhot', 
+    'afmhot_r', 'autumn', 'autumn_r', 'binary', 'binary_r', 'black_blue', 'black_blue_r', 'black_green', 'black_green_r', 
+    'black_pink', 'black_pink_r', 'black_purple', 'black_purple_r', 'black_red', 'black_red_r', 'blue_orange', 'blue_orange_r',
+    'blue_red', 'blue_red_r', 'blue_transparent', 'blue_transparent_full_alpha_range', 'bone', 'bone_r', 'brg', 'brg_r', 
+    'brown_blue', 'brown_blue_r', 'brown_cyan', 'brown_cyan_r', 'bwr', 'bwr_r', 'cividis', 'cividis_r', 'cold_hot', 'cold_hot_r',
+    'cold_white_hot', 'cold_white_hot_r', 'cool', 'cool_r', 'coolwarm', 'coolwarm_r', 'copper', 'copper_r', 'crest', 'crest_r', 
+    'cubehelix', 'cubehelix_r', 'cyan_copper', 'cyan_copper_r', 'cyan_orange', 'cyan_orange_r', 'flag', 'flag_r', 'flare', 
+    'flare_r', 'gist_earth', 'gist_earth_r', 'gist_gray', 'gist_gray_r', 'gist_grey', 'gist_heat', 'gist_heat_r', 'gist_ncar', 
+    'gist_ncar_r', 'gist_rainbow', 'gist_rainbow_r', 'gist_stern', 'gist_stern_r', 'gist_yarg', 'gist_yarg_r', 'gist_yerg', 
+    'gnuplot', 'gnuplot2', 'gnuplot2_r', 'gnuplot_r', 'gray', 'gray_r', 'green_transparent', 'green_transparent_full_alpha_range', 
+    'grey', 'hot', 'hot_black_bone', 'hot_black_bone_r', 'hot_r', 'hot_white_bone', 'hot_white_bone_r', 'hsv', 'hsv_r', 'icefire',
+    'icefire_r', 'inferno', 'inferno_r', 'jet', 'jet_r', 'magma', 'magma_r', 'mako', 'mako_r', 'nipy_spectral', 'nipy_spectral_r',
+    'ocean', 'ocean_hot', 'ocean_hot_r', 'ocean_r', 'pink', 'pink_r', 'plasma', 'plasma_r', 'prism', 'prism_r', 'purple_blue',
+    'purple_blue_r', 'purple_green', 'purple_green_r', 'rainbow', 'rainbow_r', 'red_transparent', 'red_transparent_full_alpha_range',
+    'rocket', 'rocket_r', 'roy_big_bl', 'seismic', 'seismic_r', 'spring', 'spring_r', 'summer', 'summer_r', 'tab10', 'tab10_r',
+    'tab20', 'tab20_r', 'tab20b', 'tab20b_r', 'tab20c', 'tab20c_r', 'terrain', 'terrain_r', 'turbo', 'turbo_r', 'twilight', 
+    'twilight_r', 'twilight_shifted', 'twilight_shifted_r', 'videen_style', 'viridis', 'viridis_r', 'vlag', 'vlag_r', 'winter',
+    'winter_r'
+    """
 
     def is_normalized(self):
         normalized = ""

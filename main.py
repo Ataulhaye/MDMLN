@@ -964,11 +964,25 @@ def mpg_to_mp4():
 
 
 def main():
-    load_embeddings()
+    # load_embeddings()
     # mpg_to_mp4()
     # generate_text_file_from_videos()
     # copy_en_txt(r"C:\Users\ataul\source\Uni\BachelorThesis\poc\AudioTranscriptsSet1_EN.csv",r"C:\Users\ataul\source\Uni\BachelorThesis\poc\AudioTranscriptsSet1.csv","1")
     # get_set_files(r"C:\Users\ataul\source\Uni\BachelorThesis\Stimuli_logs\Verstehen_Set1.txt", "1")
+
+    analyser = FMRIAnalyser(Lobe.ALL)
+    analyser.Searchlight_Text_Embeddings(set_name="Set1")
+    analyser = FMRIAnalyser(Lobe.ALL)
+    analyser.Searchlight_Bridge_Embeddings(set_name="Set1")
+    analyser = FMRIAnalyser(Lobe.ALL)
+    analyser.Searchlight_Video_Embeddings(set_name="Set1")
+
+    analyser = FMRIAnalyser(Lobe.ALL)
+    analyser.Searchlight_brain_difference_Text_Embeddings_RDM(set_name="Set1")
+    analyser = FMRIAnalyser(Lobe.ALL)
+    analyser.Searchlight_brain_difference_Bridge_Embeddings_RDM(set_name="Set1")
+    analyser = FMRIAnalyser(Lobe.ALL)
+    analyser.Searchlight_brain_difference_Video_Embeddings_RDM(set_name="Set1")
 
     rsa_con = RSAConfig()
     rsa_con.strategy = Strategy.mice.name

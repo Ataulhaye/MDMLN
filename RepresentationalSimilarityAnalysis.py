@@ -155,6 +155,9 @@ class RepresentationalSimilarityAnalysis:
         # print(f"Difference  Constant-RDMS - RDMS: {diff}")
         return np.stack(rdms, axis=0)
 
+    def create_embedding_RDM(self, data: np.ndarray):
+        return 1 - torch.corrcoef(torch.from_numpy(data.squeeze()))
+
     def get_sphere_centers(self, df, radius_adjustment=1.5, radius=7):
 
         bdc = BrainDataConfig()
