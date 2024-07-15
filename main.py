@@ -970,6 +970,13 @@ def main():
     # copy_en_txt(r"C:\Users\ataul\source\Uni\BachelorThesis\poc\AudioTranscriptsSet1_EN.csv",r"C:\Users\ataul\source\Uni\BachelorThesis\poc\AudioTranscriptsSet1.csv","1")
     # get_set_files(r"C:\Users\ataul\source\Uni\BachelorThesis\Stimuli_logs\Verstehen_Set1.txt", "1")
 
+    analyser = FMRIAnalyser(Lobe.STG)
+    analyser.training_config.dimension_reduction = True
+    # analyser.strategies = ["mice", "mean"]
+    # analyser.classifiers = ["SVM", "MLP", ]
+    analyser.training_config.folds = 2
+    analyser.unary_subject_binary_image_classification()
+
     analyser = FMRIAnalyser(Lobe.ALL)
     analyser.Searchlight_Text_Embeddings(set_name="Set1")
     analyser = FMRIAnalyser(Lobe.ALL)

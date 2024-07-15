@@ -42,12 +42,14 @@ class FMRIAnalyser:
             self.lobe = lobe
 
         if classifiers is None:
-            self.classifiers = ["SVM", "MLP", "LinearDiscriminant", "LGBM"]
+            self.classifiers = ["SVM", "MLP", "LinearDiscriminant"]
+            # self.classifiers = ["SVM", "MLP", "LinearDiscriminant", "LGBM"]
         else:
             self.classifiers = classifiers
 
         if strategies is None:
-            self.strategies = ["mean", "remove_voxels", "median"]
+            self.strategies = ["mice", "mean", "remove_voxels"]
+            # self.strategies = ["mean", "remove_voxels", "median"]
         else:
             self.strategies = strategies
 
@@ -223,8 +225,12 @@ class FMRIAnalyser:
             transpose=True,
             single_label=True,
         )
-        # self.plot_images(all_export_data)
-        self.plot_detailed_bars(all_export_data)
+        self.plot_images(
+            self.unary_subject_binary_image_classification.__name__, all_export_data
+        )
+        self.plot_detailed_bars(
+            self.unary_subject_binary_image_classification.__name__, all_export_data
+        )
         # this will groupby the mean, median,...
 
         print("End")
@@ -1257,7 +1263,10 @@ class FMRIAnalyser:
             lobe = f"{lobe} Lobes"
         return lobe
 
-    def plot_detailed_bars(self, all_export_data):
+    def plot_detailed_bars(self, directory, all_export_data):
+        """
+        This method plot the detailed graphs, with binary 6 combinations, std and significant
+        """
         nested_dict = self.groupby_strategy(all_export_data)
 
         N = self.data_config.neurotypical
@@ -1275,10 +1284,10 @@ class FMRIAnalyser:
                     for i in v:
                         i.column_name = i.column_name.split("_")[-1]
 
-            for mod in models:
-                if "Linear" in mod:
-                    ind = models.index("LinearDiscriminantAnalysis")
-                    models[ind] = "LDA"
+            # for mod in models:
+            # if "Linear" in mod:
+            # ind = models.index("LinearDiscriminantAnalysis")
+            # models[ind] = "LDA"
 
             data_stat = {
                 f"{N}_AR-AU": {"data": [], "std": [], "result": []},
@@ -1309,9 +1318,9 @@ class FMRIAnalyser:
                         data_stat[k]["data"].append(it.mean)
                         data_stat[k]["result"].append(it.result[0])
 
-            self.plot_diagram_per_strategy(strategy, models, data_stat)
+            self.plot_diagram_per_strategy(strategy, models, data_stat, directory)
 
-    def plot_images(self, all_export_data):
+    def plot_images(self, directory, all_export_data):
         nested_dict = self.groupby_strategy(all_export_data)
 
         N = self.data_config.neurotypical
@@ -1323,14 +1332,16 @@ class FMRIAnalyser:
 
             models, bar_dictc = self.merge_results(N, D, S, bar_dict)
 
-            for mod in models:
-                if "Linear" in mod:
-                    ind = models.index("LinearDiscriminantAnalysis")
-                    models[ind] = "LDA"
+            # for mod in models:
+            # if "Linear" in mod:
+            # ind = models.index("LinearDiscriminantAnalysis")
+            # models[ind] = "LDA"
 
-            self.plot_diagram(strategy, models, bar_dictc)
+            self.plot_diagram(strategy, models, bar_dictc, directory)
 
-    def plot_diagram_per_strategy(self, strategy, models, bar_data, patients=3):
+    def plot_diagram_per_strategy(
+        self, strategy, models, bar_data, directory, patients=3
+    ):
         barWidth = 0.5
         i = 0
         br_pre_pos = None
@@ -1424,16 +1435,20 @@ class FMRIAnalyser:
         gname = f"{self.brain.lobe.name}_{strategy}_{self.unary_subject_binary_image_classification.__name__}"
         graph_name = ExportData.get_file_name(".png", gname)
         # plt.savefig(graph_name, dpi=1200)
-        plt.savefig(graph_name)
+        directory_path = Path(f"MlGraphs/{directory}").absolute().resolve()
+        Path(directory_path).mkdir(parents=True, exist_ok=True)
+        file_path = Path(directory_path).joinpath(graph_name)
+        plt.savefig(file_path)
         plt.show()
         plt.close()
 
-    def plot_diagram(self, strategy, models, bar_dictc):
+    def plot_diagram(self, strategy, models, bar_dictc, directory):
         barWidth = 0.25
         i = 0
         br_pre = None
-        colors = ["r", "g", "b"]
+        colors = ["tomato", "limegreen", "dodgerblue"]
         br_p = None
+        fig, ax = plt.subplots(figsize=(25, 10))
         for key, br in bar_dictc.items():
             if i > 0:
                 br_p = [x + barWidth for x in br_pre]
@@ -1452,18 +1467,20 @@ class FMRIAnalyser:
             )
             i = i + 1
             # Adding Xticks
-        name = f"{self.brain.lobe.name} Results, {strategy} as Norm."
+        name = f"{self.brain.lobe.name} Results, {strategy} as normalization"
 
         plt.xlabel(name, fontweight="bold", fontsize=15)
         plt.ylabel("Accuracy", fontweight="bold", fontsize=15)
-        plt.xticks(
-            [r + barWidth for r in range(len(br_p))],
-            models,
-        )
-        plt.legend()
+        plt.xticks([r + barWidth for r in range(len(br_p))], models, fontsize=20)
+        plt.legend(fontsize=18, title="Mental Disorders", loc="upper right")
         gname = f"{self.brain.lobe.name}_{strategy}_{self.unary_subject_binary_image_classification.__name__}"
         graph_name = ExportData.get_file_name(".png", gname)
-        plt.savefig(graph_name, dpi=1200)
+        # plt.savefig(graph_name, dpi=1200)
+
+        directory_path = Path(f"MlGraphs/{directory}").absolute().resolve()
+        Path(directory_path).mkdir(parents=True, exist_ok=True)
+        file_path = Path(directory_path).joinpath(graph_name)
+        plt.savefig(file_path)
         # plt.show()
         plt.close()
 
