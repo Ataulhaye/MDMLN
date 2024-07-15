@@ -18,6 +18,7 @@ from BrainDataConfig import BrainDataConfig
 from DataTraining import DataTraining
 from Enums import Lobe
 from ExportData import ExportData
+from Helper import Helper
 from RepresentationalSimilarityAnalysis import RepresentationalSimilarityAnalysis
 from RSAConfig import RSAConfig
 from TrainingConfig import TrainingConfig
@@ -126,11 +127,15 @@ class FMRIAnalyser:
             self.binary_subject_classification,
         )
         note = export.create_note([self.training_config, print_config])
+        directory_path = Helper.ensure_dir(
+            "Automated_Excel_files", self.binary_subject_classification.__name__
+        )
         export.create_and_write_datasheet(
             data=all_export_data,
             sheet_name=f"{self.brain.lobe.name}-Results",
             title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds",
             notes=note,
+            directory=directory_path,
             transpose=True,
             single_label=True,
         )
@@ -168,11 +173,15 @@ class FMRIAnalyser:
             self.binary_image_classification,
         )
         note = export.create_note([self.training_config, print_config])
+        directory_path = Helper.ensure_dir(
+            "Automated_Excel_files", self.binary_image_classification.__name__
+        )
         export.create_and_write_datasheet(
             data=all_export_data,
             sheet_name=f"{self.brain.lobe.name}-Results",
             title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds",
             notes=note,
+            directory=directory_path,
             transpose=True,
             single_label=True,
         )
@@ -217,11 +226,16 @@ class FMRIAnalyser:
             mean, self.unary_subject_binary_image_classification
         )
         note = export.create_note([self.training_config, print_config])
+        directory_path = Helper.ensure_dir(
+            "Automated_Excel_files",
+            self.unary_subject_binary_image_classification.__name__,
+        )
         export.create_and_write_datasheet(
             data=all_export_data,
             sheet_name=f"{self.brain.lobe.name}-Results",
             title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds",
             notes=note,
+            directory=directory_path,
             transpose=True,
             single_label=True,
         )
@@ -274,11 +288,16 @@ class FMRIAnalyser:
             mean, self.binary_subject_concatenated_image_classification
         )
         note = export.create_note([self.training_config, print_config])
+        directory_path = Helper.ensure_dir(
+            "Automated_Excel_files",
+            self.binary_subject_concatenated_image_classification.__name__,
+        )
         export.create_and_write_datasheet(
             data=all_data,
             sheet_name=f"{self.brain.lobe.name}-Results",
             title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds",
             notes=note,
+            directory=directory_path,
             transpose=True,
             single_label=True,
         )
@@ -323,11 +342,16 @@ class FMRIAnalyser:
             mean, self.binary_subject_binary_image_classification
         )
         note = export.create_note([self.training_config, print_config])
+        directory_path = Helper.ensure_dir(
+            "Automated_Excel_files",
+            self.binary_subject_binary_image_classification.__name__,
+        )
         export.create_and_write_datasheet(
             data=all_data,
             sheet_name=f"{self.brain.lobe.name}-Results",
             title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds",
             notes=note,
+            directory=directory_path,
             transpose=True,
             single_label=True,
         )
@@ -381,11 +405,16 @@ class FMRIAnalyser:
             mean, self.binary_subject_unary_image_classification
         )
         note = export.create_note([self.training_config, print_config])
+        directory_path = Helper.ensure_dir(
+            "Automated_Excel_files",
+            self.binary_subject_unary_image_classification.__name__,
+        )
         export.create_and_write_datasheet(
             data=all_data,
             sheet_name=f"{self.brain.lobe.name}-Results",
             title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds",
             notes=note,
+            directory=directory_path,
             transpose=True,
             single_label=True,
         )
@@ -427,11 +456,16 @@ class FMRIAnalyser:
             mean, self.subject_concatenated_image_classification
         )
         note = export.create_note([self.training_config, print_config])
+        directory_path = Helper.ensure_dir(
+            "Automated_Excel_files",
+            self.subject_concatenated_image_classification.__name__,
+        )
         export.create_and_write_datasheet(
             data=all_data,
             sheet_name=f"{self.brain.lobe.name}-Results",
             title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds",
             notes=note,
+            directory=directory_path,
             transpose=True,
             single_label=True,
         )
@@ -474,11 +508,15 @@ class FMRIAnalyser:
         export = ExportData()
         print_config = self.__get_note(mean, self.subject_binary_image_classification)
         note = export.create_note([self.training_config, print_config])
+        directory_path = Helper.ensure_dir(
+            "Automated_Excel_files", self.subject_binary_image_classification.__name__
+        )
         export.create_and_write_datasheet(
             data=all_data,
             sheet_name=f"{self.brain.lobe.name}-Results",
             title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds",
             notes=note,
+            directory=directory_path,
             transpose=True,
             single_label=True,
         )
@@ -511,11 +549,16 @@ class FMRIAnalyser:
             self.training_config.lobe = self.brain.lobe.name
             export = ExportData()
             note = export.create_note([self.training_config])
+            directory_path = Helper.ensure_dir(
+                "Automated_Excel_files",
+                self.binary_image_and_binary_subject_classification_with_shaply.__name__,
+            )
             export.create_and_write_datasheet(
                 data=export_data,
                 sheet_name=f"{self.brain.lobe.name}-Results",
                 title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds-{split}-Clf",
                 notes=note,
+                directory=directory_path,
                 transpose=True,
             )
         self.brain.current_labels = self.brain.image_labels_int
@@ -535,11 +578,16 @@ class FMRIAnalyser:
             self.training_config.lobe = self.brain.lobe.name
             export = ExportData()
             note = export.create_note([self.training_config])
+            directory_path = Helper.ensure_dir(
+                "Automated_Excel_files",
+                self.binary_image_and_binary_subject_classification_with_shaply.__name__,
+            )
             export.create_and_write_datasheet(
                 data=export_data,
                 sheet_name=f"{self.brain.lobe.name}-Results",
                 title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds-{split}-Clf",
                 notes=note,
+                directory=directory_path,
                 transpose=True,
             )
 
@@ -572,22 +620,26 @@ class FMRIAnalyser:
         self.training_config.lobe = self.brain.lobe.name
         export = ExportData()
         note = export.create_note([self.training_config, ""])
+        directory_path = Helper.ensure_dir(
+            "Automated_Excel_files", self.subject_and_image_classification.__name__
+        )
         export.create_and_write_datasheet(
             data=export_data,
             sheet_name=f"{self.brain.lobe.name}-Results",
             title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds",
             notes=note,
+            directory=directory_path,
             transpose=True,
         )
 
-    def Searchlight_Text_Embeddings(self, set_name, plotting=True):
+    def Searchlight_Text_Embeddings(self, set_name, query, plotting=True):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
         """
         self.brain.current_labels = self.brain.subject_labels
 
-        file_name = f"{self.Searchlight_Text_Embeddings.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}_{set_name}.pickle"
+        file_name = f"{self.Searchlight_Text_Embeddings.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}_{set_name}_{query}.pickle"
         file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
 
         results = None
@@ -609,7 +661,7 @@ class FMRIAnalyser:
 
             embeddings = pickle.load(
                 open(
-                    Path(f"PickleFiles/MCQ_Embeddings_{set_name}.pickle")
+                    Path(f"PickleFiles/MCQ_Embeddings_{set_name}_{query}.pickle")
                     .absolute()
                     .resolve(),
                     "rb",
@@ -632,9 +684,9 @@ class FMRIAnalyser:
             with open(file_path, "wb") as output:
                 pickle.dump(results, output)
 
-        for brain, smoothed_img, rsa_result in results:
-            if plotting:
-                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Text Embeddings RDM, {set_name}".replace(
+        if plotting:
+            for brain, smoothed_img, rsa_result in results:
+                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Text Embeddings RDM, {set_name} {query}".replace(
                     "  ", " "
                 )
                 self.plot_brain_image(
@@ -643,15 +695,15 @@ class FMRIAnalyser:
 
         return results
 
-    def Searchlight_brain_difference_Text_Embeddings_RDM(self, set_name):
+    def Searchlight_brain_difference_Text_Embeddings_RDM(self, set_name, query):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
         """
 
-        results = self.Searchlight_Text_Embeddings(set_name, plotting=False)
+        results = self.Searchlight_Text_Embeddings(set_name, query, plotting=False)
 
-        file_name = f"{self.Searchlight_brain_difference_Text_Embeddings_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}_{set_name}.pickle"
+        file_name = f"{self.Searchlight_brain_difference_Text_Embeddings_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}_{set_name}_{query}.pickle"
 
         file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
 
@@ -661,12 +713,12 @@ class FMRIAnalyser:
             difference_results = pickle.load(open(file_path, "rb"))
         else:
             print(f"There are no saved RSA results {file_path}. Executing results.")
-            difference_results = self.RSA_brain_difference(results)
+            difference_results = self.Searchlight_brain_difference(results)
             with open(file_path, "wb") as output:
                 pickle.dump(difference_results, output)
 
         for smoothed_img, brain_k, brain_l in difference_results:
-            title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Text Embeddings RDM, {set_name}".replace(
+            title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Text Embeddings RDM, {set_name} {query}".replace(
                 "  ", " "
             )
             self.plot_brain_image(
@@ -675,14 +727,14 @@ class FMRIAnalyser:
                 self.Searchlight_brain_difference_Text_Embeddings_RDM.__name__,
             )
 
-    def Searchlight_Video_Embeddings(self, set_name, plotting=True):
+    def Searchlight_Video_Embeddings(self, set_name, query, plotting=True):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
         """
         self.brain.current_labels = self.brain.subject_labels
 
-        file_name = f"{self.Searchlight_Video_Embeddings.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}_{set_name}.pickle"
+        file_name = f"{self.Searchlight_Video_Embeddings.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}_{set_name}_{query}.pickle"
         file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
 
         results = None
@@ -704,7 +756,7 @@ class FMRIAnalyser:
 
             embeddings = pickle.load(
                 open(
-                    Path(f"PickleFiles/MCQ_Embeddings_{set_name}.pickle")
+                    Path(f"PickleFiles/MCQ_Embeddings_{set_name}_{query}.pickle")
                     .absolute()
                     .resolve(),
                     "rb",
@@ -727,9 +779,9 @@ class FMRIAnalyser:
             with open(file_path, "wb") as output:
                 pickle.dump(results, output)
 
-        for brain, smoothed_img, rsa_result in results:
-            if plotting:
-                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Video Embeddings RDM, {set_name}".replace(
+        if plotting:
+            for brain, smoothed_img, rsa_result in results:
+                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Video Embeddings RDM, {set_name} {query}".replace(
                     "  ", " "
                 )
                 self.plot_brain_image(
@@ -738,15 +790,15 @@ class FMRIAnalyser:
 
         return results
 
-    def Searchlight_brain_difference_Video_Embeddings_RDM(self, set_name):
+    def Searchlight_brain_difference_Video_Embeddings_RDM(self, set_name, query):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
         """
 
-        results = self.Searchlight_Video_Embeddings(set_name, plotting=False)
+        results = self.Searchlight_Video_Embeddings(set_name, query, plotting=False)
 
-        file_name = f"{self.Searchlight_brain_difference_Video_Embeddings_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}_{set_name}.pickle"
+        file_name = f"{self.Searchlight_brain_difference_Video_Embeddings_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}_{set_name}_{query}.pickle"
 
         file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
 
@@ -756,12 +808,12 @@ class FMRIAnalyser:
             difference_results = pickle.load(open(file_path, "rb"))
         else:
             print(f"There are no saved RSA results {file_path}. Executing results.")
-            difference_results = self.RSA_brain_difference(results)
+            difference_results = self.Searchlight_brain_difference(results)
             with open(file_path, "wb") as output:
                 pickle.dump(difference_results, output)
 
         for smoothed_img, brain_k, brain_l in difference_results:
-            title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Video Embeddings RDM, {set_name}".replace(
+            title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Video Embeddings RDM, {set_name} {query}".replace(
                 "  ", " "
             )
             self.plot_brain_image(
@@ -770,14 +822,14 @@ class FMRIAnalyser:
                 self.Searchlight_brain_difference_Video_Embeddings_RDM.__name__,
             )
 
-    def Searchlight_Bridge_Embeddings(self, set_name, plotting=True):
+    def Searchlight_Bridge_Embeddings(self, set_name, query, plotting=True):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
         """
         self.brain.current_labels = self.brain.subject_labels
 
-        file_name = f"{self.Searchlight_Bridge_Embeddings.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}_{set_name}.pickle"
+        file_name = f"{self.Searchlight_Bridge_Embeddings.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}_{set_name}_{query}.pickle"
         file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
 
         results = None
@@ -799,7 +851,7 @@ class FMRIAnalyser:
 
             embeddings = pickle.load(
                 open(
-                    Path(f"PickleFiles/MCQ_Embeddings_{set_name}.pickle")
+                    Path(f"PickleFiles/MCQ_Embeddings_{set_name}_{query}.pickle")
                     .absolute()
                     .resolve(),
                     "rb",
@@ -822,9 +874,9 @@ class FMRIAnalyser:
             with open(file_path, "wb") as output:
                 pickle.dump(results, output)
 
-        for brain, smoothed_img, rsa_result in results:
-            if plotting:
-                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Bridge Embeddings RDM, {set_name}".replace(
+        if plotting:
+            for brain, smoothed_img, rsa_result in results:
+                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Bridge Embeddings RDM, {set_name} {query}".replace(
                     "  ", " "
                 )
                 self.plot_brain_image(
@@ -833,15 +885,15 @@ class FMRIAnalyser:
 
         return results
 
-    def Searchlight_brain_difference_Bridge_Embeddings_RDM(self, set_name):
+    def Searchlight_brain_difference_Bridge_Embeddings_RDM(self, set_name, query):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
         """
 
-        results = self.Searchlight_Bridge_Embeddings(set_name, plotting=False)
+        results = self.Searchlight_Bridge_Embeddings(set_name, query, plotting=False)
 
-        file_name = f"{self.Searchlight_brain_difference_Bridge_Embeddings_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}_{set_name}.pickle"
+        file_name = f"{self.Searchlight_brain_difference_Bridge_Embeddings_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}_{set_name}_{query}.pickle"
 
         file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
 
@@ -851,12 +903,12 @@ class FMRIAnalyser:
             difference_results = pickle.load(open(file_path, "rb"))
         else:
             print(f"There are no saved RSA results {file_path}. Executing results.")
-            difference_results = self.RSA_brain_difference(results)
+            difference_results = self.Searchlight_brain_difference(results)
             with open(file_path, "wb") as output:
                 pickle.dump(difference_results, output)
 
         for smoothed_img, brain_k, brain_l in difference_results:
-            title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Bridge Embeddings RDM, {set_name}".replace(
+            title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Bridge Embeddings RDM, {set_name} {query}".replace(
                 "  ", " "
             )
             self.plot_brain_image(
@@ -909,14 +961,14 @@ class FMRIAnalyser:
 
         return avg_embeddings
 
-    def RSA_Abstract_Concrete_RDM(self, plotting=True):
+    def Searchlight_Abstract_Concrete_RDM(self, plotting=True):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
         """
         self.brain.current_labels = self.brain.subject_labels
 
-        file_name = f"{self.RSA_Abstract_Concrete_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}.pickle"
+        file_name = f"{self.Searchlight_Abstract_Concrete_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}.pickle"
         file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
 
         results = None
@@ -951,20 +1003,20 @@ class FMRIAnalyser:
                     "  ", " "
                 )
                 self.plot_brain_image(
-                    smoothed_img, title, self.RSA_Abstract_Concrete_RDM.__name__
+                    smoothed_img, title, self.Searchlight_Abstract_Concrete_RDM.__name__
                 )
 
         return results
 
-    def RSA_brain_difference_Abstract_Concrete_RDM(self):
+    def Searchlight_brain_difference_Abstract_Concrete_RDM(self):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
         """
 
-        results = self.RSA_Abstract_Concrete_RDM(plotting=False)
+        results = self.Searchlight_Abstract_Concrete_RDM(plotting=False)
 
-        file_name = f"{self.RSA_brain_difference_Abstract_Concrete_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}.pickle"
+        file_name = f"{self.Searchlight_brain_difference_Abstract_Concrete_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}.pickle"
 
         file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
 
@@ -974,7 +1026,7 @@ class FMRIAnalyser:
             difference_results = pickle.load(open(file_path, "rb"))
         else:
             print(f"There are no saved RSA results {file_path}. Executing results.")
-            difference_results = self.RSA_brain_difference(results)
+            difference_results = self.Searchlight_brain_difference(results)
             with open(file_path, "wb") as output:
                 pickle.dump(difference_results, output)
 
@@ -985,18 +1037,18 @@ class FMRIAnalyser:
             self.plot_brain_image(
                 smoothed_img,
                 title,
-                self.RSA_brain_difference_Abstract_Concrete_RDM.__name__,
+                self.Searchlight_brain_difference_Abstract_Concrete_RDM.__name__,
             )
 
-    def RSA_brain_difference_Related_Unrelated_RDM(self):
+    def Searchlight_brain_difference_Related_Unrelated_RDM(self):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
         """
 
-        results = self.RSA_Related_Unrelated_RDM(plotting=False)
+        results = self.Searchlight_Related_Unrelated_RDM(plotting=False)
 
-        file_name = f"{self.RSA_brain_difference_Related_Unrelated_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}.pickle"
+        file_name = f"{self.Searchlight_brain_difference_Related_Unrelated_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}.pickle"
 
         file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
 
@@ -1006,7 +1058,7 @@ class FMRIAnalyser:
             difference_results = pickle.load(open(file_path, "rb"))
         else:
             print(f"There are no saved RSA results {file_path}. Executing results.")
-            difference_results = self.RSA_brain_difference(results)
+            difference_results = self.Searchlight_brain_difference(results)
             with open(file_path, "wb") as output:
                 pickle.dump(difference_results, output)
 
@@ -1017,10 +1069,10 @@ class FMRIAnalyser:
             self.plot_brain_image(
                 smoothed_img,
                 title,
-                self.RSA_brain_difference_Related_Unrelated_RDM.__name__,
+                self.Searchlight_brain_difference_Related_Unrelated_RDM.__name__,
             )
 
-    def RSA_brain_difference(self, results):
+    def Searchlight_brain_difference(self, results):
         difference_results = []
         combinations = itertools.combinations(list(range(len(results))), 2)
         for k, l in combinations:
@@ -1054,14 +1106,14 @@ class FMRIAnalyser:
             )
         return difference_results
 
-    def RSA_Related_Unrelated_RDM(self, plotting=True):
+    def Searchlight_Related_Unrelated_RDM(self, plotting=True):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
         """
         self.brain.current_labels = self.brain.subject_labels
 
-        file_name = f"{self.RSA_Related_Unrelated_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}.pickle"
+        file_name = f"{self.Searchlight_Related_Unrelated_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}.pickle"
 
         file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
         results = None
@@ -1098,7 +1150,7 @@ class FMRIAnalyser:
                     "  ", " "
                 )
                 self.plot_brain_image(
-                    smoothed_img, title, self.RSA_Related_Unrelated_RDM.__name__
+                    smoothed_img, title, self.Searchlight_Related_Unrelated_RDM.__name__
                 )
 
         return results
@@ -1106,8 +1158,9 @@ class FMRIAnalyser:
     def plot_brain_image(self, smoothed_img, title, directory, show=False):
         # rdm_typ = f"{self.rsa_config.related_unrelated_RDM=}".split("=")[0].split(".")[2]
 
-        directory_path = Path(f"RSA_Results/{directory}").absolute().resolve()
-        Path(directory_path).mkdir(parents=True, exist_ok=True)
+        directory_path = Helper.ensure_dir("Searchlight_Graphs", directory)
+        # directory_path = Path(f"Searchlight_Graphs/{directory}").absolute().resolve()
+        # Path(directory_path).mkdir(parents=True, exist_ok=True)
 
         # display, axes = plotting.plot_img_on_surf( smoothed_img,surf_mesh="fsaverage", views=["lateral", "medial"],hemispheres=["left", "right"],inflate=False,colorbar=True,bg_on_data=True,cmap="hsv_r")
         display = plotting.plot_glass_brain(
@@ -1143,8 +1196,7 @@ class FMRIAnalyser:
 
         atlas = datasets.fetch_atlas_talairach("ba")
 
-        directory_path = Path(f"RSA_Results/{directory}").absolute().resolve()
-        Path(directory_path).mkdir(parents=True, exist_ok=True)
+        directory_path = Helper.ensure_dir("Searchlight_Graphs", directory)
 
         # display, axes = plotting.plot_img_on_surf( smoothed_img,surf_mesh="fsaverage", views=["lateral", "medial"],hemispheres=["left", "right"],inflate=False,colorbar=True,bg_on_data=True,cmap="hsv_r")
         display = plotting.plot_glass_brain(
@@ -1435,8 +1487,11 @@ class FMRIAnalyser:
         gname = f"{self.brain.lobe.name}_{strategy}_{self.unary_subject_binary_image_classification.__name__}"
         graph_name = ExportData.get_file_name(".png", gname)
         # plt.savefig(graph_name, dpi=1200)
-        directory_path = Path(f"MlGraphs/{directory}").absolute().resolve()
-        Path(directory_path).mkdir(parents=True, exist_ok=True)
+
+        # directory_path = Path(f"MlGraphs/{directory}").absolute().resolve()
+        # Path(directory_path).mkdir(parents=True, exist_ok=True)
+
+        directory_path = Helper.ensure_dir("Ml_Graphs", directory)
         file_path = Path(directory_path).joinpath(graph_name)
         plt.savefig(file_path)
         plt.show()
@@ -1477,8 +1532,8 @@ class FMRIAnalyser:
         graph_name = ExportData.get_file_name(".png", gname)
         # plt.savefig(graph_name, dpi=1200)
 
-        directory_path = Path(f"MlGraphs/{directory}").absolute().resolve()
-        Path(directory_path).mkdir(parents=True, exist_ok=True)
+        directory_path = Helper.ensure_dir("Ml_Graphs", directory)
+
         file_path = Path(directory_path).joinpath(graph_name)
         plt.savefig(file_path)
         # plt.show()

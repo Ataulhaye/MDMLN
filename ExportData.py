@@ -1,5 +1,6 @@
 import csv
 from datetime import datetime
+from pathlib import Path
 from string import ascii_uppercase
 
 import numpy as np
@@ -24,6 +25,7 @@ class ExportData:
         data,
         sheet_name,
         notes,
+        directory,
         title="results",
         transpose=False,
         single_label=False,
@@ -91,8 +93,9 @@ class ExportData:
 
         self.set_note_font(notes, matrix, ws, sett)
 
+        file_path = Path(directory).joinpath(sheet_name)
         # Save File
-        wb.save(sheet_name)
+        wb.save(file_path)
 
     def set_note_font(
         self, notes, matrix, ws: openpyxl.worksheet.worksheet.Worksheet, sett
