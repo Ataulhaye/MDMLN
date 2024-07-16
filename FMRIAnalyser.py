@@ -632,6 +632,12 @@ class FMRIAnalyser:
             transpose=True,
         )
 
+        # results = pickle.load(open("subject_and_image_classification.pickle", "rb"))
+
+        self.plot_detailed_bars_data_labels(
+            self.subject_and_image_classification.__name__, export_data
+        )
+
     def Searchlight_Text_Embeddings(self, set_name, query, plotting=True):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
@@ -1315,6 +1321,45 @@ class FMRIAnalyser:
             lobe = f"{lobe} Lobes"
         return lobe
 
+    def plot_detailed_bars_data_labels(self, directory, all_export_data):
+        """
+        This method plot the detailed graphs, with Image labels and subject labels, std and significant
+        """
+        nested_dict = self.groupby_strategy(all_export_data)
+
+        subject_l = "subject"
+        image_l = "image"
+
+        for strategy, clasiifiers in nested_dict.items():
+            bar_dict = self.separate_results_by_labels(subject_l, image_l, clasiifiers)
+
+            models = []
+            for label, y in bar_dict.items():
+                for j, v in y.items():
+                    if j not in models:
+                        models.append(j)
+
+            data_stat = {
+                f"{subject_l}": {"data": [], "std": [], "result": []},
+                f"{image_l }": {"data": [], "std": [], "result": []},
+            }
+
+            for label, resu in bar_dict.items():
+                for classi, res in resu.items():
+                    for it in res:
+                        data_stat[label]["std"].append(it.standard_deviation)
+                        data_stat[label]["data"].append(it.mean)
+                        data_stat[label]["result"].append(it.result[0])
+
+            self.plot_diagram_per_strategy(
+                strategy,
+                models,
+                data_stat,
+                directory,
+                legends=["Subject label", "Image label"],
+                patients=2,
+            )
+
     def plot_detailed_bars(self, directory, all_export_data):
         """
         This method plot the detailed graphs, with binary 6 combinations, std and significant
@@ -1370,7 +1415,9 @@ class FMRIAnalyser:
                         data_stat[k]["data"].append(it.mean)
                         data_stat[k]["result"].append(it.result[0])
 
-            self.plot_diagram_per_strategy(strategy, models, data_stat, directory)
+            self.plot_diagram_per_strategy(
+                strategy, models, data_stat, directory, legends=["N", "D", "S"]
+            )
 
     def plot_images(self, directory, all_export_data):
         nested_dict = self.groupby_strategy(all_export_data)
@@ -1392,7 +1439,7 @@ class FMRIAnalyser:
             self.plot_diagram(strategy, models, bar_dictc, directory)
 
     def plot_diagram_per_strategy(
-        self, strategy, models, bar_data, directory, patients=3
+        self, strategy, models, bar_data, directory, legends, patients=3
     ):
         barWidth = 0.5
         i = 0
@@ -1482,7 +1529,7 @@ class FMRIAnalyser:
 
         plt.xticks(tick_pos, models, fontsize=20)
 
-        plt.legend(legend_bars, ["N", "D", "S"], fontsize=18, title="Mental Disorders")
+        plt.legend(legend_bars, legends, fontsize=18, title="Mental Disorders")
         # plt.legend(legend_bars, ["N", "D", "S"], fontsize=18, loc='upper left', bbox_to_anchor=(1, 1) ,title_fontsize=14,title="Mental Disorders")
         gname = f"{self.brain.lobe.name}_{strategy}_{self.unary_subject_binary_image_classification.__name__}"
         graph_name = ExportData.get_file_name(".png", gname)
@@ -1553,6 +1600,25 @@ class FMRIAnalyser:
                 means_per_classi = [x.mean for x in v]
                 bar_dictc[label].append(statistics.mean(means_per_classi))
         return models, bar_dictc
+
+    def separate_results_by_labels(self, subject_l, image_l, clasiifiers):
+        bar_dict = {
+            subject_l: {},
+            image_l: {},
+        }
+        for classifier, list_per_classifier in clasiifiers.items():
+            for p in list_per_classifier:
+                if subject_l in p.column_name:
+                    if bar_dict[subject_l].get(classifier) is None:
+                        bar_dict[subject_l][classifier] = [p]
+                    else:
+                        bar_dict[subject_l][classifier].append(p)
+                if image_l in p.column_name:
+                    if bar_dict[image_l].get(classifier) is None:
+                        bar_dict[image_l][classifier] = [p]
+                    else:
+                        bar_dict[image_l][classifier].append(p)
+        return bar_dict
 
     def separate_results_by_patients(self, N, D, S, clasiifiers):
         bar_dict = {
