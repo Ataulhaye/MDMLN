@@ -1357,7 +1357,7 @@ class FMRIAnalyser:
                 data_stat,
                 directory,
                 legends=["Subject label", "Image label"],
-                patients=2,
+                legend_font=15,
             )
 
     def plot_detailed_bars(self, directory, all_export_data):
@@ -1439,13 +1439,14 @@ class FMRIAnalyser:
             self.plot_diagram(strategy, models, bar_dictc, directory)
 
     def plot_diagram_per_strategy(
-        self, strategy, models, bar_data, directory, legends, patients=3
+        self, strategy, models, bar_data, directory, legends, legend_font=18
     ):
+        bar_types_per_model = len(legends)
         barWidth = 0.5
         i = 0
         br_pre_pos = None
         all_br_positions = []
-        color_len = int(len(bar_data) / patients)
+        color_len = int(len(bar_data) / bar_types_per_model)
         colors = ["tomato" for x in range(color_len)]
         colors.extend(["limegreen" for x in range(color_len)])
         colors.extend(["dodgerblue" for x in range(color_len)])
@@ -1457,6 +1458,7 @@ class FMRIAnalyser:
         br_position = None
         legend_bars = []
         fig, ax = plt.subplots(figsize=(25, 10))
+        plt.rcParams.update({"ytick.labelsize": 15})
         for key, br_data in bar_data.items():
             if i > 0:
                 br_position = [x + barWidth for x in br_pre_pos]
@@ -1507,31 +1509,43 @@ class FMRIAnalyser:
             plt.errorbar(
                 br_position, br_data["data"], yerr=br_data["std"], fmt="o", color="k"
             )
-            if i % (int(len(bar_data) / patients)) == 0:
+            if i % (int(len(bar_data) / bar_types_per_model)) == 0:
                 legend_bars.append(a)
             i = i + 1
             # Adding Xticks
-        name = f"{self.brain.lobe.name} Results, {strategy} as data normalization"
 
-        plt.xlabel(name, fontweight="bold", fontsize=15)
+        lobe_n = self.brain.lobe.name
+        if "All" in lobe_n:
+            lobe_n = "All lobes"
+
+        title = f"{lobe_n} Results, {strategy} as data imputation"
+
+        plt.xlabel(title, fontweight="bold", fontsize=22)
         plt.ylabel("Accuracy", fontweight="bold", fontsize=15)
 
         all_br_positions.sort()
         tick_pos = []
-        bars_per_model = int((len(all_br_positions) / len(models)))
+        bar_types_per_model = int((len(all_br_positions) / len(models)))
         end = 0
         start = 0
         while end < len(all_br_positions):
-            end = end + bars_per_model
+            end = end + bar_types_per_model
             seg = all_br_positions[start:end]
             tick_pos.append(seg[int(len(seg) / 2)] - barWidth / 2)
             start = end
 
         plt.xticks(tick_pos, models, fontsize=20)
 
-        plt.legend(legend_bars, legends, fontsize=18, title="Mental Disorders")
+        plt.legend(
+            legend_bars,
+            legends,
+            fontsize=legend_font,
+            loc="upper left",
+            bbox_to_anchor=(1, 1),
+            title="Mental Disorders",
+        )
         # plt.legend(legend_bars, ["N", "D", "S"], fontsize=18, loc='upper left', bbox_to_anchor=(1, 1) ,title_fontsize=14,title="Mental Disorders")
-        gname = f"{self.brain.lobe.name}_{strategy}_{self.unary_subject_binary_image_classification.__name__}"
+        gname = f"{self.brain.lobe.name}_{strategy}_{directory}"
         graph_name = ExportData.get_file_name(".png", gname)
         # plt.savefig(graph_name, dpi=1200)
 
@@ -1541,7 +1555,7 @@ class FMRIAnalyser:
         directory_path = Helper.ensure_dir("Ml_Graphs", directory)
         file_path = Path(directory_path).joinpath(graph_name)
         plt.savefig(file_path)
-        plt.show()
+        # plt.show()
         plt.close()
 
     def plot_diagram(self, strategy, models, bar_dictc, directory):
