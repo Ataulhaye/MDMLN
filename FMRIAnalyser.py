@@ -1356,8 +1356,12 @@ class FMRIAnalyser:
                 models,
                 data_stat,
                 directory,
-                legends=["Subject label", "Image label"],
-                legend_font=15,
+                legends=[
+                    f"Subject {chr(10)} (N, D, S)",
+                    f"Image {chr(10)} (AR, AU, CR, CU)",
+                ],
+                legend_font=13,
+                legend_title="Labels",
             )
 
     def plot_detailed_bars(self, directory, all_export_data):
@@ -1439,7 +1443,14 @@ class FMRIAnalyser:
             self.plot_diagram(strategy, models, bar_dictc, directory)
 
     def plot_diagram_per_strategy(
-        self, strategy, models, bar_data, directory, legends, legend_font=18
+        self,
+        strategy,
+        models,
+        bar_data,
+        directory,
+        legends,
+        legend_title="Mental Disorders",
+        legend_font=18,
     ):
         bar_types_per_model = len(legends)
         barWidth = 0.5
@@ -1459,6 +1470,7 @@ class FMRIAnalyser:
         legend_bars = []
         fig, ax = plt.subplots(figsize=(25, 10))
         plt.rcParams.update({"ytick.labelsize": 15})
+        plt.rcParams.update({"legend.title_fontsize": 15})
         for key, br_data in bar_data.items():
             if i > 0:
                 br_position = [x + barWidth for x in br_pre_pos]
@@ -1542,7 +1554,7 @@ class FMRIAnalyser:
             fontsize=legend_font,
             loc="upper left",
             bbox_to_anchor=(1, 1),
-            title="Mental Disorders",
+            title=legend_title,
         )
         # plt.legend(legend_bars, ["N", "D", "S"], fontsize=18, loc='upper left', bbox_to_anchor=(1, 1) ,title_fontsize=14,title="Mental Disorders")
         gname = f"{self.brain.lobe.name}_{strategy}_{directory}"
