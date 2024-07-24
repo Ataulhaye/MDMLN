@@ -356,6 +356,32 @@ class FMRIAnalyser:
             transpose=True,
             single_label=True,
         )
+        self.plot_images(
+            self.binary_subject_binary_image_classification.__name__,
+            all_data,
+            N="N-D",
+            D="N-S",
+            S="D-S",
+            legend_text=[
+                f"Neurotypical & {chr(10)} Depressive",
+                f"Neurotypical & {chr(10)} Schizophrenia",
+                f"Depressive & {chr(10)} Schizophrenia",
+            ],
+        )
+        
+        self.plot_detailed_bars(
+            self.binary_subject_binary_image_classification.__name__,
+            all_data,
+            N="N-D",
+            D="N-S",
+            S="D-S",
+            legend_text=[
+                f"Neurotypical & {chr(10)} Depressive",
+                f"Neurotypical & {chr(10)} Schizophrenia",
+                f"Depressive & {chr(10)} Schizophrenia",
+            ],
+        )
+        
 
     def binary_subject_unary_image_classification(self):
         """
@@ -1169,7 +1195,7 @@ class FMRIAnalyser:
         # rdm_typ = f"{self.rsa_config.related_unrelated_RDM=}".split("=")[0].split(".")[2]
 
         directory_path = Helper.ensure_dir("Searchlight_Graphs", directory)
-        fig = plt.figure(figsize=(15, 7))
+        fig = plt.figure(figsize=(18, 7))
         # display, axes = plotting.plot_img_on_surf( smoothed_img,surf_mesh="fsaverage", views=["lateral", "medial"],hemispheres=["left", "right"],inflate=False,colorbar=True,bg_on_data=True,cmap="hsv_r")
         display = plotting.plot_glass_brain(
             smoothed_img,
@@ -1274,15 +1300,23 @@ class FMRIAnalyser:
                 legend_title="Conditions",
             )
 
-    def plot_detailed_bars(self, directory, all_export_data):
+    def plot_detailed_bars(
+        self,
+        directory,
+        all_export_data,
+        N="N",
+        D="D",
+        S="S",
+        legend_text=["Neurotypical", "Depressive", "Schizophrenia"],
+    ):
         """
         This method plot the detailed graphs, with binary 6 combinations, std and significant
         """
         nested_dict = self.groupby_strategy(all_export_data)
 
-        N = self.data_config.neurotypical
-        D = self.data_config.depressive_disorder
-        S = self.data_config.schizophrenia_spectrum
+        # N = self.data_config.neurotypical
+        # D = self.data_config.depressive_disorder
+        # S = self.data_config.schizophrenia_spectrum
 
         for strategy, clasiifiers in nested_dict.items():
             bar_dict = self.separate_results_by_patients(N, D, S, clasiifiers)
@@ -1325,22 +1359,42 @@ class FMRIAnalyser:
                         data_stat[k]["result"].append(it.result[0])
 
             self.plot_diagram_per_strategy(
-                strategy, models, data_stat, directory, legends=["N", "D", "S"]
+                strategy,
+                models,
+                data_stat,
+                directory,
+                legends=legend_text,
+                legend_font=13,
             )
 
-    def plot_images(self, directory, all_export_data):
+    def plot_images(
+        self,
+        directory,
+        all_export_data,
+        N="N",
+        D="D",
+        S="S",
+        legend_title="Mental Disorders",
+        legend_text=[
+            "Neurotypical", "Depressive",
+            "Schizophrenia",
+        ],
+    ):
         nested_dict = self.groupby_strategy(all_export_data)
-
-        N = self.data_config.neurotypical
-        D = self.data_config.depressive_disorder
-        S = self.data_config.schizophrenia_spectrum
 
         for strategy, clasiifiers in nested_dict.items():
             bar_dict = self.separate_results_by_patients(N, D, S, clasiifiers)
 
             models, bar_dictc = self.merge_results(N, D, S, bar_dict)
 
-            self.plot_diagram(strategy, models, bar_dictc, directory)
+            self.plot_diagram(
+                strategy,
+                models,
+                bar_dictc,
+                directory,
+                legend_title=legend_title,
+                legend_text=legend_text,
+            )
 
     def plot_diagram_per_strategy(
         self,
@@ -1485,13 +1539,21 @@ class FMRIAnalyser:
         # plt.show()
         plt.close()
 
-    def plot_diagram(self, strategy, models, bar_dictc, directory):
+    def plot_diagram(
+        self,
+        strategy,
+        models,
+        bar_dictc,
+        directory,
+        legend_title,
+        legend_text,
+    ):
         barWidth = 0.25
         i = 0
         br_pre = None
         colors = ["tomato", "limegreen", "dodgerblue"]
         br_p = None
-        fig, ax = plt.subplots(figsize=(25, 10))
+        plt.subplots(figsize=(25, 10))
         plt.rcParams.update({"ytick.labelsize": 18})
         plt.rcParams.update({"legend.title_fontsize": 15})
         for key, br in bar_dictc.items():
@@ -1511,8 +1573,6 @@ class FMRIAnalyser:
                 label=key,
             )
             i = i + 1
-            # Adding Xticks
-        # name = f"{self.brain.lobe.name} Results, {strategy} as normalization"
 
         lobe_n = self.brain.lobe.name
         if "All" in lobe_n:
@@ -1530,10 +1590,22 @@ class FMRIAnalyser:
 
         name = f"{lobe_n} Analysis with {sta_name}"
 
-        plt.xlabel(name, fontweight="bold", fontsize=15)
+        plt.xlabel(name, fontweight="bold", fontsize=22)
         plt.ylabel("Accuracy", fontweight="bold", fontsize=15)
         plt.xticks([r + barWidth for r in range(len(br_p))], models, fontsize=20)
-        plt.legend(fontsize=18, title="Mental Disorders", loc="upper right")
+        # plt.legend(legend_bars,legends,fontsize=13,loc="upper left",bbox_to_anchor=(1, 1),title=legend_title,)
+        # plt.legend(fontsize=18, title="Mental Disorders", loc="upper right")
+        l = plt.legend(
+            fontsize=13,
+            loc="upper left",
+            bbox_to_anchor=(1, 1),
+            title=legend_title,
+        )
+
+        for lidx, text in enumerate(legend_text):
+            l.get_texts()[lidx].set_text(text)
+
+
         gname = f"{self.brain.lobe.name}_{strategy}_{self.unary_subject_binary_image_classification.__name__}"
 
         png_name = ExportData.get_file_name(".png", gname)
