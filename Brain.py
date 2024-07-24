@@ -195,7 +195,7 @@ class Brain:
                 data_set.X_test = x_test
                 return data_set
             case "n_neighbors":
-                imputer = KNNImputer(n_neighbors=2, keep_empty_features=True)
+                imputer = KNNImputer(keep_empty_features=True)
                 imputer.fit(data_set.X_train)
                 x_train = imputer.transform(data_set.X_train)
                 data_set.X_train = x_train

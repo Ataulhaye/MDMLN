@@ -19,6 +19,7 @@ from DataTraining import DataTraining
 from Enums import Lobe
 from ExportData import ExportData
 from Helper import Helper
+from PlotData import VisualizeData
 from RepresentationalSimilarityAnalysis import RepresentationalSimilarityAnalysis
 from RSAConfig import RSAConfig
 from TrainingConfig import TrainingConfig
@@ -1161,153 +1162,58 @@ class FMRIAnalyser:
 
         return results
 
-    def plot_brain_image(self, smoothed_img, title, directory, show=False):
+    def plot_NaNs(self):
+        VisualizeData().visualize_nans(self.brain)
+
+    def plot_brain_image(self, smoothed_img, title_txt, directory, show=False):
         # rdm_typ = f"{self.rsa_config.related_unrelated_RDM=}".split("=")[0].split(".")[2]
 
         directory_path = Helper.ensure_dir("Searchlight_Graphs", directory)
-        # directory_path = Path(f"Searchlight_Graphs/{directory}").absolute().resolve()
-        # Path(directory_path).mkdir(parents=True, exist_ok=True)
-
+        fig = plt.figure(figsize=(15, 7))
         # display, axes = plotting.plot_img_on_surf( smoothed_img,surf_mesh="fsaverage", views=["lateral", "medial"],hemispheres=["left", "right"],inflate=False,colorbar=True,bg_on_data=True,cmap="hsv_r")
         display = plotting.plot_glass_brain(
-            smoothed_img, threshold=0, title=title, display_mode="lzry", colorbar=True
-        )
-        # display = plotting.plot_stat_map(smoothed_img, threshold=0)
-        # display.savefig("pretty_brain.png")
-        # plotting.plot_glass_brain(smoothed_img, threshold=0)
-        time.sleep(1)
-
-        graph_name = ExportData.get_graph_name(".png", title.replace(" ", "_"))
-
-        file_path = Path(directory_path).joinpath(graph_name)
-
-        plt.savefig(file_path)
-
-        if show:
-            plotting.show()
-            display.close()
-            plt.close()
-        # display = plotting.plot_glass_brain(None, plot_abs=False, display_mode="lzry", title=title)
-        # display.add_contours(smoothed_img, filled=True)
-        # plotting.show()
-
-        # graph_name = ExportData.get_file_name(".png", title.replace(" ", "_"))
-        # plt.savefig(graph_name)
-        # display.close()
-        # plt.close()
-
-    def plot_brain_image_test(self, smoothed_img, title, directory, show=False):
-        # rdm_typ = f"{self.rsa_config.related_unrelated_RDM=}".split("=")[0].split(".")[2]
-        from nilearn import datasets, surface
-
-        atlas = datasets.fetch_atlas_talairach("ba")
-
-        directory_path = Helper.ensure_dir("Searchlight_Graphs", directory)
-
-        # display, axes = plotting.plot_img_on_surf( smoothed_img,surf_mesh="fsaverage", views=["lateral", "medial"],hemispheres=["left", "right"],inflate=False,colorbar=True,bg_on_data=True,cmap="hsv_r")
-        display = plotting.plot_glass_brain(
-            smoothed_img, threshold=0, title=title, display_mode="lzry", colorbar=True
-        )
-        # display = plotting.plot_stat_map(smoothed_img, threshold=0)
-        # display.savefig("pretty_brain.png")
-        # plotting.plot_glass_brain(smoothed_img, threshold=0)
-        time.sleep(1)
-
-        graph_name = ExportData.get_graph_name(".png", title.replace(" ", "_"))
-
-        file_path = Path(directory_path).joinpath(graph_name)
-
-        plt.savefig(file_path)
-
-        if show:
-            plotting.show()
-            display.close()
-            plt.close()
-        # display = plotting.plot_glass_brain(None, plot_abs=False, display_mode="lzry", title=title)
-        # display.add_contours(smoothed_img, filled=True)
-        # plotting.show()
-
-        # graph_name = ExportData.get_file_name(".png", title.replace(" ", "_"))
-        # plt.savefig(graph_name)
-        # display.close()
-        # plt.close()
-
-    def tes(
-        self,
-    ):
-        import cmasher as cmr
-        import nilearn
-        import numpy as np
-        from matplotlib import cm
-        from matplotlib.colors import LinearSegmentedColormap, ListedColormap
-        from nilearn import datasets, plotting, surface
-
-        # Initialization
-        color = "hsv_r"
-        range_cmap = cmr.get_sub_cmap(color, 0.3, 1)
-
-        # Custom colormap
-
-        upper = cm.get_cmap(range_cmap, 999)
-        lower = cm.get_cmap(range_cmap, 999)
-
-        combine = np.vstack(
-            (upper(np.linspace(0, 1, 999)), lower(np.linspace(0, 1, 999)))
-        )
-        custom_cmap = ListedColormap(combine, name="custom_map")
-
-        # Data
-        nifti = nilearn.image.load_img("load-your-nifti-file")
-
-        # Cortical mesh
-        fsaverage = datasets.fetch_surf_fsaverage(mesh="fsaverage")
-
-        # Sample the 3D data around each node of the mesh
-        texture = surface.vol_to_surf(nifti, fsaverage.pial_right)
-
-        # Plot
-        fig = plotting.plot_surf_stat_map(
-            surf_mesh=fsaverage.pial_right,
-            stat_map=texture,
-            bg_map=fsaverage.sulc_right,
-            bg_on_data=True,
-            alpha=1,
-            vmax=8.64,
-            threshold=False,
-            hemi="right",
-            title="Surface right hemisphere",
+            smoothed_img,
+            threshold=0,
+            # title=title,
+            display_mode="lzry",
             colorbar=True,
-            symmetric_cbar=False,
-            cmap=custom_cmap,
+            figure=fig,
         )
-        fig.show()
+        display.title(
+            text=title_txt,
+            # x=0.01,
+            # y=0.99,
+            x=0.02,
+            y=0.02,
+            size=20,
+            # color="green",
+            bgcolor=None,
+            alpha=1,
+            va="bottom",
+        )
+        # display = plotting.plot_stat_map(smoothed_img, threshold=0)
+        # display.savefig("pretty_brain.png")
+        # plotting.plot_glass_brain(smoothed_img, threshold=0)
+        time.sleep(1)
 
-    """
-    'Accent', 'Accent_r', 'Blues', 'Blues_r', 'BrBG', 'BrBG_r', 'BuGn', 'BuGn_r', 'BuPu', 'BuPu_r', 'CMRmap',
-    'CMRmap_r', 'Dark2', 'Dark2_r', 'GnBu', 'GnBu_r', 'Grays', 'Greens', 'Greens_r', 'Greys', 'Greys_r', 'OrRd', 
-    'OrRd_r', 'Oranges', 'Oranges_r', 'PRGn', 'PRGn_r', 'Paired', 'Paired_r', 'Pastel1', 'Pastel1_r', 'Pastel2', 
-    'Pastel2_r', 'PiYG', 'PiYG_r', 'PuBu', 'PuBuGn', 'PuBuGn_r', 'PuBu_r', 'PuOr', 'PuOr_r', 'PuRd', 'PuRd_r', 
-    'Purples', 'Purples_r', 'RdBu', 'RdBu_r', 'RdGy', 'RdGy_r', 'RdPu', 'RdPu_r', 'RdYlBu', 'RdYlBu_r', 'RdYlGn',
-    'RdYlGn_r', 'Reds', 'Reds_r', 'Set1', 'Set1_r', 'Set2', 'Set2_r', 'Set3', 'Set3_r', 'Spectral', 'Spectral_r',
-    'Wistia', 'Wistia_r', 'YlGn', 'YlGnBu', 'YlGnBu_r', 'YlGn_r', 'YlOrBr', 'YlOrBr_r', 'YlOrRd', 'YlOrRd_r', 'afmhot', 
-    'afmhot_r', 'autumn', 'autumn_r', 'binary', 'binary_r', 'black_blue', 'black_blue_r', 'black_green', 'black_green_r', 
-    'black_pink', 'black_pink_r', 'black_purple', 'black_purple_r', 'black_red', 'black_red_r', 'blue_orange', 'blue_orange_r',
-    'blue_red', 'blue_red_r', 'blue_transparent', 'blue_transparent_full_alpha_range', 'bone', 'bone_r', 'brg', 'brg_r', 
-    'brown_blue', 'brown_blue_r', 'brown_cyan', 'brown_cyan_r', 'bwr', 'bwr_r', 'cividis', 'cividis_r', 'cold_hot', 'cold_hot_r',
-    'cold_white_hot', 'cold_white_hot_r', 'cool', 'cool_r', 'coolwarm', 'coolwarm_r', 'copper', 'copper_r', 'crest', 'crest_r', 
-    'cubehelix', 'cubehelix_r', 'cyan_copper', 'cyan_copper_r', 'cyan_orange', 'cyan_orange_r', 'flag', 'flag_r', 'flare', 
-    'flare_r', 'gist_earth', 'gist_earth_r', 'gist_gray', 'gist_gray_r', 'gist_grey', 'gist_heat', 'gist_heat_r', 'gist_ncar', 
-    'gist_ncar_r', 'gist_rainbow', 'gist_rainbow_r', 'gist_stern', 'gist_stern_r', 'gist_yarg', 'gist_yarg_r', 'gist_yerg', 
-    'gnuplot', 'gnuplot2', 'gnuplot2_r', 'gnuplot_r', 'gray', 'gray_r', 'green_transparent', 'green_transparent_full_alpha_range', 
-    'grey', 'hot', 'hot_black_bone', 'hot_black_bone_r', 'hot_r', 'hot_white_bone', 'hot_white_bone_r', 'hsv', 'hsv_r', 'icefire',
-    'icefire_r', 'inferno', 'inferno_r', 'jet', 'jet_r', 'magma', 'magma_r', 'mako', 'mako_r', 'nipy_spectral', 'nipy_spectral_r',
-    'ocean', 'ocean_hot', 'ocean_hot_r', 'ocean_r', 'pink', 'pink_r', 'plasma', 'plasma_r', 'prism', 'prism_r', 'purple_blue',
-    'purple_blue_r', 'purple_green', 'purple_green_r', 'rainbow', 'rainbow_r', 'red_transparent', 'red_transparent_full_alpha_range',
-    'rocket', 'rocket_r', 'roy_big_bl', 'seismic', 'seismic_r', 'spring', 'spring_r', 'summer', 'summer_r', 'tab10', 'tab10_r',
-    'tab20', 'tab20_r', 'tab20b', 'tab20b_r', 'tab20c', 'tab20c_r', 'terrain', 'terrain_r', 'turbo', 'turbo_r', 'twilight', 
-    'twilight_r', 'twilight_shifted', 'twilight_shifted_r', 'videen_style', 'viridis', 'viridis_r', 'vlag', 'vlag_r', 'winter',
-    'winter_r'
-    """
+        graph_name = ExportData.get_graph_name(".png", title_txt.replace(" ", "_"))
+
+        file_path = Path(directory_path).joinpath(graph_name)
+
+        plt.savefig(file_path)
+
+        if show:
+            plotting.show()
+            display.close()
+            plt.close()
+        # display = plotting.plot_glass_brain(None, plot_abs=False, display_mode="lzry", title=title)
+        # display.add_contours(smoothed_img, filled=True)
+        # plotting.show()
+
+        # graph_name = ExportData.get_file_name(".png", title.replace(" ", "_"))
+        # plt.savefig(graph_name)
+        # display.close()
+        # plt.close()
 
     def is_normalized(self):
         normalized = ""
@@ -1327,8 +1233,8 @@ class FMRIAnalyser:
         """
         nested_dict = self.groupby_strategy(all_export_data)
 
-        subject_l = "subject"
-        image_l = "image"
+        subject_l = "Subject"
+        image_l = "Speech-Gesture"
 
         for strategy, clasiifiers in nested_dict.items():
             bar_dict = self.separate_results_by_labels(subject_l, image_l, clasiifiers)
@@ -1357,11 +1263,11 @@ class FMRIAnalyser:
                 data_stat,
                 directory,
                 legends=[
-                    f"Subject {chr(10)} (N, D, S)",
-                    f"Image {chr(10)} (AR, AU, CR, CU)",
+                    f"Subjects {chr(10)} (N, D, S)",
+                    f"Speech-Gesture {chr(10)} Combinations {chr(10)}(AR, AU, CR, CU)",
                 ],
                 legend_font=13,
-                legend_title="Labels",
+                legend_title="Conditions",
             )
 
     def plot_detailed_bars(self, directory, all_export_data):
@@ -1469,7 +1375,7 @@ class FMRIAnalyser:
         br_position = None
         legend_bars = []
         fig, ax = plt.subplots(figsize=(25, 10))
-        plt.rcParams.update({"ytick.labelsize": 15})
+        plt.rcParams.update({"ytick.labelsize": 18})
         plt.rcParams.update({"legend.title_fontsize": 15})
         for key, br_data in bar_data.items():
             if i > 0:
@@ -1496,9 +1402,12 @@ class FMRIAnalyser:
                 label=key,
             )
             for index, d in enumerate(br_data["data"]):
+                txt_pos = 0.5 * d
+                if "Speech-Gesture" in bar_labels[i]:
+                    txt_pos = 0.6 * d
                 plt.text(
                     br_position[index],
-                    0.5 * d,
+                    txt_pos,
                     bar_labels[i],
                     ha="center",
                     va="top",
@@ -1528,9 +1437,22 @@ class FMRIAnalyser:
 
         lobe_n = self.brain.lobe.name
         if "All" in lobe_n:
-            lobe_n = "All lobes"
+            lobe_n = "Whole Brain"
+        else:
+            lobe_n = f"{lobe_n} Lobe"
 
-        title = f"{lobe_n} Results, {strategy} as data imputation"
+        sta_name = strategy
+
+        if "mice" in sta_name:
+            sta_name = "MICE Imputation"
+        elif "mean" in sta_name:
+            sta_name = "Mean Imputation"
+        elif "remove" in sta_name:
+            sta_name = "Voxel Deletion"
+        # MICE Imputation and STG Lobe Analysis
+        # STG Lobe Analysis with MICE Imputation
+
+        title = f"{lobe_n} Analysis with {sta_name}"
 
         plt.xlabel(title, fontweight="bold", fontsize=22)
         plt.ylabel("Accuracy", fontweight="bold", fontsize=15)
@@ -1566,7 +1488,7 @@ class FMRIAnalyser:
 
         directory_path = Helper.ensure_dir("Ml_Graphs", directory)
         file_path = Path(directory_path).joinpath(graph_name)
-        plt.savefig(file_path)
+        plt.savefig(file_path, dpi=600)
         # plt.show()
         plt.close()
 
@@ -1577,6 +1499,8 @@ class FMRIAnalyser:
         colors = ["tomato", "limegreen", "dodgerblue"]
         br_p = None
         fig, ax = plt.subplots(figsize=(25, 10))
+        plt.rcParams.update({"ytick.labelsize": 18})
+        plt.rcParams.update({"legend.title_fontsize": 15})
         for key, br in bar_dictc.items():
             if i > 0:
                 br_p = [x + barWidth for x in br_pre]
@@ -1595,7 +1519,23 @@ class FMRIAnalyser:
             )
             i = i + 1
             # Adding Xticks
-        name = f"{self.brain.lobe.name} Results, {strategy} as normalization"
+        # name = f"{self.brain.lobe.name} Results, {strategy} as normalization"
+
+        lobe_n = self.brain.lobe.name
+        if "All" in lobe_n:
+            lobe_n = "Whole Brain"
+        else:
+            lobe_n = f"{lobe_n} Lobe"
+
+        sta_name = strategy
+        if "mice" in sta_name:
+            sta_name = "MICE Imputation"
+        elif "mean" in sta_name:
+            sta_name = "Mean Imputation"
+        elif "remove" in sta_name:
+            sta_name = "Voxel Deletion"
+
+        name = f"{lobe_n} Analysis with {sta_name}"
 
         plt.xlabel(name, fontweight="bold", fontsize=15)
         plt.ylabel("Accuracy", fontweight="bold", fontsize=15)
@@ -1634,12 +1574,12 @@ class FMRIAnalyser:
         }
         for classifier, list_per_classifier in clasiifiers.items():
             for p in list_per_classifier:
-                if subject_l in p.column_name:
+                if "subject" in p.column_name:
                     if bar_dict[subject_l].get(classifier) is None:
                         bar_dict[subject_l][classifier] = [p]
                     else:
                         bar_dict[subject_l][classifier].append(p)
-                if image_l in p.column_name:
+                if "image" in p.column_name:
                     if bar_dict[image_l].get(classifier) is None:
                         bar_dict[image_l][classifier] = [p]
                     else:
