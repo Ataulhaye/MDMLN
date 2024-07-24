@@ -1196,11 +1196,15 @@ class FMRIAnalyser:
         # plotting.plot_glass_brain(smoothed_img, threshold=0)
         time.sleep(1)
 
-        graph_name = ExportData.get_graph_name(".png", title_txt.replace(" ", "_"))
+        png_name = ExportData.get_file_name(".png", title_txt.replace(" ", "_"))
+        pdf_name = ExportData.get_file_name(".pdf", title_txt.replace(" ", "_"))
 
-        file_path = Path(directory_path).joinpath(graph_name)
-
-        plt.savefig(file_path)
+        directory_path = Helper.ensure_dir("Searchlight_Graphs", directory)
+        png_path = Path(directory_path).joinpath(png_name)
+        pdf_path = Path(directory_path).joinpath(pdf_name)
+        plt.savefig(pdf_path)
+        time.sleep(1)
+        plt.savefig(png_path, dpi=600)
 
         if show:
             plotting.show()
@@ -1291,11 +1295,6 @@ class FMRIAnalyser:
                     for i in v:
                         i.column_name = i.column_name.split("_")[-1]
 
-            # for mod in models:
-            # if "Linear" in mod:
-            # ind = models.index("LinearDiscriminantAnalysis")
-            # models[ind] = "LDA"
-
             data_stat = {
                 f"{N}_AR-AU": {"data": [], "std": [], "result": []},
                 f"{N}_AR-CR": {"data": [], "std": [], "result": []},
@@ -1341,11 +1340,6 @@ class FMRIAnalyser:
 
             models, bar_dictc = self.merge_results(N, D, S, bar_dict)
 
-            # for mod in models:
-            # if "Linear" in mod:
-            # ind = models.index("LinearDiscriminantAnalysis")
-            # models[ind] = "LDA"
-
             self.plot_diagram(strategy, models, bar_dictc, directory)
 
     def plot_diagram_per_strategy(
@@ -1374,7 +1368,7 @@ class FMRIAnalyser:
 
         br_position = None
         legend_bars = []
-        fig, ax = plt.subplots(figsize=(25, 10))
+        plt.subplots(figsize=(25, 10))
         plt.rcParams.update({"ytick.labelsize": 18})
         plt.rcParams.update({"legend.title_fontsize": 15})
         for key, br_data in bar_data.items():
@@ -1449,8 +1443,6 @@ class FMRIAnalyser:
             sta_name = "Mean Imputation"
         elif "remove" in sta_name:
             sta_name = "Voxel Deletion"
-        # MICE Imputation and STG Lobe Analysis
-        # STG Lobe Analysis with MICE Imputation
 
         title = f"{lobe_n} Analysis with {sta_name}"
 
@@ -1480,15 +1472,16 @@ class FMRIAnalyser:
         )
         # plt.legend(legend_bars, ["N", "D", "S"], fontsize=18, loc='upper left', bbox_to_anchor=(1, 1) ,title_fontsize=14,title="Mental Disorders")
         gname = f"{self.brain.lobe.name}_{strategy}_{directory}"
-        graph_name = ExportData.get_file_name(".png", gname)
-        # plt.savefig(graph_name, dpi=1200)
-
-        # directory_path = Path(f"MlGraphs/{directory}").absolute().resolve()
-        # Path(directory_path).mkdir(parents=True, exist_ok=True)
+        png_name = ExportData.get_file_name(".png", gname)
+        pdf_name = ExportData.get_file_name(".pdf", gname)
 
         directory_path = Helper.ensure_dir("Ml_Graphs", directory)
-        file_path = Path(directory_path).joinpath(graph_name)
-        plt.savefig(file_path, dpi=600)
+        png_path = Path(directory_path).joinpath(png_name)
+        pdf_path = Path(directory_path).joinpath(pdf_name)
+        plt.savefig(pdf_path)
+        time.sleep(1)
+        plt.savefig(png_path, dpi=600)
+
         # plt.show()
         plt.close()
 
@@ -1542,13 +1535,17 @@ class FMRIAnalyser:
         plt.xticks([r + barWidth for r in range(len(br_p))], models, fontsize=20)
         plt.legend(fontsize=18, title="Mental Disorders", loc="upper right")
         gname = f"{self.brain.lobe.name}_{strategy}_{self.unary_subject_binary_image_classification.__name__}"
-        graph_name = ExportData.get_file_name(".png", gname)
-        # plt.savefig(graph_name, dpi=1200)
+
+        png_name = ExportData.get_file_name(".png", gname)
+        pdf_name = ExportData.get_file_name(".pdf", gname)
 
         directory_path = Helper.ensure_dir("Ml_Graphs", directory)
+        png_path = Path(directory_path).joinpath(png_name)
+        pdf_path = Path(directory_path).joinpath(pdf_name)
+        plt.savefig(pdf_path)
+        time.sleep(1)
+        plt.savefig(png_path, dpi=600)
 
-        file_path = Path(directory_path).joinpath(graph_name)
-        plt.savefig(file_path)
         # plt.show()
         plt.close()
 
