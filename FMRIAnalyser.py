@@ -1,17 +1,13 @@
 import copy
 import itertools
-import os
 import pickle
-import statistics
 import time
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
-from nilearn import image, plotting
-from sklearn.decomposition import PCA
+from nilearn import image
 
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
@@ -19,7 +15,7 @@ from DataTraining import DataTraining
 from Enums import Lobe
 from ExportData import ExportData
 from Helper import Helper
-from PlotData import VisualizeData
+from PlotData import Visualization
 from RepresentationalSimilarityAnalysis import RepresentationalSimilarityAnalysis
 from RSAConfig import RSAConfig
 from TrainingConfig import TrainingConfig
@@ -240,11 +236,17 @@ class FMRIAnalyser:
             transpose=True,
             single_label=True,
         )
-        self.plot_images(
-            self.unary_subject_binary_image_classification.__name__, all_export_data
+        visu = Visualization()
+        visu.plot_images(
+            directory=self.unary_subject_binary_image_classification.__name__,
+            all_data=all_export_data,
+            lobe_name=self.brain.lobe.name,
         )
-        self.plot_detailed_bars(
-            self.unary_subject_binary_image_classification.__name__, all_export_data
+        time.sleep(5)
+        visu.plot_detailed_bars(
+            directory=self.unary_subject_binary_image_classification.__name__,
+            all_data=all_export_data,
+            lobe_name=self.brain.lobe.name,
         )
         # this will groupby the mean, median,...
 
@@ -356,9 +358,12 @@ class FMRIAnalyser:
             transpose=True,
             single_label=True,
         )
-        self.plot_images(
+
+        visu = Visualization()
+        visu.plot_images(
             self.binary_subject_binary_image_classification.__name__,
             all_data,
+            self.brain.lobe.name,
             N="N-D",
             D="N-S",
             S="D-S",
@@ -368,10 +373,11 @@ class FMRIAnalyser:
                 f"Depressive & {chr(10)} Schizophrenia",
             ],
         )
-        
-        self.plot_detailed_bars(
-            self.binary_subject_binary_image_classification.__name__,
-            all_data,
+        time.sleep(5)
+        visu.plot_detailed_bars(
+            directory=self.binary_subject_binary_image_classification.__name__,
+            all_data=all_data,
+            lobe_name=self.brain.lobe.name,
             N="N-D",
             D="N-S",
             S="D-S",
@@ -381,7 +387,6 @@ class FMRIAnalyser:
                 f"Depressive & {chr(10)} Schizophrenia",
             ],
         )
-        
 
     def binary_subject_unary_image_classification(self):
         """
@@ -661,8 +666,10 @@ class FMRIAnalyser:
 
         # results = pickle.load(open("subject_and_image_classification.pickle", "rb"))
 
-        self.plot_detailed_bars_data_labels(
-            self.subject_and_image_classification.__name__, export_data
+        Visualization().plot_detailed_bars_data_labels(
+            directory=self.subject_and_image_classification.__name__,
+            lobe_name=self.brain.lobe.name,
+            all_data=export_data,
         )
 
     def Searchlight_Text_Embeddings(self, set_name, query, plotting=True):
@@ -722,7 +729,7 @@ class FMRIAnalyser:
                 title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Text Embeddings RDM, {set_name} {query}".replace(
                     "  ", " "
                 )
-                self.plot_brain_image(
+                Visualization().plot_brain_image(
                     smoothed_img, title, self.Searchlight_Text_Embeddings.__name__
                 )
 
@@ -754,7 +761,7 @@ class FMRIAnalyser:
             title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Text Embeddings RDM, {set_name} {query}".replace(
                 "  ", " "
             )
-            self.plot_brain_image(
+            Visualization().plot_brain_image(
                 smoothed_img,
                 title,
                 self.Searchlight_brain_difference_Text_Embeddings_RDM.__name__,
@@ -817,7 +824,7 @@ class FMRIAnalyser:
                 title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Video Embeddings RDM, {set_name} {query}".replace(
                     "  ", " "
                 )
-                self.plot_brain_image(
+                Visualization().plot_brain_image(
                     smoothed_img, title, self.Searchlight_Video_Embeddings.__name__
                 )
 
@@ -849,7 +856,7 @@ class FMRIAnalyser:
             title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Video Embeddings RDM, {set_name} {query}".replace(
                 "  ", " "
             )
-            self.plot_brain_image(
+            Visualization().plot_brain_image(
                 smoothed_img,
                 title,
                 self.Searchlight_brain_difference_Video_Embeddings_RDM.__name__,
@@ -912,7 +919,7 @@ class FMRIAnalyser:
                 title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Bridge Embeddings RDM, {set_name} {query}".replace(
                     "  ", " "
                 )
-                self.plot_brain_image(
+                Visualization().plot_brain_image(
                     smoothed_img, title, self.Searchlight_Bridge_Embeddings.__name__
                 )
 
@@ -944,7 +951,7 @@ class FMRIAnalyser:
             title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Bridge Embeddings RDM, {set_name} {query}".replace(
                 "  ", " "
             )
-            self.plot_brain_image(
+            Visualization().plot_brain_image(
                 smoothed_img,
                 title,
                 self.Searchlight_brain_difference_Bridge_Embeddings_RDM.__name__,
@@ -1035,7 +1042,7 @@ class FMRIAnalyser:
                 title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Abstract Concrete RDM".replace(
                     "  ", " "
                 )
-                self.plot_brain_image(
+                Visualization().plot_brain_image(
                     smoothed_img, title, self.Searchlight_Abstract_Concrete_RDM.__name__
                 )
 
@@ -1067,7 +1074,7 @@ class FMRIAnalyser:
             title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Abstract Concrete RDM".replace(
                 "  ", " "
             )
-            self.plot_brain_image(
+            Visualization().plot_brain_image(
                 smoothed_img,
                 title,
                 self.Searchlight_brain_difference_Abstract_Concrete_RDM.__name__,
@@ -1099,7 +1106,7 @@ class FMRIAnalyser:
             title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Related Unrelated RDM".replace(
                 "  ", " "
             )
-            self.plot_brain_image(
+            Visualization().plot_brain_image(
                 smoothed_img,
                 title,
                 self.Searchlight_brain_difference_Related_Unrelated_RDM.__name__,
@@ -1182,15 +1189,42 @@ class FMRIAnalyser:
                 title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Related Unrelated RDM".replace(
                     "  ", " "
                 )
-                self.plot_brain_image(
+                Visualization().plot_brain_image(
                     smoothed_img, title, self.Searchlight_Related_Unrelated_RDM.__name__
                 )
 
         return results
 
     def plot_NaNs(self):
-        VisualizeData().visualize_nans(self.brain)
+        Visualization().visualize_nans(self.brain)
 
+    def __modify_patients(self, config: BrainDataConfig, combination):
+        config.patients = []
+        for comb in combination:
+            match comb:
+                case config.neurotypical | config.neurotypical_int:
+                    config.patients.append(config.neurotypical_patients)
+                case config.depressive_disorder | config.depressive_disorder_int:
+                    config.patients.append(config.depressive_disorder_patients)
+                case config.schizophrenia_spectrum | config.schizophrenia_spectrum_int:
+                    config.patients.append(config.schizophrenia_spectrum_patients)
+
+    def is_normalized(self):
+        normalized = ""
+        if self.rsa_config.normalize:
+            normalized = f"{self.rsa_config.strategy} imputation"
+        return normalized
+
+    def lobe_name(self, brain):
+        lobe = brain.lobe.name
+        if brain.lobe == Lobe.ALL:
+            lobe = f"{lobe} Lobes"
+        return lobe
+
+    def __get_note(self, mean, method):
+        return f"Popmean:{mean}, Conditions:{self.data_config.conditions}, PCA fix components:{self.training_config.has_fix_components}, Executed By:{method.__name__}(...)"
+
+    """
     def plot_brain_image(self, smoothed_img, title_txt, directory, show=False):
         # rdm_typ = f"{self.rsa_config.related_unrelated_RDM=}".split("=")[0].split(".")[2]
 
@@ -1222,8 +1256,9 @@ class FMRIAnalyser:
         # plotting.plot_glass_brain(smoothed_img, threshold=0)
         time.sleep(1)
 
-        png_name = ExportData.get_file_name(".png", title_txt.replace(" ", "_"))
-        pdf_name = ExportData.get_file_name(".pdf", title_txt.replace(" ", "_"))
+        pdf_name, png_name = ExportData.create_figure_names(title_txt.replace(" ", "_"))
+        # png_name = ExportData.get_file_name(".png", title_txt.replace(" ", "_"))
+        # pdf_name = ExportData.get_file_name(".pdf", title_txt.replace(" ", "_"))
 
         directory_path = Helper.ensure_dir("Searchlight_Graphs", directory)
         png_path = Path(directory_path).joinpath(png_name)
@@ -1244,23 +1279,10 @@ class FMRIAnalyser:
         # plt.savefig(graph_name)
         # display.close()
         # plt.close()
-
-    def is_normalized(self):
-        normalized = ""
-        if self.rsa_config.normalize:
-            normalized = f"{self.rsa_config.strategy} imputation"
-        return normalized
-
-    def lobe_name(self, brain):
-        lobe = brain.lobe.name
-        if brain.lobe == Lobe.ALL:
-            lobe = f"{lobe} Lobes"
-        return lobe
-
+    """
+    """
     def plot_detailed_bars_data_labels(self, directory, all_export_data):
-        """
-        This method plot the detailed graphs, with Image labels and subject labels, std and significant
-        """
+        #This method plot the detailed graphs, with Image labels and subject labels, std and significant
         nested_dict = self.groupby_strategy(all_export_data)
 
         subject_l = "Subject"
@@ -1299,7 +1321,8 @@ class FMRIAnalyser:
                 legend_font=13,
                 legend_title="Conditions",
             )
-
+    """
+    """
     def plot_detailed_bars(
         self,
         directory,
@@ -1309,9 +1332,8 @@ class FMRIAnalyser:
         S="S",
         legend_text=["Neurotypical", "Depressive", "Schizophrenia"],
     ):
-        """
-        This method plot the detailed graphs, with binary 6 combinations, std and significant
-        """
+        #This method plot the detailed graphs, with binary 6 combinations, std and significant
+        
         nested_dict = self.groupby_strategy(all_export_data)
 
         # N = self.data_config.neurotypical
@@ -1366,7 +1388,8 @@ class FMRIAnalyser:
                 legends=legend_text,
                 legend_font=13,
             )
-
+    """
+    """
     def plot_images(
         self,
         directory,
@@ -1376,7 +1399,8 @@ class FMRIAnalyser:
         S="S",
         legend_title="Mental Disorders",
         legend_text=[
-            "Neurotypical", "Depressive",
+            "Neurotypical",
+            "Depressive",
             "Schizophrenia",
         ],
     ):
@@ -1395,7 +1419,8 @@ class FMRIAnalyser:
                 legend_title=legend_title,
                 legend_text=legend_text,
             )
-
+    """
+    """
     def plot_diagram_per_strategy(
         self,
         strategy,
@@ -1526,8 +1551,10 @@ class FMRIAnalyser:
         )
         # plt.legend(legend_bars, ["N", "D", "S"], fontsize=18, loc='upper left', bbox_to_anchor=(1, 1) ,title_fontsize=14,title="Mental Disorders")
         gname = f"{self.brain.lobe.name}_{strategy}_{directory}"
-        png_name = ExportData.get_file_name(".png", gname)
-        pdf_name = ExportData.get_file_name(".pdf", gname)
+
+        pdf_name, png_name = ExportData.create_figure_names(gname)
+        # png_name = ExportData.get_file_name(".png", gname)
+        # pdf_name = ExportData.get_file_name(".pdf", gname)
 
         directory_path = Helper.ensure_dir("Ml_Graphs", directory)
         png_path = Path(directory_path).joinpath(png_name)
@@ -1538,7 +1565,8 @@ class FMRIAnalyser:
 
         # plt.show()
         plt.close()
-
+    """
+    """
     def plot_diagram(
         self,
         strategy,
@@ -1605,11 +1633,11 @@ class FMRIAnalyser:
         for lidx, text in enumerate(legend_text):
             l.get_texts()[lidx].set_text(text)
 
-
         gname = f"{self.brain.lobe.name}_{strategy}_{self.unary_subject_binary_image_classification.__name__}"
 
-        png_name = ExportData.get_file_name(".png", gname)
-        pdf_name = ExportData.get_file_name(".pdf", gname)
+        pdf_name, png_name = ExportData.create_figure_names(gname)
+        # png_name = ExportData.get_file_name(".png", gname)
+        # pdf_name = ExportData.get_file_name(".pdf", gname)
 
         directory_path = Helper.ensure_dir("Ml_Graphs", directory)
         png_path = Path(directory_path).joinpath(png_name)
@@ -1620,7 +1648,8 @@ class FMRIAnalyser:
 
         # plt.show()
         plt.close()
-
+    """
+    """
     def merge_results(self, N, D, S, bar_dict):
         models = []
         bar_dictc = {
@@ -1635,7 +1664,9 @@ class FMRIAnalyser:
                 means_per_classi = [x.mean for x in v]
                 bar_dictc[label].append(statistics.mean(means_per_classi))
         return models, bar_dictc
+    """
 
+    """
     def separate_results_by_labels(self, subject_l, image_l, clasiifiers):
         bar_dict = {
             subject_l: {},
@@ -1654,7 +1685,9 @@ class FMRIAnalyser:
                     else:
                         bar_dict[image_l][classifier].append(p)
         return bar_dict
+    """
 
+    """
     def separate_results_by_patients(self, N, D, S, clasiifiers):
         bar_dict = {
             N: {},
@@ -1679,7 +1712,8 @@ class FMRIAnalyser:
                     else:
                         bar_dict[S][classifier].append(p)
         return bar_dict
-
+    """
+    """
     def groupby_strategy(self, all_export_data):
         nested_dict = {}
         for data in all_export_data:
@@ -1697,17 +1731,4 @@ class FMRIAnalyser:
                 else:
                     nested_dict[strategy][data.row_name].append(data)
         return nested_dict
-
-    def __modify_patients(self, config: BrainDataConfig, combination):
-        config.patients = []
-        for comb in combination:
-            match comb:
-                case config.neurotypical | config.neurotypical_int:
-                    config.patients.append(config.neurotypical_patients)
-                case config.depressive_disorder | config.depressive_disorder_int:
-                    config.patients.append(config.depressive_disorder_patients)
-                case config.schizophrenia_spectrum | config.schizophrenia_spectrum_int:
-                    config.patients.append(config.schizophrenia_spectrum_patients)
-
-    def __get_note(self, mean, method):
-        return f"Popmean:{mean}, Conditions:{self.data_config.conditions}, PCA fix components:{self.training_config.has_fix_components}, Executed By:{method.__name__}(...)"
+    """

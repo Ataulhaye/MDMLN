@@ -272,9 +272,18 @@ class ExportData:
 
     @staticmethod
     def get_graph_name(extension, name):
-        dt = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+        dt = datetime.now().strftime("%d-%m-%Y_%H-%M")
         name = f"{name}_{dt}{extension}"
         return name
+
+    @staticmethod
+    def create_figure_names(
+        name,
+        extension1=".pdf",
+        extension2=".png",
+    ):
+        dt = datetime.now().strftime("%d-%m-%Y_%H-%M")
+        return f"{name}_{dt}{extension1}", f"{name}_{dt}{extension2}"
 
     def prepare_data_matrix(self, data: list[ExportEntity]):
         for scn in data:
