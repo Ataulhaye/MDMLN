@@ -672,7 +672,7 @@ class FMRIAnalyser:
             all_data=export_data,
         )
 
-    def Searchlight_Text_Embeddings(self, set_name, query, plotting=True):
+    def Searchlight_Text_Embeddings(self, set_name="Set1", query="verb", plotting=True):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
@@ -735,7 +735,9 @@ class FMRIAnalyser:
 
         return results
 
-    def Searchlight_brain_difference_Text_Embeddings_RDM(self, set_name, query):
+    def Searchlight_brain_difference_Text_Embeddings_RDM(
+        self, set_name="Set1", query="verb"
+    ):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
@@ -767,7 +769,9 @@ class FMRIAnalyser:
                 self.Searchlight_brain_difference_Text_Embeddings_RDM.__name__,
             )
 
-    def Searchlight_Video_Embeddings(self, set_name, query, plotting=True):
+    def Searchlight_Video_Embeddings(
+        self, set_name="Set1", query="verb", plotting=True
+    ):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
@@ -830,7 +834,9 @@ class FMRIAnalyser:
 
         return results
 
-    def Searchlight_brain_difference_Video_Embeddings_RDM(self, set_name, query):
+    def Searchlight_brain_difference_Video_Embeddings_RDM(
+        self, set_name="Set1", query="verb"
+    ):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
@@ -862,7 +868,9 @@ class FMRIAnalyser:
                 self.Searchlight_brain_difference_Video_Embeddings_RDM.__name__,
             )
 
-    def Searchlight_Bridge_Embeddings(self, set_name, query, plotting=True):
+    def Searchlight_Bridge_Embeddings(
+        self, set_name="Set1", query="verb", plotting=True
+    ):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N
@@ -925,7 +933,9 @@ class FMRIAnalyser:
 
         return results
 
-    def Searchlight_brain_difference_Bridge_Embeddings_RDM(self, set_name, query):
+    def Searchlight_brain_difference_Bridge_Embeddings_RDM(
+        self, set_name="Set1", query="verb"
+    ):
         """
         Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
         i.e unary_subject_labels_N

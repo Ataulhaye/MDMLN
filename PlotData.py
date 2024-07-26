@@ -13,8 +13,6 @@ from Brain import Brain
 from ExportData import ExportData
 from Helper import Helper
 
-# x = [i for i in range(7238)]
-
 
 class Visualization:
 
@@ -233,7 +231,6 @@ class Visualization:
         br_position = None
         legend_bars = []
         plt.subplots(figsize=(25, 10))
-        plt.rcParams.update({"ytick.labelsize": 18})
         plt.rcParams.update({"legend.title_fontsize": 15})
         for key, br_data in bar_data.items():
             if i > 0:
@@ -291,7 +288,6 @@ class Visualization:
             if i % (int(len(bar_data) / bar_types_per_model)) == 0:
                 legend_bars.append(a)
             i = i + 1
-            # Adding Xticks
 
         lobe_n = lobe_name
         if "All" in lobe_n:
@@ -311,7 +307,7 @@ class Visualization:
         title = f"{lobe_n} Analysis with {sta_name}"
 
         plt.xlabel(title, fontweight="bold", fontsize=22)
-        plt.ylabel("Accuracy", fontweight="bold", fontsize=15)
+        plt.ylabel("Accuracy (in %)", fontweight="bold", fontsize=20)
 
         all_br_positions.sort()
         tick_pos = []
@@ -324,7 +320,8 @@ class Visualization:
             tick_pos.append(seg[int(len(seg) / 2)] - barWidth / 2)
             start = end
 
-        plt.xticks(tick_pos, models, fontsize=20)
+        plt.xticks(tick_pos, models, fontsize=22)
+        plt.yticks(fontsize=20)
 
         plt.legend(
             legend_bars,
@@ -365,7 +362,6 @@ class Visualization:
         colors = ["tomato", "limegreen", "dodgerblue"]
         br_p = None
         plt.subplots(figsize=(25, 10))
-        plt.rcParams.update({"ytick.labelsize": 18})
         plt.rcParams.update({"legend.title_fontsize": 15})
         for key, br in bar_dictc.items():
             if i > 0:
@@ -402,8 +398,9 @@ class Visualization:
         name = f"{lobe_n} Analysis with {sta_name}"
 
         plt.xlabel(name, fontweight="bold", fontsize=22)
-        plt.ylabel("Accuracy", fontweight="bold", fontsize=15)
-        plt.xticks([r + barWidth for r in range(len(br_p))], models, fontsize=20)
+        plt.ylabel("Accuracy (in %)", fontweight="bold", fontsize=20)
+        plt.yticks(fontsize=20)
+        plt.xticks([r + barWidth for r in range(len(br_p))], models, fontsize=22)
         # plt.legend(legend_bars,legends,fontsize=13,loc="upper left",bbox_to_anchor=(1, 1),title=legend_title,)
         # plt.legend(fontsize=18, title="Mental Disorders", loc="upper right")
         l = plt.legend(
@@ -552,14 +549,19 @@ class Visualization:
         # legend_title_font_color="green",
         # )
         fig.update_layout(
-            xaxis_title=dict(text=x_label, font=dict(size=22, color="black")),
-            yaxis_title=dict(text=y_label, font=dict(size=22, color="black")),
             title=dict(
                 text=title,
-                font=dict(family="Courier New, monospace", size=30, color="blue"),
-                automargin=True,
+                font=dict(family="Courier New, monospace", size=40, color="black"),
+                # automargin=True,
+                xanchor="center",
+                yanchor="bottom",
                 yref="paper",
             ),
+            title_x=0.5,
+            xaxis=dict(tickfont=dict(size=25), title=x_label),
+            yaxis=dict(tickfont=dict(size=25), title=y_label),
+            xaxis_title=dict(text=x_label, font=dict(size=35)),
+            yaxis_title=dict(text=y_label, font=dict(size=35)),
         )
 
         html_name = ExportData.get_graph_name(".html", title)
@@ -575,7 +577,7 @@ class Visualization:
     def visualize_nans(self, brain: Brain):
         ln = brain.lobe.name
         if "ALL" in ln:
-            ln = "All lobes"
+            ln = "All Lobes"
 
         nans_column_wise = brain.calculate_nans_voxel_wise(brain.voxels)
         print("---------------------------------------------------------")
@@ -592,7 +594,7 @@ class Visualization:
         )
         print("-------------------------------------------------------------")
         columns = [i for i in range(brain.voxels.shape[1])]
-        name = f"Voxelwise NaN values in the {ln}"
+        name = f"Voxelwise NaN values Distribution in {ln}"
 
         self.plot_bar_graph(
             ("Dimension", columns),
@@ -603,7 +605,7 @@ class Visualization:
 
         nans_voxel_wise = brain.calculate_nans_trail_wise(brain.voxels)
         rows = [i for i in range(brain.voxels.shape[0])]
-        name = f"Trialwise NaN values in the {ln}"
+        name = f"Trialwise NaN values Distribution in {ln}"
         self.plot_bar_graph(
             ("Trials", rows),
             ("NaN values each trail", nans_voxel_wise),
