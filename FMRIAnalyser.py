@@ -236,17 +236,26 @@ class FMRIAnalyser:
             transpose=True,
             single_label=True,
         )
+
+        optional_txt = None
+        if self.training_config.dimension_reduction == True:
+            optional_txt = "PCA"
+        if self.training_config.use_autoencoder == True:
+            optional_txt = "Autoencoder"
+
         visu = Visualization()
         visu.plot_images(
             directory=self.unary_subject_binary_image_classification.__name__,
             all_data=all_export_data,
             lobe_name=self.brain.lobe.name,
+            opt_info=optional_txt,
         )
         time.sleep(5)
         visu.plot_detailed_bars(
             directory=self.unary_subject_binary_image_classification.__name__,
             all_data=all_export_data,
             lobe_name=self.brain.lobe.name,
+            opt_info=optional_txt,
         )
         # this will groupby the mean, median,...
 
@@ -359,6 +368,12 @@ class FMRIAnalyser:
             single_label=True,
         )
 
+        optional_txt = None
+        if self.training_config.dimension_reduction == True:
+            optional_txt = "PCA"
+        if self.training_config.use_autoencoder == True:
+            optional_txt = "Autoencoder"
+
         visu = Visualization()
         visu.plot_images(
             self.binary_subject_binary_image_classification.__name__,
@@ -372,6 +387,7 @@ class FMRIAnalyser:
                 f"Neurotypical & {chr(10)} Schizophrenia",
                 f"Depressive & {chr(10)} Schizophrenia",
             ],
+            opt_info=optional_txt,
         )
         time.sleep(5)
         visu.plot_detailed_bars(
@@ -386,6 +402,7 @@ class FMRIAnalyser:
                 f"Neurotypical & {chr(10)} Schizophrenia",
                 f"Depressive & {chr(10)} Schizophrenia",
             ],
+            opt_info=optional_txt,
         )
 
     def binary_subject_unary_image_classification(self):
@@ -665,11 +682,17 @@ class FMRIAnalyser:
         )
 
         # results = pickle.load(open("subject_and_image_classification.pickle", "rb"))
+        optional_txt = None
+        if self.training_config.dimension_reduction == True:
+            optional_txt = "PCA"
+        if self.training_config.use_autoencoder == True:
+            optional_txt = "Autoencoder"
 
         Visualization().plot_detailed_bars_data_labels(
             directory=self.subject_and_image_classification.__name__,
             lobe_name=self.brain.lobe.name,
             all_data=export_data,
+            opt_info=optional_txt,
         )
 
     def Searchlight_Text_Embeddings(self, set_name="Set1", query="verb", plotting=True):

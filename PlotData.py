@@ -30,6 +30,7 @@ class Visualization:
             "Depressive",
             "Schizophrenia",
         ],
+        opt_info=None,
     ):
         nested_dict = self.groupby_strategy(all_data)
 
@@ -46,6 +47,7 @@ class Visualization:
                 legend_title=legend_title,
                 legend_text=legend_text,
                 lobe_name=lobe_name,
+                opt_info=opt_info,
             )
 
     def plot_detailed_bars(
@@ -57,6 +59,7 @@ class Visualization:
         D="D",
         S="S",
         legend_text=["Neurotypical", "Depressive", "Schizophrenia"],
+        opt_info=None,
     ):
         """
         This method plot the detailed graphs, with binary 6 combinations, std and significant
@@ -111,9 +114,12 @@ class Visualization:
                 legends=legend_text,
                 lobe_name=lobe_name,
                 legend_font=13,
+                opt_info=opt_info,
             )
 
-    def plot_detailed_bars_data_labels(self, directory, lobe_name, all_data):
+    def plot_detailed_bars_data_labels(
+        self, directory, lobe_name, all_data, opt_info=None
+    ):
         """
         This method plot the detailed graphs, with Image labels and subject labels, std and significant
         """
@@ -155,6 +161,7 @@ class Visualization:
                 lobe_name=lobe_name,
                 legend_font=13,
                 legend_title="Conditions",
+                opt_info=opt_info,
             )
 
     @staticmethod
@@ -213,6 +220,7 @@ class Visualization:
         lobe_name,
         legend_title="Mental Disorders",
         legend_font=18,
+        opt_info=None,
     ):
         bar_types_per_model = len(legends)
         barWidth = 0.5
@@ -306,7 +314,10 @@ class Visualization:
 
         title = f"{lobe_n} Analysis with {sta_name}"
 
-        plt.xlabel(title, fontweight="bold", fontsize=22)
+        if opt_info is not None:
+            title = f"{title} using {opt_info}"
+
+        plt.xlabel(title, fontweight="bold", fontsize=24)
         plt.ylabel("Accuracy (in %)", fontweight="bold", fontsize=20)
 
         all_br_positions.sort()
@@ -334,6 +345,9 @@ class Visualization:
         # plt.legend(legend_bars, ["N", "D", "S"], fontsize=18, loc='upper left', bbox_to_anchor=(1, 1) ,title_fontsize=14,title="Mental Disorders")
         gname = f"{lobe_name}_{strategy}_{directory}"
 
+        if opt_info is not None:
+            gname = f"{opt_info}_{gname}"
+
         pdf_name, png_name = ExportData.create_figure_names(gname)
 
         directory_path = Helper.ensure_dir("Ml_Graphs", directory)
@@ -355,6 +369,7 @@ class Visualization:
         legend_title,
         legend_text,
         lobe_name,
+        opt_info=None,
     ):
         barWidth = 0.25
         i = 0
@@ -397,7 +412,10 @@ class Visualization:
 
         name = f"{lobe_n} Analysis with {sta_name}"
 
-        plt.xlabel(name, fontweight="bold", fontsize=22)
+        if opt_info is not None:
+            name = f"{name} using {opt_info}"
+
+        plt.xlabel(name, fontweight="bold", fontsize=24)
         plt.ylabel("Accuracy (in %)", fontweight="bold", fontsize=20)
         plt.yticks(fontsize=20)
         plt.xticks([r + barWidth for r in range(len(br_p))], models, fontsize=22)
@@ -414,6 +432,9 @@ class Visualization:
             l.get_texts()[lidx].set_text(text)
 
         gname = f"{lobe_name}_{strategy}_{directory}"
+
+        if opt_info is not None:
+            gname = f"{opt_info}_{gname}"
 
         pdf_name, png_name = ExportData.create_figure_names(gname)
 
@@ -597,8 +618,8 @@ class Visualization:
         name = f"Voxelwise NaN values Distribution in {ln}"
 
         self.plot_bar_graph(
-            ("Dimension", columns),
-            ("Trials", nans_column_wise),
+            ("Data Dimension", columns),
+            ("Data Trials & NaNs Count", nans_column_wise),
             title=name,
             bar_color="#FFBF00",
         )
@@ -607,8 +628,8 @@ class Visualization:
         rows = [i for i in range(brain.voxels.shape[0])]
         name = f"Trialwise NaN values Distribution in {ln}"
         self.plot_bar_graph(
-            ("Trials", rows),
-            ("NaN values each trail", nans_voxel_wise),
+            ("Data Trials", rows),
+            ("Count of NaN Values", nans_voxel_wise),
             bar_color="#FFBF00",
             title=name,
         )
