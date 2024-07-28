@@ -113,7 +113,7 @@ class Visualization:
                 directory=directory,
                 legends=legend_text,
                 lobe_name=lobe_name,
-                legend_font=13,
+                legend_font=18,
                 opt_info=opt_info,
             )
 
@@ -159,7 +159,7 @@ class Visualization:
                     f"Speech-Gesture {chr(10)} Combinations {chr(10)}(AR, AU, CR, CU)",
                 ],
                 lobe_name=lobe_name,
-                legend_font=13,
+                legend_font=17,
                 legend_title="Conditions",
                 opt_info=opt_info,
             )
@@ -238,8 +238,8 @@ class Visualization:
 
         br_position = None
         legend_bars = []
-        plt.subplots(figsize=(25, 10))
-        plt.rcParams.update({"legend.title_fontsize": 15})
+        plt.subplots(figsize=(30, 10))
+        plt.rcParams.update({"legend.title_fontsize": 18})
         for key, br_data in bar_data.items():
             if i > 0:
                 br_position = [x + barWidth for x in br_pre_pos]
@@ -376,8 +376,8 @@ class Visualization:
         br_pre = None
         colors = ["tomato", "limegreen", "dodgerblue"]
         br_p = None
-        plt.subplots(figsize=(25, 10))
-        plt.rcParams.update({"legend.title_fontsize": 15})
+        plt.subplots(figsize=(30, 10))
+        plt.rcParams.update({"legend.title_fontsize": 18})
         for key, br in bar_dictc.items():
             if i > 0:
                 br_p = [x + barWidth for x in br_pre]
@@ -422,7 +422,7 @@ class Visualization:
         # plt.legend(legend_bars,legends,fontsize=13,loc="upper left",bbox_to_anchor=(1, 1),title=legend_title,)
         # plt.legend(fontsize=18, title="Mental Disorders", loc="upper right")
         l = plt.legend(
-            fontsize=13,
+            fontsize=18,
             loc="upper left",
             bbox_to_anchor=(1, 1),
             title=legend_title,
