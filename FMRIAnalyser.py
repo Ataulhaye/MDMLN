@@ -753,13 +753,21 @@ class FMRIAnalyser:
                 title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Text Embeddings RDM, {set_name} {query}".replace(
                     "  ", " "
                 )
+                pdf, png, csv = ExportData.create_figure_names(
+                    title.replace(" ", "_"), opt=".csv"
+                )
                 self.export_top_similarities(
                     rsa_result,
                     title,
+                    csv,
                     self.Searchlight_Text_Embeddings.__name__,
                 )
                 Visualization().plot_brain_image(
-                    smoothed_img, title, self.Searchlight_Text_Embeddings.__name__
+                    smoothed_img,
+                    title,
+                    self.Searchlight_Text_Embeddings.__name__,
+                    pdf,
+                    png,
                 )
 
         return results
@@ -792,15 +800,21 @@ class FMRIAnalyser:
             title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Text Embeddings RDM, {set_name} {query}".replace(
                 "  ", " "
             )
+            pdf, png, csv = ExportData.create_figure_names(
+                title.replace(" ", "_"), opt=".csv"
+            )
             self.export_top_similarities(
                 diffrences,
                 title,
+                csv,
                 self.Searchlight_brain_difference_Text_Embeddings_RDM.__name__,
             )
             Visualization().plot_brain_image(
                 smoothed_img,
                 title,
                 self.Searchlight_brain_difference_Text_Embeddings_RDM.__name__,
+                pdf,
+                png,
             )
 
     def Searchlight_Video_Embeddings(
@@ -862,13 +876,21 @@ class FMRIAnalyser:
                 title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Video Embeddings RDM, {set_name} {query}".replace(
                     "  ", " "
                 )
+                pdf, png, csv = ExportData.create_figure_names(
+                    title.replace(" ", "_"), opt=".csv"
+                )
                 self.export_top_similarities(
                     rsa_result,
                     title,
+                    csv,
                     self.Searchlight_Video_Embeddings.__name__,
                 )
                 Visualization().plot_brain_image(
-                    smoothed_img, title, self.Searchlight_Video_Embeddings.__name__
+                    smoothed_img,
+                    title,
+                    self.Searchlight_Video_Embeddings.__name__,
+                    pdf,
+                    png,
                 )
 
         return results
@@ -901,15 +923,21 @@ class FMRIAnalyser:
             title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Video Embeddings RDM, {set_name} {query}".replace(
                 "  ", " "
             )
+            pdf, png, csv = ExportData.create_figure_names(
+                title.replace(" ", "_"), opt=".csv"
+            )
             self.export_top_similarities(
                 diffrences,
                 title,
+                csv,
                 self.Searchlight_brain_difference_Video_Embeddings_RDM.__name__,
             )
             Visualization().plot_brain_image(
                 smoothed_img,
                 title,
                 self.Searchlight_brain_difference_Video_Embeddings_RDM.__name__,
+                pdf,
+                png,
             )
 
     def Searchlight_Bridge_Embeddings(
@@ -971,13 +999,21 @@ class FMRIAnalyser:
                 title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Bridge Embeddings RDM, {set_name} {query}".replace(
                     "  ", " "
                 )
+                pdf, png, csv = ExportData.create_figure_names(
+                    title.replace(" ", "_"), opt=".csv"
+                )
                 self.export_top_similarities(
                     rsa_result,
                     title,
+                    csv,
                     self.Searchlight_Bridge_Embeddings.__name__,
                 )
                 Visualization().plot_brain_image(
-                    smoothed_img, title, self.Searchlight_Bridge_Embeddings.__name__
+                    smoothed_img,
+                    title,
+                    self.Searchlight_Bridge_Embeddings.__name__,
+                    pdf,
+                    png,
                 )
 
         return results
@@ -1010,15 +1046,21 @@ class FMRIAnalyser:
             title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Bridge Embeddings RDM, {set_name} {query}".replace(
                 "  ", " "
             )
+            pdf, png, csv = ExportData.create_figure_names(
+                title.replace(" ", "_"), opt=".csv"
+            )
             self.export_top_similarities(
                 diffrences,
                 title,
+                csv,
                 self.Searchlight_brain_difference_Bridge_Embeddings_RDM.__name__,
             )
             Visualization().plot_brain_image(
                 smoothed_img,
                 title,
                 self.Searchlight_brain_difference_Bridge_Embeddings_RDM.__name__,
+                pdf,
+                png,
             )
 
     def Searchlight_Abstract_Concrete_RDM(self, plotting=True):
@@ -1062,13 +1104,21 @@ class FMRIAnalyser:
                 title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Abstract Concrete RDM".replace(
                     "  ", " "
                 )
+                pdf, png, csv = ExportData.create_figure_names(
+                    title.replace(" ", "_"), opt=".csv"
+                )
                 self.export_top_similarities(
                     rsa_result,
                     title,
+                    csv,
                     self.Searchlight_Abstract_Concrete_RDM.__name__,
                 )
                 Visualization().plot_brain_image(
-                    smoothed_img, title, self.Searchlight_Abstract_Concrete_RDM.__name__
+                    smoothed_img,
+                    title,
+                    self.Searchlight_Abstract_Concrete_RDM.__name__,
+                    pdf,
+                    png,
                 )
 
         return results
@@ -1099,15 +1149,21 @@ class FMRIAnalyser:
             title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Abstract Concrete RDM".replace(
                 "  ", " "
             )
+            pdf, png, csv = ExportData.create_figure_names(
+                title.replace(" ", "_"), opt=".csv"
+            )
             self.export_top_similarities(
                 diffrences,
                 title,
+                csv,
                 self.Searchlight_brain_difference_Abstract_Concrete_RDM.__name__,
             )
             Visualization().plot_brain_image(
                 smoothed_img,
                 title,
                 self.Searchlight_brain_difference_Abstract_Concrete_RDM.__name__,
+                pdf,
+                png,
             )
 
     def Searchlight_brain_difference_Related_Unrelated_RDM(self):
@@ -1136,9 +1192,13 @@ class FMRIAnalyser:
             title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Related Unrelated RDM".replace(
                 "  ", " "
             )
+            pdf, png, csv = ExportData.create_figure_names(
+                title.replace(" ", "_"), opt=".csv"
+            )
             self.export_top_similarities(
                 diffrences,
                 title,
+                csv,
                 self.Searchlight_brain_difference_Related_Unrelated_RDM.__name__,
             )
 
@@ -1146,6 +1206,8 @@ class FMRIAnalyser:
                 smoothed_img,
                 title,
                 self.Searchlight_brain_difference_Related_Unrelated_RDM.__name__,
+                pdf,
+                png,
             )
 
     def Searchlight_Related_Unrelated_RDM(self, plotting=True):
@@ -1191,13 +1253,21 @@ class FMRIAnalyser:
                 title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Related Unrelated RDM".replace(
                     "  ", " "
                 )
+                pdf, png, csv = ExportData.create_figure_names(
+                    title.replace(" ", "_"), opt=".csv"
+                )
                 self.export_top_similarities(
                     rsa_result,
                     title,
+                    csv,
                     self.Searchlight_Related_Unrelated_RDM.__name__,
                 )
                 Visualization().plot_brain_image(
-                    smoothed_img, title, self.Searchlight_Related_Unrelated_RDM.__name__
+                    smoothed_img,
+                    title,
+                    self.Searchlight_Related_Unrelated_RDM.__name__,
+                    pdf,
+                    png,
                 )
 
         return results
@@ -1205,11 +1275,11 @@ class FMRIAnalyser:
     def plot_NaNs(self):
         Visualization().visualize_nans(self.brain)
 
-    def export_top_similarities(self, diffrences, title, directory):
+    def export_top_similarities(self, diffrences, title, csv, directory):
         top_n = nlargest(20, diffrences, key=lambda x: x[2])
-        csv_name = ExportData.get_graph_name(".csv", title.replace(" ", "_"))
+        # csv_name = ExportData.get_graph_name(".csv", title.replace(" ", "_"))
         directory_path = Helper.ensure_dir("Searchlight_Graphs", directory)
-        csv_file = Path(directory_path).joinpath(csv_name)
+        csv_file = Path(directory_path).joinpath(csv)
         f = open(csv_file, "w")
         f.write(
             f"Spermanr;Sphere_Centres;Voxel_Indicies;AAL_Coordinates;Talairach_Coordinates\n"
@@ -1224,7 +1294,6 @@ class FMRIAnalyser:
                 ]
                 coords_maping.append([(x, y, z), row.iloc[0]["BA"]])
             f.write(f"{r};{sph_cntr};{vox_indices};{aal_coors};{coords_maping}\n")
-            # f.write(f"{r};{sph_cntr};{vox_indices};{aal_coors};{taal_xyz_coo}\n")
         f.close()
 
     def average_embeddings(self, embeddings, index):

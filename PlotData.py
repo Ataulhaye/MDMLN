@@ -223,10 +223,8 @@ class Visualization:
             )
 
     @staticmethod
-    def plot_brain_image(smoothed_img, title_txt, directory, show=False):
+    def plot_brain_image(smoothed_img, title_txt, directory, pdf, png, show=False):
         # rdm_typ = f"{self.rsa_config.related_unrelated_RDM=}".split("=")[0].split(".")[2]
-
-        directory_path = Helper.ensure_dir("Searchlight_Graphs", directory)
         fig = plt.figure(figsize=(18, 7))
         # display, axes = plotting.plot_img_on_surf( smoothed_img,surf_mesh="fsaverage", views=["lateral", "medial"],hemispheres=["left", "right"],inflate=False,colorbar=True,bg_on_data=True,cmap="hsv_r")
         display = plotting.plot_glass_brain(
@@ -254,11 +252,11 @@ class Visualization:
         # plotting.plot_glass_brain(smoothed_img, threshold=0)
         time.sleep(1)
 
-        pdf_name, png_name = ExportData.create_figure_names(title_txt.replace(" ", "_"))
+        # pdf_name, png_name = ExportData.create_figure_names(title_txt.replace(" ", "_"))
 
         directory_path = Helper.ensure_dir("Searchlight_Graphs", directory)
-        png_path = Path(directory_path).joinpath(png_name)
-        pdf_path = Path(directory_path).joinpath(pdf_name)
+        png_path = Path(directory_path).joinpath(png)
+        pdf_path = Path(directory_path).joinpath(pdf)
         plt.savefig(pdf_path)
         time.sleep(1)
         plt.savefig(png_path, dpi=600)
