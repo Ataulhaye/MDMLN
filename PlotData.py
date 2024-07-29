@@ -16,7 +16,7 @@ from Helper import Helper
 
 class Visualization:
 
-    def plot_images(
+    def plot_merged_bars(
         self,
         directory,
         all_data,
@@ -49,6 +49,8 @@ class Visualization:
                 lobe_name=lobe_name,
                 opt_info=opt_info,
             )
+
+    plt.close("all")
 
     def plot_detailed_bars(
         self,
@@ -116,6 +118,62 @@ class Visualization:
                 legend_font=18,
                 opt_info=opt_info,
             )
+
+    plt.close("all")
+
+    def plot_detailed_bars_dynamic(
+        self,
+        directory,
+        all_data,
+        lobe_name,
+        N="N",
+        D="D",
+        S="S",
+        legend_text=["Neurotypical", "Depressive", "Schizophrenia"],
+        opt_info=None,
+    ):
+        """
+        This method plot the detailed graphs, with binary 6 combinations, std and significant
+        """
+        nested_dict = self.groupby_strategy(all_data)
+
+        for strategy, clasiifiers in nested_dict.items():
+            bar_dict = self.separate_results_by_patients(N, D, S, clasiifiers)
+
+            models = []
+            data_stat = {}
+            for label, y in bar_dict.items():
+                for j, v in y.items():
+                    if j not in models:
+                        models.append(j)
+                    for i in v:
+                        cut = 2
+                        if "ary" in i.column_name:
+                            cut = 3
+                        splits = i.column_name.split("_")
+                        i.column_name = "_".join(splits[cut:])
+                        data_stat[i.column_name] = {"data": [], "std": [], "result": []}
+
+            for patient, resu in bar_dict.items():
+                for classi, res in resu.items():
+                    for it in res:
+                        data_stat[it.column_name]["std"].append(it.standard_deviation)
+                        data_stat[it.column_name]["data"].append(it.mean)
+                        data_stat[it.column_name]["result"].append(it.result[0])
+
+            self.plot_diagram_per_strategy(
+                strategy=strategy,
+                models=models,
+                bar_data=data_stat,
+                directory=directory,
+                legends=legend_text,
+                lobe_name=lobe_name,
+                legend_font=18,
+                opt_info=opt_info,
+                separator="-",
+            )
+
+    plt.close("all")
 
     def plot_detailed_bars_data_labels(
         self, directory, lobe_name, all_data, opt_info=None
@@ -221,6 +279,7 @@ class Visualization:
         legend_title="Mental Disorders",
         legend_font=18,
         opt_info=None,
+        separator="_",
     ):
         bar_types_per_model = len(legends)
         barWidth = 0.5
@@ -233,7 +292,9 @@ class Visualization:
         colors.extend(["dodgerblue" for x in range(color_len)])
 
         bar_labels = [
-            j.split("_")[-1] for i in range(len(models)) for j in list(bar_data.keys())
+            j.split(separator)[-1]
+            for i in range(len(models))
+            for j in list(bar_data.keys())
         ]
 
         br_position = None
@@ -435,6 +496,8 @@ class Visualization:
 
         if opt_info is not None:
             gname = f"{opt_info}_{gname}"
+
+        gname = f"Merged_{gname}"
 
         pdf_name, png_name = ExportData.create_figure_names(gname)
 

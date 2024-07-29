@@ -2,6 +2,7 @@ import copy
 import itertools
 import pickle
 import time
+from heapq import nlargest
 from pathlib import Path
 
 import numpy as np
@@ -244,7 +245,7 @@ class FMRIAnalyser:
             optional_txt = "Autoencoder"
 
         visu = Visualization()
-        visu.plot_images(
+        visu.plot_merged_bars(
             directory=self.unary_subject_binary_image_classification.__name__,
             all_data=all_export_data,
             lobe_name=self.brain.lobe.name,
@@ -375,7 +376,7 @@ class FMRIAnalyser:
             optional_txt = "Autoencoder"
 
         visu = Visualization()
-        visu.plot_images(
+        visu.plot_merged_bars(
             self.binary_subject_binary_image_classification.__name__,
             all_data,
             self.brain.lobe.name,
@@ -752,6 +753,11 @@ class FMRIAnalyser:
                 title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Text Embeddings RDM, {set_name} {query}".replace(
                     "  ", " "
                 )
+                self.export_top_similarities(
+                    rsa_result,
+                    title,
+                    self.Searchlight_Text_Embeddings.__name__,
+                )
                 Visualization().plot_brain_image(
                     smoothed_img, title, self.Searchlight_Text_Embeddings.__name__
                 )
@@ -782,9 +788,14 @@ class FMRIAnalyser:
             with open(file_path, "wb") as output:
                 pickle.dump(difference_results, output)
 
-        for smoothed_img, brain_k, brain_l in difference_results:
+        for smoothed_img, brain_k, brain_l, diffrences in difference_results:
             title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Text Embeddings RDM, {set_name} {query}".replace(
                 "  ", " "
+            )
+            self.export_top_similarities(
+                diffrences,
+                title,
+                self.Searchlight_brain_difference_Text_Embeddings_RDM.__name__,
             )
             Visualization().plot_brain_image(
                 smoothed_img,
@@ -851,6 +862,11 @@ class FMRIAnalyser:
                 title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Video Embeddings RDM, {set_name} {query}".replace(
                     "  ", " "
                 )
+                self.export_top_similarities(
+                    rsa_result,
+                    title,
+                    self.Searchlight_Video_Embeddings.__name__,
+                )
                 Visualization().plot_brain_image(
                     smoothed_img, title, self.Searchlight_Video_Embeddings.__name__
                 )
@@ -881,9 +897,14 @@ class FMRIAnalyser:
             with open(file_path, "wb") as output:
                 pickle.dump(difference_results, output)
 
-        for smoothed_img, brain_k, brain_l in difference_results:
+        for smoothed_img, brain_k, brain_l, diffrences in difference_results:
             title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Video Embeddings RDM, {set_name} {query}".replace(
                 "  ", " "
+            )
+            self.export_top_similarities(
+                diffrences,
+                title,
+                self.Searchlight_brain_difference_Video_Embeddings_RDM.__name__,
             )
             Visualization().plot_brain_image(
                 smoothed_img,
@@ -950,6 +971,11 @@ class FMRIAnalyser:
                 title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Bridge Embeddings RDM, {set_name} {query}".replace(
                     "  ", " "
                 )
+                self.export_top_similarities(
+                    rsa_result,
+                    title,
+                    self.Searchlight_Bridge_Embeddings.__name__,
+                )
                 Visualization().plot_brain_image(
                     smoothed_img, title, self.Searchlight_Bridge_Embeddings.__name__
                 )
@@ -980,15 +1006,226 @@ class FMRIAnalyser:
             with open(file_path, "wb") as output:
                 pickle.dump(difference_results, output)
 
-        for smoothed_img, brain_k, brain_l in difference_results:
+        for smoothed_img, brain_k, brain_l, diffrences in difference_results:
             title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Bridge Embeddings RDM, {set_name} {query}".replace(
                 "  ", " "
+            )
+            self.export_top_similarities(
+                diffrences,
+                title,
+                self.Searchlight_brain_difference_Bridge_Embeddings_RDM.__name__,
             )
             Visualization().plot_brain_image(
                 smoothed_img,
                 title,
                 self.Searchlight_brain_difference_Bridge_Embeddings_RDM.__name__,
             )
+
+    def Searchlight_Abstract_Concrete_RDM(self, plotting=True):
+        """
+        Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
+        i.e unary_subject_labels_N
+        """
+        self.brain.current_labels = self.brain.subject_labels
+
+        file_name = f"{self.Searchlight_Abstract_Concrete_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}.pickle"
+        file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
+
+        results = None
+
+        if file_path.is_file():
+            results = pickle.load(open(file_path, "rb"))
+        else:
+            print(f"There are no saved RSA results {file_path}. Executing results.")
+            if self.rsa_config.normalize:
+                x = self.brain.normalize_data(
+                    self.brain.voxels, self.rsa_config.strategy
+                )
+                self.brain.voxels = x
+
+            subject_unary_data = self.brain.unary_fmri_subject_or_image(
+                self.data_config
+            )
+            results = RepresentationalSimilarityAnalysis().run_RSA(
+                subject_unary_data,
+                self.rsa_config.abstract_concrete_RDM,
+                self.rsa_config.radius,
+                self.rsa_config.radius_adjustment,
+                self.Talairach_MNI_space,
+                self.brain.NIfTI,
+            )
+            with open(file_path, "wb") as output:
+                pickle.dump(results, output)
+
+        for brain, smoothed_img, rsa_result in results:
+            if plotting:
+                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Abstract Concrete RDM".replace(
+                    "  ", " "
+                )
+                self.export_top_similarities(
+                    rsa_result,
+                    title,
+                    self.Searchlight_Abstract_Concrete_RDM.__name__,
+                )
+                Visualization().plot_brain_image(
+                    smoothed_img, title, self.Searchlight_Abstract_Concrete_RDM.__name__
+                )
+
+        return results
+
+    def Searchlight_brain_difference_Abstract_Concrete_RDM(self):
+        """
+        Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
+        i.e unary_subject_labels_N
+        """
+
+        results = self.Searchlight_Abstract_Concrete_RDM(plotting=False)
+
+        file_name = f"{self.Searchlight_brain_difference_Abstract_Concrete_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}.pickle"
+
+        file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
+
+        difference_results = None
+
+        if file_path.is_file():
+            difference_results = pickle.load(open(file_path, "rb"))
+        else:
+            print(f"There are no saved RSA results {file_path}. Executing results.")
+            difference_results = self.Searchlight_brain_difference(results)
+            with open(file_path, "wb") as output:
+                pickle.dump(difference_results, output)
+
+        for smoothed_img, brain_k, brain_l, diffrences in difference_results:
+            title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Abstract Concrete RDM".replace(
+                "  ", " "
+            )
+            self.export_top_similarities(
+                diffrences,
+                title,
+                self.Searchlight_brain_difference_Abstract_Concrete_RDM.__name__,
+            )
+            Visualization().plot_brain_image(
+                smoothed_img,
+                title,
+                self.Searchlight_brain_difference_Abstract_Concrete_RDM.__name__,
+            )
+
+    def Searchlight_brain_difference_Related_Unrelated_RDM(self):
+        """
+        Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
+        i.e unary_subject_labels_N
+        """
+
+        results = self.Searchlight_Related_Unrelated_RDM(plotting=False)
+
+        file_name = f"{self.Searchlight_brain_difference_Related_Unrelated_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}.pickle"
+
+        file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
+
+        difference_results = None
+
+        if file_path.is_file():
+            difference_results = pickle.load(open(file_path, "rb"))
+        else:
+            print(f"There are no saved RSA results {file_path}. Executing results.")
+            difference_results = self.Searchlight_brain_difference(results)
+            with open(file_path, "wb") as output:
+                pickle.dump(difference_results, output)
+
+        for smoothed_img, brain_k, brain_l, diffrences in difference_results:
+            title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Related Unrelated RDM".replace(
+                "  ", " "
+            )
+            self.export_top_similarities(
+                diffrences,
+                title,
+                self.Searchlight_brain_difference_Related_Unrelated_RDM.__name__,
+            )
+
+            Visualization().plot_brain_image(
+                smoothed_img,
+                title,
+                self.Searchlight_brain_difference_Related_Unrelated_RDM.__name__,
+            )
+
+    def Searchlight_Related_Unrelated_RDM(self, plotting=True):
+        """
+        Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
+        i.e unary_subject_labels_N
+        """
+        self.brain.current_labels = self.brain.subject_labels
+
+        file_name = f"{self.Searchlight_Related_Unrelated_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}.pickle"
+
+        file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
+        results = None
+
+        if file_path.is_file():
+            results = pickle.load(open(file_path, "rb"))
+        else:
+            print(
+                f"There are no saved RSA results {file_path}. RSA function will be executed."
+            )
+            if self.rsa_config.normalize:
+                x = self.brain.normalize_data(
+                    self.brain.voxels, self.rsa_config.strategy
+                )
+                self.brain.voxels = x
+
+            subject_unary_data = self.brain.unary_fmri_subject_or_image(
+                self.data_config
+            )
+            results = RepresentationalSimilarityAnalysis().run_RSA(
+                subject_unary_data,
+                self.rsa_config.abstract_concrete_RDM,
+                self.rsa_config.radius,
+                self.rsa_config.radius_adjustment,
+                self.Talairach_MNI_space,
+                self.brain.NIfTI,
+            )
+            with open(file_path, "wb") as output:
+                pickle.dump(results, output)
+
+        for brain, smoothed_img, rsa_result in results:
+            if plotting:
+                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Related Unrelated RDM".replace(
+                    "  ", " "
+                )
+                self.export_top_similarities(
+                    rsa_result,
+                    title,
+                    self.Searchlight_Related_Unrelated_RDM.__name__,
+                )
+                Visualization().plot_brain_image(
+                    smoothed_img, title, self.Searchlight_Related_Unrelated_RDM.__name__
+                )
+
+        return results
+
+    def plot_NaNs(self):
+        Visualization().visualize_nans(self.brain)
+
+    def export_top_similarities(self, diffrences, title, directory):
+        top_n = nlargest(20, diffrences, key=lambda x: x[2])
+        csv_name = ExportData.get_graph_name(".csv", title.replace(" ", "_"))
+        directory_path = Helper.ensure_dir("Searchlight_Graphs", directory)
+        csv_file = Path(directory_path).joinpath(csv_name)
+        f = open(csv_file, "w")
+        f.write(
+            f"Spermanr;Sphere_Centres;Voxel_Indicies;AAL_Coordinates;Talairach_Coordinates\n"
+        )
+        for sph_cntr, vox_indices, r, aal_coors, taal_xyz_coo in top_n:
+            coords_maping = []
+            for x, y, z in taal_xyz_coo:
+                row = self.brain.Talairach_MNI_space[
+                    (self.brain.Talairach_MNI_space["TALX"] == x)
+                    & (self.brain.Talairach_MNI_space["TALY"] == y)
+                    & (self.brain.Talairach_MNI_space["TALZ"] == z)
+                ]
+                coords_maping.append([(x, y, z), row.iloc[0]["BA"]])
+            f.write(f"{r};{sph_cntr};{vox_indices};{aal_coors};{coords_maping}\n")
+            # f.write(f"{r};{sph_cntr};{vox_indices};{aal_coors};{taal_xyz_coo}\n")
+        f.close()
 
     def average_embeddings(self, embeddings, index):
         """
@@ -1034,121 +1271,11 @@ class FMRIAnalyser:
 
         return avg_embeddings
 
-    def Searchlight_Abstract_Concrete_RDM(self, plotting=True):
-        """
-        Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
-        i.e unary_subject_labels_N
-        """
-        self.brain.current_labels = self.brain.subject_labels
-
-        file_name = f"{self.Searchlight_Abstract_Concrete_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}.pickle"
-        file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
-
-        results = None
-
-        if file_path.is_file():
-            results = pickle.load(open(file_path, "rb"))
-        else:
-            print(f"There are no saved RSA results {file_path}. Executing results.")
-            if self.rsa_config.normalize:
-                x = self.brain.normalize_data(
-                    self.brain.voxels, self.rsa_config.strategy
-                )
-                self.brain.voxels = x
-
-            subject_unary_data = self.brain.unary_fmri_subject_or_image(
-                self.data_config
-            )
-            results = RepresentationalSimilarityAnalysis().run_RSA(
-                subject_unary_data,
-                self.rsa_config.abstract_concrete_RDM,
-                self.rsa_config.radius,
-                self.rsa_config.radius_adjustment,
-                self.Talairach_MNI_space,
-                self.brain.NIfTI,
-            )
-            with open(file_path, "wb") as output:
-                pickle.dump(results, output)
-
-        for brain, smoothed_img, rsa_result in results:
-            if plotting:
-                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Abstract Concrete RDM".replace(
-                    "  ", " "
-                )
-                Visualization().plot_brain_image(
-                    smoothed_img, title, self.Searchlight_Abstract_Concrete_RDM.__name__
-                )
-
-        return results
-
-    def Searchlight_brain_difference_Abstract_Concrete_RDM(self):
-        """
-        Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
-        i.e unary_subject_labels_N
-        """
-
-        results = self.Searchlight_Abstract_Concrete_RDM(plotting=False)
-
-        file_name = f"{self.Searchlight_brain_difference_Abstract_Concrete_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}.pickle"
-
-        file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
-
-        difference_results = None
-
-        if file_path.is_file():
-            difference_results = pickle.load(open(file_path, "rb"))
-        else:
-            print(f"There are no saved RSA results {file_path}. Executing results.")
-            difference_results = self.Searchlight_brain_difference(results)
-            with open(file_path, "wb") as output:
-                pickle.dump(difference_results, output)
-
-        for smoothed_img, brain_k, brain_l in difference_results:
-            title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Abstract Concrete RDM".replace(
-                "  ", " "
-            )
-            Visualization().plot_brain_image(
-                smoothed_img,
-                title,
-                self.Searchlight_brain_difference_Abstract_Concrete_RDM.__name__,
-            )
-
-    def Searchlight_brain_difference_Related_Unrelated_RDM(self):
-        """
-        Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
-        i.e unary_subject_labels_N
-        """
-
-        results = self.Searchlight_Related_Unrelated_RDM(plotting=False)
-
-        file_name = f"{self.Searchlight_brain_difference_Related_Unrelated_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}.pickle"
-
-        file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
-
-        difference_results = None
-
-        if file_path.is_file():
-            difference_results = pickle.load(open(file_path, "rb"))
-        else:
-            print(f"There are no saved RSA results {file_path}. Executing results.")
-            difference_results = self.Searchlight_brain_difference(results)
-            with open(file_path, "wb") as output:
-                pickle.dump(difference_results, output)
-
-        for smoothed_img, brain_k, brain_l in difference_results:
-            title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Related Unrelated RDM".replace(
-                "  ", " "
-            )
-            Visualization().plot_brain_image(
-                smoothed_img,
-                title,
-                self.Searchlight_brain_difference_Related_Unrelated_RDM.__name__,
-            )
-
     def Searchlight_brain_difference(self, results):
         difference_results = []
         combinations = itertools.combinations(list(range(len(results))), 2)
         for k, l in combinations:
+            diffrences = []
             smoothed_img = image.smooth_img(self.brain.NIfTI, None)
             smoothed_img._dataobj = np.zeros(smoothed_img._dataobj.shape)
             brain_k, smoothed_img_k, rsa_result_k = results[k]
@@ -1156,80 +1283,32 @@ class FMRIAnalyser:
             assert len(rsa_result_k) == len(rsa_result_l)
             i = 0
             while i < len(rsa_result_k):
-                sph_cntr_k, vox_indices_k, r_k, aal_coors_k = rsa_result_k[i]
-                sph_cntr_l, vox_indices_l, r_l, aal_coors_l = rsa_result_l[i]
+                sph_cntr_k, vox_indices_k, r_k, aal_coors_k, taal_xyz_coo_k = (
+                    rsa_result_k[i]
+                )
+                sph_cntr_l, vox_indices_l, r_l, aal_coors_l, taal_xyz_coo_l = (
+                    rsa_result_l[i]
+                )
 
                 assert sph_cntr_k == sph_cntr_l
                 assert vox_indices_k == vox_indices_l
                 assert aal_coors_k == aal_coors_l
+                assert taal_xyz_coo_k == taal_xyz_coo_l
 
+                r_diff = abs(r_k - r_l)
                 for vox_index in vox_indices_k:
                     for aal_coo in aal_coors_k:
-                        smoothed_img._dataobj[aal_coo] = abs(r_k - r_l)
+                        smoothed_img._dataobj[aal_coo] = r_diff
+
+                diffrences.append(
+                    (sph_cntr_k, vox_indices_k, r_diff, aal_coors_k, taal_xyz_coo_l)
+                )
 
                 i += 1
 
             smoothed_img._data_cache = smoothed_img._dataobj
-            difference_results.append(
-                (
-                    smoothed_img,
-                    brain_k,
-                    brain_l,
-                )
-            )
+            difference_results.append((smoothed_img, brain_k, brain_l, diffrences))
         return difference_results
-
-    def Searchlight_Related_Unrelated_RDM(self, plotting=True):
-        """
-        Unarize the fMRI data based on subjects, then for every unarized instance RSA takes place
-        i.e unary_subject_labels_N
-        """
-        self.brain.current_labels = self.brain.subject_labels
-
-        file_name = f"{self.Searchlight_Related_Unrelated_RDM.__name__}_{self.brain.lobe.name}_{self.brain.current_labels.name}_{self.is_normalized().replace(' ', '_')}.pickle"
-
-        file_path = Path(f"PickleFiles/{file_name}").absolute().resolve()
-        results = None
-
-        if file_path.is_file():
-            results = pickle.load(open(file_path, "rb"))
-        else:
-            print(
-                f"There are no saved RSA results {file_path}. RSA function will be executed."
-            )
-            if self.rsa_config.normalize:
-                x = self.brain.normalize_data(
-                    self.brain.voxels, self.rsa_config.strategy
-                )
-                self.brain.voxels = x
-
-            subject_unary_data = self.brain.unary_fmri_subject_or_image(
-                self.data_config
-            )
-            results = RepresentationalSimilarityAnalysis().run_RSA(
-                subject_unary_data,
-                self.rsa_config.abstract_concrete_RDM,
-                self.rsa_config.radius,
-                self.rsa_config.radius_adjustment,
-                self.Talairach_MNI_space,
-                self.brain.NIfTI,
-            )
-            with open(file_path, "wb") as output:
-                pickle.dump(results, output)
-
-        for brain, smoothed_img, rsa_result in results:
-            if plotting:
-                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Related Unrelated RDM".replace(
-                    "  ", " "
-                )
-                Visualization().plot_brain_image(
-                    smoothed_img, title, self.Searchlight_Related_Unrelated_RDM.__name__
-                )
-
-        return results
-
-    def plot_NaNs(self):
-        Visualization().visualize_nans(self.brain)
 
     def __modify_patients(self, config: BrainDataConfig, combination):
         config.patients = []
