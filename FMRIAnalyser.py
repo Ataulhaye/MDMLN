@@ -1101,21 +1101,24 @@ class FMRIAnalyser:
 
         for brain, smoothed_img, rsa_result in results:
             if plotting:
-                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Abstract Concrete RDM".replace(
+                fig_name = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Abstract Concrete RDM".replace(
                     "  ", " "
                 )
                 pdf, png, csv = ExportData.create_figure_names(
-                    title.replace(" ", "_"), opt=".csv"
+                    fig_name.replace(" ", "_"), opt=".csv"
                 )
                 self.export_top_similarities(
                     rsa_result,
-                    title,
+                    fig_name,
                     csv,
                     self.Searchlight_Abstract_Concrete_RDM.__name__,
                 )
+                stat, patient = self.get_strategy_patient_names(brain)
+
+                fig_title = f"Searchlight RSA Analysis of Abstract/Concrete RDM using {stat} Imputation in {patient}"
                 Visualization().plot_brain_image(
                     smoothed_img,
-                    title,
+                    fig_title,
                     self.Searchlight_Abstract_Concrete_RDM.__name__,
                     pdf,
                     png,
@@ -1146,21 +1149,28 @@ class FMRIAnalyser:
                 pickle.dump(difference_results, output)
 
         for smoothed_img, brain_k, brain_l, diffrences in difference_results:
-            title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Abstract Concrete RDM".replace(
+            fig_name = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Abstract Concrete RDM".replace(
                 "  ", " "
             )
             pdf, png, csv = ExportData.create_figure_names(
-                title.replace(" ", "_"), opt=".csv"
+                fig_name.replace(" ", "_"), opt=".csv"
             )
             self.export_top_similarities(
                 diffrences,
-                title,
+                fig_name,
                 csv,
                 self.Searchlight_brain_difference_Abstract_Concrete_RDM.__name__,
             )
+            stat, patient_k = self.get_strategy_patient_names(brain_k)
+            stat, patient_l = self.get_strategy_patient_names(brain_l)
+            # Searchlight RSA Analysis of Related/Unrelated RDM using MICE imputation in Neurotypicals
+            # Neurotypical-Depressive Differences of Related/Unrelated RDM using MICE Imputation
+            #Abstractness = abstract/concrete
+            fig_title = f"{patient_k[:-1]}-{patient_l[:-1]} Differences in Conceptual Abstractness using {stat} Imputation"
+
             Visualization().plot_brain_image(
                 smoothed_img,
-                title,
+                fig_title,
                 self.Searchlight_brain_difference_Abstract_Concrete_RDM.__name__,
                 pdf,
                 png,
@@ -1189,22 +1199,28 @@ class FMRIAnalyser:
                 pickle.dump(difference_results, output)
 
         for smoothed_img, brain_k, brain_l, diffrences in difference_results:
-            title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Related Unrelated RDM".replace(
+            fig_name = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Related Unrelated RDM".replace(
                 "  ", " "
             )
             pdf, png, csv = ExportData.create_figure_names(
-                title.replace(" ", "_"), opt=".csv"
+                fig_name.replace(" ", "_"), opt=".csv"
             )
             self.export_top_similarities(
                 diffrences,
-                title,
+                fig_name,
                 csv,
                 self.Searchlight_brain_difference_Related_Unrelated_RDM.__name__,
             )
+            stat, patient_k = self.get_strategy_patient_names(brain_k)
+            stat, patient_l = self.get_strategy_patient_names(brain_l)
+            # Searchlight RSA Analysis of Related/Unrelated RDM using MICE imputation in Neurotypicals
+            # Neurotypical-Depressive Differences of Related/Unrelated RDM using MICE Imputation
+            # Relatedness = related/unrelated
+            fig_title = f"{patient_k[:-1]}-{patient_l[:-1]} Differences in Conceptual Relatedness using {stat} Imputation"
 
             Visualization().plot_brain_image(
                 smoothed_img,
-                title,
+                fig_title,
                 self.Searchlight_brain_difference_Related_Unrelated_RDM.__name__,
                 pdf,
                 png,
@@ -1250,21 +1266,26 @@ class FMRIAnalyser:
 
         for brain, smoothed_img, rsa_result in results:
             if plotting:
-                title = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Related Unrelated RDM".replace(
+                fig_name = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Related Unrelated RDM".replace(
                     "  ", " "
                 )
                 pdf, png, csv = ExportData.create_figure_names(
-                    title.replace(" ", "_"), opt=".csv"
+                    fig_name.replace(" ", "_"), opt=".csv"
                 )
                 self.export_top_similarities(
                     rsa_result,
-                    title,
+                    fig_name,
                     csv,
                     self.Searchlight_Related_Unrelated_RDM.__name__,
                 )
+                stat, patient = self.get_strategy_patient_names(brain)
+
+                fig_title = f"Searchlight RSA Analysis of Related/Unrelated RDM using {stat} Imputation in {patient}"
+
+                # Searchlight RSA Analysis of Related/Unrelated RDM using MICE imputation in Neurotypicals
                 Visualization().plot_brain_image(
                     smoothed_img,
-                    title,
+                    fig_title,
                     self.Searchlight_Related_Unrelated_RDM.__name__,
                     pdf,
                     png,
@@ -1295,6 +1316,21 @@ class FMRIAnalyser:
                 coords_maping.append([(x, y, z), row.iloc[0]["BA"]])
             f.write(f"{r};{sph_cntr};{vox_indices};{aal_coors};{coords_maping}\n")
         f.close()
+
+    def get_strategy_patient_names(self, brain):
+        stat = None
+        if "mice" in self.rsa_config.strategy:
+            stat = "MICE"
+        elif "mean" in self.rsa_config.strategy:
+            stat = "Mean"
+        patient = None
+        if "N" in brain.current_labels.name.split("_")[-1]:
+            patient = "Neurotypicals"
+        elif "S" in brain.current_labels.name.split("_")[-1]:
+            patient = "Schizophrenics"
+        elif "D" in brain.current_labels.name.split("_")[-1]:
+            patient = "Depressives"
+        return stat, patient
 
     def average_embeddings(self, embeddings, index):
         """
