@@ -951,7 +951,7 @@ class FMRIAnalyser:
 
             Visualization().plot_brain_image(
                 smoothed_img,
-                title,
+                fig_title,
                 self.Searchlight_brain_difference_Video_Embeddings_RDM.__name__,
                 pdf,
                 png,
