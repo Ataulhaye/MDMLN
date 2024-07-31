@@ -750,7 +750,7 @@ class FMRIAnalyser:
 
         if plotting:
             for brain, smoothed_img, rsa_result in results:
-                fig_name = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Text Embeddings RDM, {set_name} {query}".replace(
+                fig_name = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} Text Embeddings RDM {set_name} {query}".replace(
                     "  ", " "
                 )
                 pdf, png, csv = ExportData.create_figure_names(
@@ -800,7 +800,7 @@ class FMRIAnalyser:
                 pickle.dump(difference_results, output)
 
         for smoothed_img, brain_k, brain_l, diffrences in difference_results:
-            fig_name = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Text Embeddings RDM, {set_name} {query}".replace(
+            fig_name = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} Text Embeddings RDM {set_name} {query}".replace(
                 "  ", " "
             )
             pdf, png, csv = ExportData.create_figure_names(
@@ -881,7 +881,7 @@ class FMRIAnalyser:
 
         if plotting:
             for brain, smoothed_img, rsa_result in results:
-                fig_name = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Video Embeddings RDM, {set_name} {query}".replace(
+                fig_name = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} Video Embeddings RDM {set_name} {query}".replace(
                     "  ", " "
                 )
                 pdf, png, csv = ExportData.create_figure_names(
@@ -932,7 +932,7 @@ class FMRIAnalyser:
                 pickle.dump(difference_results, output)
 
         for smoothed_img, brain_k, brain_l, diffrences in difference_results:
-            title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Video Embeddings RDM, {set_name} {query}".replace(
+            title = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} Video Embeddings RDM {set_name} {query}".replace(
                 "  ", " "
             )
             pdf, png, csv = ExportData.create_figure_names(
@@ -1013,7 +1013,7 @@ class FMRIAnalyser:
 
         if plotting:
             for brain, smoothed_img, rsa_result in results:
-                fig_name = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Bridge Embeddings RDM, {set_name} {query}".replace(
+                fig_name = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} Bridge Embeddings RDM {set_name} {query}".replace(
                     "  ", " "
                 )
                 pdf, png, csv = ExportData.create_figure_names(
@@ -1063,7 +1063,7 @@ class FMRIAnalyser:
                 pickle.dump(difference_results, output)
 
         for smoothed_img, brain_k, brain_l, diffrences in difference_results:
-            fig_name = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Bridge Embeddings RDM, {set_name} {query}".replace(
+            fig_name = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} Bridge Embeddings RDM {set_name} {query}".replace(
                 "  ", " "
             )
             pdf, png, csv = ExportData.create_figure_names(
@@ -1127,7 +1127,7 @@ class FMRIAnalyser:
 
         for brain, smoothed_img, rsa_result in results:
             if plotting:
-                fig_name = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Abstract Concrete RDM".replace(
+                fig_name = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} Abstract Concrete RDM".replace(
                     "  ", " "
                 )
                 pdf, png, csv = ExportData.create_figure_names(
@@ -1175,7 +1175,7 @@ class FMRIAnalyser:
                 pickle.dump(difference_results, output)
 
         for smoothed_img, brain_k, brain_l, diffrences in difference_results:
-            fig_name = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Abstract Concrete RDM".replace(
+            fig_name = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} Abstract Concrete RDM".replace(
                 "  ", " "
             )
             pdf, png, csv = ExportData.create_figure_names(
@@ -1225,7 +1225,7 @@ class FMRIAnalyser:
                 pickle.dump(difference_results, output)
 
         for smoothed_img, brain_k, brain_l, diffrences in difference_results:
-            fig_name = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} on top of Related Unrelated RDM".replace(
+            fig_name = f"{self.lobe_name(self.brain)} difference between {brain_k.current_labels.name.split('_')[-1]} and {brain_l.current_labels.name.split('_')[-1]} {self.is_normalized()} Related Unrelated RDM".replace(
                 "  ", " "
             )
             pdf, png, csv = ExportData.create_figure_names(
@@ -1292,7 +1292,7 @@ class FMRIAnalyser:
 
         for brain, smoothed_img, rsa_result in results:
             if plotting:
-                fig_name = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} on top of Related Unrelated RDM".replace(
+                fig_name = f"{self.lobe_name(brain)} {self.is_normalized()} {brain.current_labels.name.split('_')[-1]} Related Unrelated RDM".replace(
                     "  ", " "
                 )
                 pdf, png, csv = ExportData.create_figure_names(
