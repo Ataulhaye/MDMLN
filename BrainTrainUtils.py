@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from AutoEncoder import Autoencoder
 from ExportData import ExportData
 from TestTrainingSet import TestTrainingTensorDataset
+from TrainingConfig import TrainingConfig
 
 
 def test_autoencoder_braindata(net, testset: TensorDataset, device="cpu"):
@@ -49,7 +50,9 @@ def generate_model(config):
     return model
 
 
-def train_autoencoder_braindata(config, tensor_set: TestTrainingTensorDataset):
+def train_autoencoder_braindata(
+    config, tensor_set: TestTrainingTensorDataset, fold, trainconfig: TrainingConfig
+):
     # model = generate_model(config)
     model = generate_model(config)
     print("Training Config", config)
@@ -106,7 +109,9 @@ def train_autoencoder_braindata(config, tensor_set: TestTrainingTensorDataset):
         "embedding_dim": config["embedding_dim"],
         "batch_size": config["batch_size"],
     }
-    name = ExportData.get_file_name("_model.pt", config["lobe"])
+    bn = f"{config['lobe']}_{trainconfig.classifier}_fold_{fold}_model"
+    # name = ExportData.get_file_name("_model.pt", config["lobe"])
+    name = ExportData.get_graph_name(".pt", bn)
     torch.save(
         {
             "epoch": epoch,
@@ -116,6 +121,7 @@ def train_autoencoder_braindata(config, tensor_set: TestTrainingTensorDataset):
             "train_loss_list": train_losses,
             "config": model_config,
             "train_set": tensor_set.train_set.tensors[0].shape,
+            "training_config": trainconfig,
         },
         name,
     )

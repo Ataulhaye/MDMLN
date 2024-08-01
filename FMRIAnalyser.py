@@ -42,13 +42,11 @@ class FMRIAnalyser:
 
         if classifiers is None:
             self.classifiers = ["SVM", "MLP", "LinearDiscriminant"]
-            # self.classifiers = ["SVM", "MLP", "LinearDiscriminant", "LGBM"]
         else:
             self.classifiers = classifiers
 
         if strategies is None:
             self.strategies = ["mice", "mean", "remove_voxels"]
-            # self.strategies = ["mean", "remove_voxels", "median"]
         else:
             self.strategies = strategies
 
@@ -228,21 +226,25 @@ class FMRIAnalyser:
             "Automated_Excel_files",
             self.unary_subject_binary_image_classification.__name__,
         )
+        optional_txt = None
+        if self.training_config.dimension_reduction == True:
+            optional_txt = "PCA"
+        if self.training_config.use_autoencoder == True:
+            optional_txt = "Autoencoder"
+        xl_name = f"{self.brain.lobe.name}-Results"
+
+        if optional_txt is not None:
+            xl_name = f"{optional_txt}_{xl_name}"
+
         export.create_and_write_datasheet(
             data=all_export_data,
-            sheet_name=f"{self.brain.lobe.name}-Results",
+            sheet_name=xl_name,
             title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds",
             notes=note,
             directory=directory_path,
             transpose=True,
             single_label=True,
         )
-
-        optional_txt = None
-        if self.training_config.dimension_reduction == True:
-            optional_txt = "PCA"
-        if self.training_config.use_autoencoder == True:
-            optional_txt = "Autoencoder"
 
         visu = Visualization()
         visu.plot_merged_bars(
@@ -361,21 +363,24 @@ class FMRIAnalyser:
             "Automated_Excel_files",
             self.binary_subject_binary_image_classification.__name__,
         )
+        optional_txt = None
+        if self.training_config.dimension_reduction == True:
+            optional_txt = "PCA"
+        if self.training_config.use_autoencoder == True:
+            optional_txt = "Autoencoder"
+        xl_name = f"{self.brain.lobe.name}-Results"
+
+        if optional_txt is not None:
+            xl_name = f"{optional_txt}_{xl_name}"
         export.create_and_write_datasheet(
             data=all_data,
-            sheet_name=f"{self.brain.lobe.name}-Results",
+            sheet_name=xl_name,
             title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds",
             notes=note,
             directory=directory_path,
             transpose=True,
             single_label=True,
         )
-
-        optional_txt = None
-        if self.training_config.dimension_reduction == True:
-            optional_txt = "PCA"
-        if self.training_config.use_autoencoder == True:
-            optional_txt = "Autoencoder"
 
         visu = Visualization()
         visu.plot_merged_bars(
@@ -671,15 +676,30 @@ class FMRIAnalyser:
         )
         export_data.extend(e_data)
 
+        with open(
+            "subject_and_image_classification_autoencoder.pickle", "wb"
+        ) as output:
+            pickle.dump(export_data, output)
+
         self.training_config.lobe = self.brain.lobe.name
         export = ExportData()
         note = export.create_note([self.training_config, ""])
         directory_path = Helper.ensure_dir(
             "Automated_Excel_files", self.subject_and_image_classification.__name__
         )
+        optional_txt = None
+        if self.training_config.dimension_reduction == True:
+            optional_txt = "PCA"
+        if self.training_config.use_autoencoder == True:
+            optional_txt = "Autoencoder"
+        xl_name = f"{self.brain.lobe.name}-Results"
+
+        if optional_txt is not None:
+            xl_name = f"{optional_txt}_{xl_name}"
+
         export.create_and_write_datasheet(
             data=export_data,
-            sheet_name=f"{self.brain.lobe.name}-Results",
+            sheet_name=xl_name,
             title=f"{self.brain.lobe.name}-{self.training_config.folds}-Folds",
             notes=note,
             directory=directory_path,

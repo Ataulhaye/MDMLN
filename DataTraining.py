@@ -50,6 +50,9 @@ class DataTraining:
         for i in range(train_config.folds):
             train_test_set = None
 
+            if train_config.use_autoencoder:
+                self.map_labels(brain)
+
             if train_config.predefined_split:
                 train_test_set = self.premeditate_random_train_test_split(
                     brain, train_config, data_config
@@ -68,7 +71,7 @@ class DataTraining:
 
             if train_config.use_autoencoder:
                 train_test_set = self.apply_autoencoder(
-                    brain, train_config, train_test_set
+                    brain, train_config, train_test_set, i
                 )
 
             if train_config.use_autoencoder and train_config.tsne:
@@ -98,11 +101,27 @@ class DataTraining:
         # print(f"{type(model).__name__}: %0.2f accuracy with a standard deviation of %0.2f"% (score_array.mean(), score_array.std()))
         return scores
 
+    def map_labels(self, brain: Brain):
+        if "int" not in brain.current_labels.name:
+            seen = set()
+            seen_add = seen.add
+            unique = [
+                x for x in brain.current_labels.labels if not (x in seen or seen_add(x))
+            ]
+            unique_l = {}
+            for ind, un in enumerate(list(unique)):
+                unique_l[un] = int(ind)
+
+            for i, label in enumerate(brain.current_labels.labels):
+                brain.current_labels.labels[i] = unique_l[label]
+        brain.current_labels.labels = brain.current_labels.labels.astype(np.int32)
+
     def apply_autoencoder(
         self,
         brain: Brain,
         train_config: TrainingConfig,
         train_test_set: TestTrainingSet,
+        fold,
     ):
         tensor_datasets = self.to_tensor_datasets(train_test_set)
         # check the input dim config
@@ -125,7 +144,7 @@ class DataTraining:
             train_encodings,
             train_labels,
         ) = train_autoencoder_braindata(
-            train_config.best_autoencoder_config, tensor_datasets
+            train_config.best_autoencoder_config, tensor_datasets, fold, train_config
         )
         loss, test_encoding, test_labels = test_autoencoder_braindata(
             autoencoder_model, tensor_datasets.test_set
