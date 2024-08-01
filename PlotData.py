@@ -10,6 +10,7 @@ import plotly.graph_objs as go
 from nilearn import plotting
 
 from Brain import Brain
+from EvaluateTrainingModel import EvaluateTrainingModel
 from ExportData import ExportData
 from Helper import Helper
 
@@ -26,18 +27,19 @@ class Visualization:
         S="S",
         legend_title="Mental Disorders",
         legend_text=[
-            "Neurotypical",
-            "Depressive",
-            "Schizophrenia",
+            "Neurotypicals",
+            "Depressives",
+            "Schizophrenics",
         ],
         opt_info=None,
+        legend_font=18,
     ):
         nested_dict = self.groupby_strategy(all_data)
 
         for strategy, clasiifiers in nested_dict.items():
             bar_dict = self.separate_results_by_patients(N, D, S, clasiifiers)
 
-            models, bar_dictc = self.merge_results(N, D, S, bar_dict)
+            models, bar_dictc = self.merge_results(N, D, S, strategy, bar_dict)
 
             self.plot_diagram(
                 strategy=strategy,
@@ -47,6 +49,7 @@ class Visualization:
                 legend_title=legend_title,
                 legend_text=legend_text,
                 lobe_name=lobe_name,
+                legend_font=legend_font,
                 opt_info=opt_info,
             )
 
@@ -60,8 +63,9 @@ class Visualization:
         N="N",
         D="D",
         S="S",
-        legend_text=["Neurotypical", "Depressive", "Schizophrenia"],
+        legend_text=["Neurotypicals", "Depressives", "Schizophrenics"],
         opt_info=None,
+        legend_font=17,
     ):
         """
         This method plot the detailed graphs, with binary 6 combinations, std and significant
@@ -115,7 +119,7 @@ class Visualization:
                 directory=directory,
                 legends=legend_text,
                 lobe_name=lobe_name,
-                legend_font=18,
+                legend_font=legend_font,
                 opt_info=opt_info,
             )
 
@@ -129,7 +133,7 @@ class Visualization:
         N="N",
         D="D",
         S="S",
-        legend_text=["Neurotypical", "Depressive", "Schizophrenia"],
+        legend_text=["Neurotypicals", "Depressives", "Schizophrenics"],
         opt_info=None,
     ):
         """
@@ -428,6 +432,7 @@ class Visualization:
         legend_title,
         legend_text,
         lobe_name,
+        legend_font,
         opt_info=None,
     ):
         barWidth = 0.25
@@ -437,6 +442,7 @@ class Visualization:
         br_p = None
         plt.subplots(figsize=(30, 10))
         plt.rcParams.update({"legend.title_fontsize": 18})
+        legend_bars = []
         for key, br in bar_dictc.items():
             if i > 0:
                 br_p = [x + barWidth for x in br_pre]
@@ -445,14 +451,36 @@ class Visualization:
                 br_pre = np.arange(len(br))
                 br_p = np.arange(len(br))
 
-            plt.bar(
-                br_p,
-                br,
-                color=colors[i],
-                width=barWidth,
-                edgecolor="grey",
-                label=key,
-            )
+            for j, bar_val in enumerate(br):
+                a = plt.bar(
+                    br_p[j],
+                    br[j].mean,
+                    color=colors[i],
+                    width=barWidth,
+                    edgecolor="grey",
+                    label=key,
+                )
+                if "Not" not in br[j].result[0]:
+                    plt.text(
+                        br_p[j],
+                        0,
+                        "*",
+                        ha="center",
+                        va="baseline",
+                        color="k",
+                        fontsize=25,
+                    )
+
+                plt.errorbar(
+                    br_p[j],
+                    br[j].mean,
+                    yerr=br[j].standard_deviation,
+                    fmt="o",
+                    color="k",
+                )
+                if j == 0:
+                    legend_bars.append(a)
+
             i = i + 1
 
         lobe_n = lobe_name
@@ -478,17 +506,18 @@ class Visualization:
         plt.ylabel("Accuracy (in %)", fontweight="bold", fontsize=20)
         plt.yticks(fontsize=20)
         plt.xticks([r + barWidth for r in range(len(br_p))], models, fontsize=22)
-        # plt.legend(legend_bars,legends,fontsize=13,loc="upper left",bbox_to_anchor=(1, 1),title=legend_title,)
-        # plt.legend(fontsize=18, title="Mental Disorders", loc="upper right")
-        l = plt.legend(
-            fontsize=18,
+        # l = plt.legend(fontsize=18,loc="upper left",bbox_to_anchor=(1, 1),title=legend_title,)
+        plt.legend(
+            legend_bars,
+            legend_text,
+            fontsize=legend_font,
             loc="upper left",
             bbox_to_anchor=(1, 1),
             title=legend_title,
         )
 
-        for lidx, text in enumerate(legend_text):
-            l.get_texts()[lidx].set_text(text)
+        # for lidx, text in enumerate(legend_text):
+        # l.get_texts()[lidx].set_text(text)
 
         gname = f"{lobe_name}_{strategy}_{directory}"
 
@@ -510,19 +539,24 @@ class Visualization:
         plt.close()
 
     @staticmethod
-    def merge_results(N, D, S, bar_dict):
+    def merge_results(N, D, S, strategy, bar_dict):
         models = []
         bar_dictc = {
             N: [],
             D: [],
             S: [],
         }
+
         for label, y in bar_dict.items():
-            for j, v in y.items():
-                if j not in models:
-                    models.append(j)
+            for classifier, v in y.items():
                 means_per_classi = [x.mean for x in v]
-                bar_dictc[label].append(statistics.mean(means_per_classi))
+                evaluation = EvaluateTrainingModel().evaluate_training_model_by_ttest(
+                    classifier, 0.5, np.array(means_per_classi), label, strategy
+                )
+                if classifier not in models:
+                    models.append(classifier)
+                bar_dictc[label].append(evaluation)
+                # bar_dictc[label].append(statistics.mean(means_per_classi))
         return models, bar_dictc
 
     @staticmethod

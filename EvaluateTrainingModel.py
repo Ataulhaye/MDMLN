@@ -95,7 +95,12 @@ class EvaluateTrainingModel:
         """
         try:
             print("popmean: ", popmean)
-            classifier_name = type(classifier).__name__
+            classifier_name = None
+            if type(classifier) is str:
+                classifier_name = classifier
+            else:
+                classifier_name = type(classifier).__name__
+
             t_statistic, p_value = stats.ttest_1samp(
                 a=scores, popmean=popmean, alternative="greater"
             )
