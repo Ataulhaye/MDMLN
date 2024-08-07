@@ -25,10 +25,13 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from torch.utils.data import TensorDataset
 
+from AutoenocderTrainingFMRI import (
+    test_autoencoder_braindata,
+    train_autoencoder_braindata,
+)
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
-from BrainTrainUtils import test_autoencoder_braindata, train_autoencoder_braindata
 from EvaluateTrainingModel import EvaluateTrainingModel
 from ExportData import ExportData
 from ExportEntity import ExportEntity
