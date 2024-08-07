@@ -405,11 +405,11 @@ if __name__ == "__main__":
     # "noun",
     extract_features(
         "verb",
-        r"C:\Users\ataul\source\Uni\BachelorThesis\poc\Result_Files\AudioTranscriptsSet1_DE_EN.csv",
+        r"C:\Users\ataul\source\Uni\BachelorThesis\poc\CSV_Data_Files\AudioTranscriptsSet1_DE_EN.csv",
         "1",
     )
     extract_features(
         "noun",
-        r"C:\Users\ataul\source\Uni\BachelorThesis\poc\Result_Files\AudioTranscriptsSet1_DE_EN.csv",
+        r"C:\Users\ataul\source\Uni\BachelorThesis\poc\CSV_Data_Files\AudioTranscriptsSet1_DE_EN.csv",
         "1",
     )

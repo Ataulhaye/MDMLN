@@ -59,7 +59,7 @@ class Utility:
                 assert k.split(".")[1].replace('"', "") in "mpg"
                 set_keys.append(k)
 
-        all_scripts = r"C:\Users\ataul\source\Uni\BachelorThesis\poc\Result_Files\AudioTranscripts_corrected.csv"
+        all_scripts = r"C:\Users\ataul\source\Uni\BachelorThesis\poc\CSV_Data_Files\AudioTranscripts_corrected.csv"
 
         set_transcripts = []
         scripts_d = []
