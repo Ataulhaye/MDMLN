@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 
-from AutoEncoder import Autoencoder
+from Autoencoder import Autoencoder
 from ExportData import ExportData
 from TestTrainingSet import TestTrainingTensorDataset
 from TrainingConfig import TrainingConfig
@@ -35,8 +35,8 @@ def test_autoencoder_braindata(net, testset: TensorDataset, device="cpu"):
     test_encodings = test_encodings_tensor.cpu().detach().numpy()
     test_labels = testset.tensors[1].numpy()
 
-    print("testset:", testset.tensors[0].shape)
-    print("Test set loss: {}".format(acc_loss / len(testset)))
+    print("Testset:", testset.tensors[0].shape)
+    print("Test Set loss: {}".format(acc_loss / len(testset)))
     return acc_loss, test_encodings, test_labels
 
 
@@ -110,7 +110,6 @@ def train_autoencoder_braindata(
         "batch_size": config["batch_size"],
     }
     bn = f"{config['lobe']}_{trainconfig.classifier}_fold_{fold}_model"
-    # name = ExportData.get_file_name("_model.pt", config["lobe"])
     name = ExportData.get_graph_name(".pt", bn)
     torch.save(
         {

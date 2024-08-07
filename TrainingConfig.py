@@ -35,44 +35,40 @@ class TrainingConfig:
         lobe="",
         tsne=False,
         has_fix_components=(False, 75),
-        # pca_fix_components=75,
-        best_autoencoder_config_STG={
+        # ----------------------------------------
+        # Best trial config: {'input_dim': 7238, 'hidden_dim1': 1024, 'hidden_dim2': 4, 'embedding_dim': 16, 'lr': 0.0007659874628602165, 'batch_size': 512, 'epochs': 30}
+        # Best trial final training loss: 0.021615224579970043
+        # Best trial epoch: 29
+        # Best model path C:/Users/ataul/ray_results/tune_with_parameters_2024-08-04_15-04-55/tune_with_parameters_255d5_00012_12_batch_size=512,embedding_dim=16,hidden_dim1=1024,hidden_dim2=4,lr=0.0008_2024-08-04_15-50-28
+        # ----------------------------------------
+        optimal_autoencoder_config_STG={
             "input_dim": 7238,
-            "hidden_dim1": 32,
-            "hidden_dim2": 512,
-            "embedding_dim": 2,
-            "lr": 0.07539378759292441,
-            "batch_size": 128,
-            "epochs": 10,
+            "hidden_dim1": 1024,
+            "hidden_dim2": 4,
+            "embedding_dim": 16,
+            "lr": 0.0007659874628602165,
+            "batch_size": 512,
+            "epochs": 29,
             "lobe": "STG",
         },
-        # ----------------------------------------
         # -------------IFG-----------------------
-        # Best trial config: {'input_dim': 523, 'hidden_dim1': 1024, 'hidden_dim2': 8, 'embedding_dim': 2, 'lr': 0.0016028928095361706, 'batch_size': 384, 'epochs': 25}
-        # Best trial final training loss: 0.01012803427875042
-        # Best trial epoch: 24
-        # Best model path C:/Users/ataul/ray_results/tune_with_parameters_2024-03-16_17-40-53/tune_with_parameters_f4bd1_00011_11_embedding_dim=2,hidden_dim1=1024,hidden_dim2=8,lr=0.0016_2024-03-16_18-09-11
         # ----------------------------------------
-        best_autoencoder_config_IFG={
+        # Best trial config: {'input_dim': 523, 'hidden_dim1': 32, 'hidden_dim2': 4, 'embedding_dim': 16, 'lr': 0.007467380652375706, 'batch_size': 512, 'epochs': 30}
+        # Best trial final training loss: 0.01083484540383021
+        # Best trial epoch: 29
+        # Best model path C:/Users/ataul/ray_results/tune_with_parameters_2024-08-04_17-00-53/tune_with_parameters_5888b_00006_6_batch_size=512,embedding_dim=16,hidden_dim1=32,hidden_dim2=4,lr=0.0075_2024-08-04_18-21-40
+        # ----------------------------------------
+        optimal_autoencoder_config_IFG={
             "input_dim": 523,
-            "hidden_dim1": 1024,
-            "hidden_dim2": 8,
-            "embedding_dim": 2,
-            "lr": 0.0016028928095361706,
-            "batch_size": 384,
-            "epochs": 25,
+            "hidden_dim1": 32,
+            "hidden_dim2": 4,
+            "embedding_dim": 16,
+            "lr": 0.007467380652375706,
+            "batch_size": 512,
+            "epochs": 29,
             "lobe": "IFG",
         },
-        best_autoencoder_config={
-            "input_dim": 523,
-            "hidden_dim1": 8,
-            "hidden_dim2": 1,
-            "embedding_dim": 4,
-            "lr": 0.023394330747395223,
-            "batch_size": 128,
-            "epochs": 10,
-            "lobe": "",
-        },
+        optimal_autoencoder_config={},
     ):
         self.strategy = strategy
         self.classifier = classifier
@@ -84,7 +80,9 @@ class TrainingConfig:
         self.explain = explain
         self.nan_classifiers = nan_classifiers
         self.use_autoencoder = use_autoencoder
-        self.best_autoencoder_config = best_autoencoder_config
+        self.optimal_autoencoder_config = optimal_autoencoder_config
+        self.optimal_autoencoder_config_STG = optimal_autoencoder_config_STG
+        self.optimal_autoencoder_config_IFG = optimal_autoencoder_config_IFG
         self.lobe = lobe
         self.tsne = tsne
         self.has_fix_components = has_fix_components

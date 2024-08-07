@@ -2,6 +2,7 @@ import copy
 import itertools
 import pickle
 import time
+from functools import partial
 from heapq import nlargest
 from pathlib import Path
 
@@ -9,17 +10,23 @@ import numpy as np
 import pandas as pd
 import torch
 from nilearn import image
+from ray import tune
+from ray.tune.schedulers import ASHAScheduler
 
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
 from DataTraining import DataTraining
 from Enums import Lobe
 from ExportData import ExportData
-from Helper import Helper
-from PlotData import Visualization
+from HyperParameterSearch import (
+    get_voxel_tensor_datasets,
+    train_and_validate_brain_voxels_ray,
+)
 from RepresentationalSimilarityAnalysis import RepresentationalSimilarityAnalysis
 from RSAConfig import RSAConfig
 from TrainingConfig import TrainingConfig
+from Utility import Utility
+from Visualization import Visualization
 
 
 class FMRIAnalyser:
@@ -67,12 +74,20 @@ class FMRIAnalyser:
 
         match lobe:
             case Lobe.STG:
+                self.training_config.optimal_autoencoder_config = (
+                    self.training_config.optimal_autoencoder_config_STG
+                )
+                self.training_config.lobe = Lobe.STG.name
                 self.brain = Brain(
                     lobe=lobe,
                     data_path=self.data_config.STG_path,
                 )
                 self.Talairach_MNI_space = self.brain.Talairach_MNI_space
             case Lobe.IFG:
+                self.training_config.optimal_autoencoder_config = (
+                    self.training_config.optimal_autoencoder_config_IFG
+                )
+                self.training_config.lobe = Lobe.IFG.name
                 self.brain = Brain(
                     lobe=lobe,
                     data_path=self.data_config.IFG_path,
@@ -123,7 +138,7 @@ class FMRIAnalyser:
             self.binary_subject_classification,
         )
         note = export.create_note([self.training_config, print_config])
-        directory_path = Helper.ensure_dir(
+        directory_path = Utility.ensure_dir(
             "Automated_Excel_files", self.binary_subject_classification.__name__
         )
         export.create_and_write_datasheet(
@@ -169,7 +184,7 @@ class FMRIAnalyser:
             self.binary_image_classification,
         )
         note = export.create_note([self.training_config, print_config])
-        directory_path = Helper.ensure_dir(
+        directory_path = Utility.ensure_dir(
             "Automated_Excel_files", self.binary_image_classification.__name__
         )
         export.create_and_write_datasheet(
@@ -222,7 +237,7 @@ class FMRIAnalyser:
             mean, self.unary_subject_binary_image_classification
         )
         note = export.create_note([self.training_config, print_config])
-        directory_path = Helper.ensure_dir(
+        directory_path = Utility.ensure_dir(
             "Automated_Excel_files",
             self.unary_subject_binary_image_classification.__name__,
         )
@@ -305,7 +320,7 @@ class FMRIAnalyser:
             mean, self.binary_subject_concatenated_image_classification
         )
         note = export.create_note([self.training_config, print_config])
-        directory_path = Helper.ensure_dir(
+        directory_path = Utility.ensure_dir(
             "Automated_Excel_files",
             self.binary_subject_concatenated_image_classification.__name__,
         )
@@ -359,7 +374,7 @@ class FMRIAnalyser:
             mean, self.binary_subject_binary_image_classification
         )
         note = export.create_note([self.training_config, print_config])
-        directory_path = Helper.ensure_dir(
+        directory_path = Utility.ensure_dir(
             "Automated_Excel_files",
             self.binary_subject_binary_image_classification.__name__,
         )
@@ -464,7 +479,7 @@ class FMRIAnalyser:
             mean, self.binary_subject_unary_image_classification
         )
         note = export.create_note([self.training_config, print_config])
-        directory_path = Helper.ensure_dir(
+        directory_path = Utility.ensure_dir(
             "Automated_Excel_files",
             self.binary_subject_unary_image_classification.__name__,
         )
@@ -515,7 +530,7 @@ class FMRIAnalyser:
             mean, self.subject_concatenated_image_classification
         )
         note = export.create_note([self.training_config, print_config])
-        directory_path = Helper.ensure_dir(
+        directory_path = Utility.ensure_dir(
             "Automated_Excel_files",
             self.subject_concatenated_image_classification.__name__,
         )
@@ -567,7 +582,7 @@ class FMRIAnalyser:
         export = ExportData()
         print_config = self.__get_note(mean, self.subject_binary_image_classification)
         note = export.create_note([self.training_config, print_config])
-        directory_path = Helper.ensure_dir(
+        directory_path = Utility.ensure_dir(
             "Automated_Excel_files", self.subject_binary_image_classification.__name__
         )
         export.create_and_write_datasheet(
@@ -608,7 +623,7 @@ class FMRIAnalyser:
             self.training_config.lobe = self.brain.lobe.name
             export = ExportData()
             note = export.create_note([self.training_config])
-            directory_path = Helper.ensure_dir(
+            directory_path = Utility.ensure_dir(
                 "Automated_Excel_files",
                 self.binary_image_and_binary_subject_classification_with_shaply.__name__,
             )
@@ -637,7 +652,7 @@ class FMRIAnalyser:
             self.training_config.lobe = self.brain.lobe.name
             export = ExportData()
             note = export.create_note([self.training_config])
-            directory_path = Helper.ensure_dir(
+            directory_path = Utility.ensure_dir(
                 "Automated_Excel_files",
                 self.binary_image_and_binary_subject_classification_with_shaply.__name__,
             )
@@ -665,6 +680,7 @@ class FMRIAnalyser:
             self.classifiers,
             self.data_config,
         )
+        # with open(f"subject_and_image_classification_autoencoder_subject_labels_{self.brain.lobe.name}.pickle","wb",) as output:pickle.dump(export_data, output)
 
         self.brain.current_labels = self.brain.image_labels
         e_data = training.brain_data_classification(
@@ -676,15 +692,12 @@ class FMRIAnalyser:
         )
         export_data.extend(e_data)
 
-        with open(
-            "subject_and_image_classification_autoencoder.pickle", "wb"
-        ) as output:
-            pickle.dump(export_data, output)
+        # with open(f"subject_and_image_classification_autoencoder_{self.brain.lobe.name}.pickle","wb",) as output:pickle.dump(export_data, output)
 
         self.training_config.lobe = self.brain.lobe.name
         export = ExportData()
         note = export.create_note([self.training_config, ""])
-        directory_path = Helper.ensure_dir(
+        directory_path = Utility.ensure_dir(
             "Automated_Excel_files", self.subject_and_image_classification.__name__
         )
         optional_txt = None
@@ -707,11 +720,6 @@ class FMRIAnalyser:
         )
 
         # results = pickle.load(open("subject_and_image_classification.pickle", "rb"))
-        optional_txt = None
-        if self.training_config.dimension_reduction == True:
-            optional_txt = "PCA"
-        if self.training_config.use_autoencoder == True:
-            optional_txt = "Autoencoder"
 
         Visualization().plot_detailed_bars_data_labels(
             directory=self.subject_and_image_classification.__name__,
@@ -1346,10 +1354,102 @@ class FMRIAnalyser:
     def plot_NaNs(self):
         Visualization().visualize_nans(self.brain)
 
+    def hyperparameter_tuning(
+        self,
+        num_samples=25,
+        max_num_epochs=30,
+        gpus_per_trial=1,
+    ):
+        import ray
+
+        ray.init(local_mode=True)
+
+        voxel_sets = get_voxel_tensor_datasets(self.brain.lobe)
+
+        config = {
+            "input_dim": voxel_sets.train_set.tensors[0].shape[1],
+            "hidden_dim1": tune.choice([2**i for i in range(13)]),
+            "hidden_dim2": tune.choice([2**i for i in range(13)]),
+            "embedding_dim": tune.choice([2**i for i in range(5)]),
+            "lr": tune.loguniform(1e-4, 1e-1),
+            "batch_size": tune.choice([128, 256, 512]),
+            "epochs": 30,
+        }
+        scheduler = ASHAScheduler(
+            max_t=max_num_epochs,
+            grace_period=1,
+            reduction_factor=2,
+        )
+        tuner = tune.Tuner(
+            tune.with_resources(
+                tune.with_parameters(
+                    partial(train_and_validate_brain_voxels_ray, tensor_set=voxel_sets)
+                ),
+                resources={"cpu": 10, "gpu": gpus_per_trial},
+            ),
+            tune_config=tune.TuneConfig(
+                metric="train_loss",
+                mode="min",
+                scheduler=scheduler,
+                num_samples=num_samples,
+            ),
+            param_space=config,
+        )
+
+        # ray.put()
+        results = tuner.fit()
+        best_result = results.get_best_result("train_loss", "min")
+
+        print("Best trial config: {}".format(best_result.config))
+        print(
+            "Best trial final training loss: {}".format(
+                best_result.metrics["train_loss"]
+            )
+        )
+        print("Best trial epoch: {}".format(best_result.metrics["epoch"]))
+        print("Best model path", best_result.path)
+
+        file_name = ExportData.get_file_name(
+            ".txt", f"BestTrainConfig-{self.brain.lobe.name}"
+        )
+        file_path = f"C://Users//ataul//source//Uni//BachelorThesis//poc//{file_name}"
+        with open(file_path, "w") as text_file:
+            text_file.write("----------------------------------------\n")
+            text_file.write("Best trial config: {}\n".format(best_result.config))
+            text_file.write(
+                "Best trial final training loss: {}\n".format(
+                    best_result.metrics["train_loss"]
+                )
+            )
+            text_file.write(
+                "Best trial epoch: {}\n".format(best_result.metrics["epoch"])
+            )
+            text_file.write("Best model path {}\n".format(best_result.path))
+            text_file.write("----------------------------------------\n")
+
+        # device = "cpu"
+        # if torch.cuda.is_available():
+        # device = "cuda:0"
+
+        # checkpoint_path = os.path.join(best_result.checkpoint.to_directory(), "model.pt")
+
+        # checkpoint = torch.load(checkpoint_path, map_location=device)
+
+        # best_trained_model = generate_model(best_result.config)
+
+        # if device == "cuda:0" and gpus_per_trial > 1:
+        # best_trained_model = nn.DataParallel(best_trained_model)
+        # best_trained_model.to(device)
+
+        # best_trained_model.load_state_dict(checkpoint["model_state"])
+
+        # test_acc = test_autoencode_braindata(best_trained_model, device)
+        # print("Best trial test set accuracy: {}".format(test_acc))
+
     def export_top_similarities(self, diffrences, title, csv, directory):
         top_n = nlargest(20, diffrences, key=lambda x: x[2])
         # csv_name = ExportData.get_graph_name(".csv", title.replace(" ", "_"))
-        directory_path = Helper.ensure_dir("Searchlight_Graphs", directory)
+        directory_path = Utility.ensure_dir("Searchlight_Graphs", directory)
         csv_file = Path(directory_path).joinpath(csv)
         f = open(csv_file, "w")
         f.write(

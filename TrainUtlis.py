@@ -12,7 +12,7 @@ from ray.train import Checkpoint
 from torch.utils.data import random_split
 from torchvision import datasets, transforms
 
-from AutoEncoder import Autoencoder
+from Autoencoder import Autoencoder
 
 
 def train_and_validate_mnist_Test_method(config, data_dir=None):

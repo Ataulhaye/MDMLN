@@ -12,7 +12,7 @@ from nilearn import plotting
 from Brain import Brain
 from EvaluateTrainingModel import EvaluateTrainingModel
 from ExportData import ExportData
-from Helper import Helper
+from Utility import Utility
 
 
 class Visualization:
@@ -258,7 +258,7 @@ class Visualization:
 
         # pdf_name, png_name = ExportData.create_figure_names(title_txt.replace(" ", "_"))
 
-        directory_path = Helper.ensure_dir("Searchlight_Graphs", directory)
+        directory_path = Utility.ensure_dir("Searchlight_Graphs", directory)
         png_path = Path(directory_path).joinpath(png)
         pdf_path = Path(directory_path).joinpath(pdf)
         plt.savefig(pdf_path)
@@ -413,7 +413,7 @@ class Visualization:
 
         pdf_name, png_name = ExportData.create_figure_names(gname)
 
-        directory_path = Helper.ensure_dir("Ml_Graphs", directory)
+        directory_path = Utility.ensure_dir("Ml_Graphs", directory)
         png_path = Path(directory_path).joinpath(png_name)
         pdf_path = Path(directory_path).joinpath(pdf_name)
         plt.savefig(pdf_path)
@@ -528,7 +528,7 @@ class Visualization:
 
         pdf_name, png_name = ExportData.create_figure_names(gname)
 
-        directory_path = Helper.ensure_dir("Ml_Graphs", directory)
+        directory_path = Utility.ensure_dir("Ml_Graphs", directory)
         png_path = Path(directory_path).joinpath(png_name)
         pdf_path = Path(directory_path).joinpath(pdf_name)
         plt.savefig(pdf_path)
@@ -537,6 +537,48 @@ class Visualization:
 
         # plt.show()
         plt.close()
+
+    @staticmethod
+    def plot_loss(loss=None):
+        loss = [
+            0.018403540054957073,
+            0.01831483095884323,
+            0.018230047076940536,
+            0.01814279705286026,
+            0.01805271953344345,
+            0.017958978811899822,
+            0.017618626356124878,
+            0.01705344393849373,
+            0.01626950626571973,
+            0.015499583135048548,
+            0.014955904334783554,
+            0.01465091605981191,
+            0.014491181820631027,
+            0.014418135086695353,
+            0.014396422853072485,
+            0.01439285526672999,
+            0.014393672347068787,
+            0.014392891277869543,
+            0.014390523235003153,
+            0.01438624287645022,
+            0.014388943711916605,
+            0.01438343400756518,
+            0.014377158135175705,
+            0.014378447085618973,
+            0.014374187837044397,
+            0.014373011887073517,
+            0.01437427724401156,
+            0.014374737938245138,
+            0.014370491107304892,
+        ]
+        # Set the tick locations
+        plt.title("IFG Autoencoder Training Loss")
+        plt.xlabel("Epochs")
+        plt.ylabel("Loss")
+        plt.xticks(np.arange(0, len(loss), 2))
+        x = range(1, len(loss) + 1)
+        plt.plot(x, loss, label="Training Loss")
+        print("break")
 
     @staticmethod
     def merge_results(N, D, S, strategy, bar_dict):
@@ -681,7 +723,7 @@ class Visualization:
         )
 
         html_name = ExportData.get_graph_name(".html", title)
-        directory_path = Helper.ensure_dir("Data_Graphs", "")
+        directory_path = Utility.ensure_dir("Data_Graphs", "")
         html_path = Path(directory_path).joinpath(html_name)
         # fig.update_xaxes(title_font_family="Arial")
         fig.write_html(html_path)

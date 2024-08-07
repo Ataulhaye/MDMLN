@@ -126,17 +126,17 @@ class DataTraining:
         tensor_datasets = self.to_tensor_datasets(train_test_set)
         # check the input dim config
         # voxel_dim = tensor_datasets.train_set.tensors[0].shape[1]
-        # input_dim = train_config.best_autoencoder_config["input_dim"]
+        # input_dim = train_config.optimal_autoencoder_config["input_dim"]
         if (
-            train_config.best_autoencoder_config["input_dim"]
+            train_config.optimal_autoencoder_config["input_dim"]
             != tensor_datasets.train_set.tensors[0].shape[1]
         ):
-            print("Model config:", train_config.best_autoencoder_config)
-            train_config.best_autoencoder_config["input_dim"] = (
+            print("Model config:", train_config.optimal_autoencoder_config)
+            train_config.optimal_autoencoder_config["input_dim"] = (
                 tensor_datasets.train_set.tensors[0].shape[1]
             )
-            print("Changed model config:", train_config.best_autoencoder_config)
-        train_config.best_autoencoder_config["lobe"] = (
+            print("Changed model config:", train_config.optimal_autoencoder_config)
+        train_config.optimal_autoencoder_config["lobe"] = (
             f"{brain.lobe.name}_{train_config.strategy}"
         )
         (
@@ -144,11 +144,12 @@ class DataTraining:
             train_encodings,
             train_labels,
         ) = train_autoencoder_braindata(
-            train_config.best_autoencoder_config, tensor_datasets, fold, train_config
+            train_config.optimal_autoencoder_config, tensor_datasets, fold, train_config
         )
         loss, test_encoding, test_labels = test_autoencoder_braindata(
             autoencoder_model, tensor_datasets.test_set
         )
+        print("Loss on test set of Autoencoder:", loss)
         train_test_set = TestTrainingSet(
             X_train=train_encodings,
             X_test=test_encoding,

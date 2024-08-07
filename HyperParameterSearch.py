@@ -10,7 +10,7 @@ from ray import train
 from ray.train import Checkpoint
 from torch.utils.data import DataLoader, TensorDataset
 
-from AutoEncoder import Autoencoder
+from Autoencoder import Autoencoder
 from Brain import Brain
 from BrainDataConfig import BrainDataConfig
 from BrainDataLabel import BrainDataLabel
@@ -85,11 +85,10 @@ def train_and_validate_brain_voxels_ray(config, tensor_set: TestTrainingTensorDa
                     "epoch": epoch,
                     "model_state": model.state_dict(),
                     "optimizer_state": optimizer.state_dict(),
-                    # "train_loss": running_loss / train_steps,
                     "train_loss": running_loss / len(tensor_set.train_set),
                     "t_loss_list": train_loss_list,
                     "config": model_config,
-                    "train_set": tensor_set.train_set.tensors[0].shape,
+                    # "train_set": tensor_set.train_set.tensors[0].shape,
                 },
                 os.path.join(temp_checkpoint_dir, "model.pt"),
             )
@@ -164,7 +163,6 @@ def load_bestmodel_and_test(model_path, device, gpus_per_trial):
 def get_voxel_tensor_datasets(lobe):
     bd_config = BrainDataConfig()
     data_path = ""
-    lobe = None
 
     match lobe:
         case Lobe.STG:
@@ -182,7 +180,7 @@ def get_voxel_tensor_datasets(lobe):
     brain.current_labels = brain.subject_labels_int
 
     train_config = TrainingConfig()
-    train_config.strategy = "mean"
+    train_config.strategy = "mice"
 
     tt_set = DataTraining().premeditate_random_train_test_split(brain, train_config)
 

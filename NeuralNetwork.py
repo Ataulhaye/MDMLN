@@ -7,7 +7,7 @@ import torch.optim as optim
 from matplotlib import pyplot as plt
 from torchvision import datasets, transforms
 
-from AutoEncoder import Autoencoder
+from Autoencoder import Autoencoder
 from Brain import Brain
 from BrainDataLabel import BrainDataLabel
 from DataTraining import DataTraining
