@@ -139,7 +139,7 @@ class FMRIAnalyser:
         )
         note = export.create_note([self.training_config, print_config])
         directory_path = Utility.ensure_dir(
-            "Automated_Excel_files", self.binary_subject_classification.__name__
+            "Automated_Excel_Files", self.binary_subject_classification.__name__
         )
         export.create_and_write_datasheet(
             data=all_export_data,
@@ -185,7 +185,7 @@ class FMRIAnalyser:
         )
         note = export.create_note([self.training_config, print_config])
         directory_path = Utility.ensure_dir(
-            "Automated_Excel_files", self.binary_image_classification.__name__
+            "Automated_Excel_Files", self.binary_image_classification.__name__
         )
         export.create_and_write_datasheet(
             data=all_export_data,
@@ -238,7 +238,7 @@ class FMRIAnalyser:
         )
         note = export.create_note([self.training_config, print_config])
         directory_path = Utility.ensure_dir(
-            "Automated_Excel_files",
+            "Automated_Excel_Files",
             self.unary_subject_binary_image_classification.__name__,
         )
         optional_txt = None
@@ -321,7 +321,7 @@ class FMRIAnalyser:
         )
         note = export.create_note([self.training_config, print_config])
         directory_path = Utility.ensure_dir(
-            "Automated_Excel_files",
+            "Automated_Excel_Files",
             self.binary_subject_concatenated_image_classification.__name__,
         )
         export.create_and_write_datasheet(
@@ -375,7 +375,7 @@ class FMRIAnalyser:
         )
         note = export.create_note([self.training_config, print_config])
         directory_path = Utility.ensure_dir(
-            "Automated_Excel_files",
+            "Automated_Excel_Files",
             self.binary_subject_binary_image_classification.__name__,
         )
         optional_txt = None
@@ -480,7 +480,7 @@ class FMRIAnalyser:
         )
         note = export.create_note([self.training_config, print_config])
         directory_path = Utility.ensure_dir(
-            "Automated_Excel_files",
+            "Automated_Excel_Files",
             self.binary_subject_unary_image_classification.__name__,
         )
         export.create_and_write_datasheet(
@@ -531,7 +531,7 @@ class FMRIAnalyser:
         )
         note = export.create_note([self.training_config, print_config])
         directory_path = Utility.ensure_dir(
-            "Automated_Excel_files",
+            "Automated_Excel_Files",
             self.subject_concatenated_image_classification.__name__,
         )
         export.create_and_write_datasheet(
@@ -583,7 +583,7 @@ class FMRIAnalyser:
         print_config = self.__get_note(mean, self.subject_binary_image_classification)
         note = export.create_note([self.training_config, print_config])
         directory_path = Utility.ensure_dir(
-            "Automated_Excel_files", self.subject_binary_image_classification.__name__
+            "Automated_Excel_Files", self.subject_binary_image_classification.__name__
         )
         export.create_and_write_datasheet(
             data=all_data,
@@ -624,7 +624,7 @@ class FMRIAnalyser:
             export = ExportData()
             note = export.create_note([self.training_config])
             directory_path = Utility.ensure_dir(
-                "Automated_Excel_files",
+                "Automated_Excel_Files",
                 self.binary_image_and_binary_subject_classification_with_shaply.__name__,
             )
             export.create_and_write_datasheet(
@@ -653,7 +653,7 @@ class FMRIAnalyser:
             export = ExportData()
             note = export.create_note([self.training_config])
             directory_path = Utility.ensure_dir(
-                "Automated_Excel_files",
+                "Automated_Excel_Files",
                 self.binary_image_and_binary_subject_classification_with_shaply.__name__,
             )
             export.create_and_write_datasheet(
@@ -698,7 +698,7 @@ class FMRIAnalyser:
         export = ExportData()
         note = export.create_note([self.training_config, ""])
         directory_path = Utility.ensure_dir(
-            "Automated_Excel_files", self.subject_and_image_classification.__name__
+            "Automated_Excel_Files", self.subject_and_image_classification.__name__
         )
         optional_txt = None
         if self.training_config.dimension_reduction == True:
